@@ -1,0 +1,41 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/Generator.dir/Generator.cc.o"
+  "CMakeFiles/Generator.dir/Generator.cc.o.d"
+  "CMakeFiles/Generator.dir/src/ConfigurationGeometry.cc.o"
+  "CMakeFiles/Generator.dir/src/ConfigurationGeometry.cc.o.d"
+  "CMakeFiles/Generator.dir/src/Detector.cc.o"
+  "CMakeFiles/Generator.dir/src/Detector.cc.o.d"
+  "CMakeFiles/Generator.dir/src/DetectorConstruction.cc.o"
+  "CMakeFiles/Generator.dir/src/DetectorConstruction.cc.o.d"
+  "CMakeFiles/Generator.dir/src/EventAction.cc.o"
+  "CMakeFiles/Generator.dir/src/EventAction.cc.o.d"
+  "CMakeFiles/Generator.dir/src/EventActionMessenger.cc.o"
+  "CMakeFiles/Generator.dir/src/EventActionMessenger.cc.o.d"
+  "CMakeFiles/Generator.dir/src/GeomObject.cc.o"
+  "CMakeFiles/Generator.dir/src/GeomObject.cc.o.d"
+  "CMakeFiles/Generator.dir/src/Layer.cc.o"
+  "CMakeFiles/Generator.dir/src/Layer.cc.o.d"
+  "CMakeFiles/Generator.dir/src/LayerSensor.cc.o"
+  "CMakeFiles/Generator.dir/src/LayerSensor.cc.o.d"
+  "CMakeFiles/Generator.dir/src/LayerSensorHit.cc.o"
+  "CMakeFiles/Generator.dir/src/LayerSensorHit.cc.o.d"
+  "CMakeFiles/Generator.dir/src/PhysicsList.cc.o"
+  "CMakeFiles/Generator.dir/src/PhysicsList.cc.o.d"
+  "CMakeFiles/Generator.dir/src/PrimaryGeneratorAction.cc.o"
+  "CMakeFiles/Generator.dir/src/PrimaryGeneratorAction.cc.o.d"
+  "CMakeFiles/Generator.dir/src/PrimaryGeneratorMessenger.cc.o"
+  "CMakeFiles/Generator.dir/src/PrimaryGeneratorMessenger.cc.o.d"
+  "CMakeFiles/Generator.dir/src/RNGWrapper.cc.o"
+  "CMakeFiles/Generator.dir/src/RNGWrapper.cc.o.d"
+  "CMakeFiles/Generator.dir/src/RunAction.cc.o"
+  "CMakeFiles/Generator.dir/src/RunAction.cc.o.d"
+  "CMakeFiles/Generator.dir/src/Voxel.cc.o"
+  "CMakeFiles/Generator.dir/src/Voxel.cc.o.d"
+  "Generator"
+  "Generator.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/Generator.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

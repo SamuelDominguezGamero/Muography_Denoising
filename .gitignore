@@ -1,0 +1,4 @@
+MuonGeneration/data/
+*.root
+*.npy
+*.h5
