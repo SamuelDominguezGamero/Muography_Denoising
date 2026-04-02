@@ -65,6 +65,8 @@ def get_word(word_string, res_x_list, res_y_list, stroke_list, spacing=2):
 
     # Creamos el lienzo base
     word_matrix = np.zeros((max_h, total_w))
+        # n_rows = height, n_cols = width
+        # Example: res_x = 8, res_y = 10 -> 10 rows (height) y 8 columns (width)
 
     current_x = 0
     for i, img in enumerate(letters):
@@ -80,7 +82,7 @@ def get_word(word_string, res_x_list, res_y_list, stroke_list, spacing=2):
         # Avanzamos el puntero X: ancho de la letra + espaciado
         current_x += w + spacing
 
-    return word_matrix, word_matrix.shape
+    return word_matrix, word_matrix.shape # shape = (height, width)
 
 
 def dimensions_test():
