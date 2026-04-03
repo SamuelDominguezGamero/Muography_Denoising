@@ -28,8 +28,8 @@ parser.add_argument("--word_geometry", type=str, default="MUON", help="Word to b
 parser.add_argument("--FontSizeX", type=int, default=16, help="Font size in X for the word geometry. Measured in G4 voxels. Valid sizes are 8, 10, 12, 14, 16.")
 parser.add_argument("--FontSizeY", type=int, default=16, help="Font size in Y for the word geometry. Measured in G4 voxels. Valid sizes are 8, 10, 12, 14, 16.")
 parser.add_argument("--StrokeWidth", type=int, default=3, help="Stroke width for the word geometry. Measured in G4 voxels. Valid sizes are 1, 2, 3.")
-parser.add_argument("--spacing", type=int, default=2, help="Spacing between letters in the word geometry. Measured in G4 voxels. Valid sizes are 0, 1, 2, 3.")
-parser.add_argument("--depth_z_word", type=int, default=5, help="Depth in Z direction for the word geometry. Measured in G4 voxels. Valid sizes are 1, 2, 3, 4, 5.")
+parser.add_argument("--spacing", type=int, default=2, help="Spacing between letters in the word geometry. Measured in G4 voxels.")
+parser.add_argument("--depth_z_word", type=int, default=5, help="Depth in Z direction for the word geometry. Measured in G4 voxels.")
 
 parser.add_argument("--material", type=str, default="lead", help="Material for the word geometry. Default is 'lead'.")
 
