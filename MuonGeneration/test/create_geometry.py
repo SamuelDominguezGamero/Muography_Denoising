@@ -18,12 +18,18 @@ parser.add_argument("--npx", type=int, default=128, help="Number of voxels (X) G
 parser.add_argument("--npy", type=int, default=128, help="NNumber of voxels (Y) Geant4.")
 parser.add_argument("--npz", type=int, default=64, help="NNumber of voxels (Z) Geant4.")
 parser.add_argument("--ratio", type=int, default=2, help="SizeVoxelGeant4 / SizeVoxelPOCA: (natural >= 1). Keep in mind that the number of voxels in POCA should be greater than or equal to those in Geant4. The resolution of POCA is the resolution of the image that will be given to the neural network.")
+parser.add_argument("--zPosDetector_top", type=float, default=118.0,
+    help="Z position of the TOP detector (cm), above the geometry.")
+parser.add_argument("--zPosDetector_bot", type=float, default=-118.0,
+    help="Z position of the BOTTOM detector (cm), below the geometry.")
+
 
 parser.add_argument("--word_geometry", type=str, default="MUON", help="Word to be embedded in the geometry. Default is 'MUON'.")
 parser.add_argument("--FontSizeX", type=int, default=16, help="Font size in X for the word geometry. Measured in G4 voxels. Valid sizes are 8, 10, 12, 14, 16.")
 parser.add_argument("--FontSizeY", type=int, default=16, help="Font size in Y for the word geometry. Measured in G4 voxels. Valid sizes are 8, 10, 12, 14, 16.")
 parser.add_argument("--StrokeWidth", type=int, default=3, help="Stroke width for the word geometry. Measured in G4 voxels. Valid sizes are 1, 2, 3.")
 parser.add_argument("--spacing", type=int, default=2, help="Spacing between letters in the word geometry. Measured in G4 voxels. Valid sizes are 0, 1, 2, 3.")
+parser.add_argument("--depth_z_word", type=int, default=5, help="Depth in Z direction for the word geometry. Measured in G4 voxels. Valid sizes are 1, 2, 3, 4, 5.")
 
 parser.add_argument("--material", type=str, default="lead", help="Material for the word geometry. Default is 'lead'.")
 
@@ -31,11 +37,10 @@ parser.add_argument("--material", type=str, default="lead", help="Material for t
 parser.add_argument("--output_ground_truth_density", type=str, default="ground_truth_density.npy", help="Output npy file (Tensor) for the ground truth density of the geometry, assigns the geometry of the material for each of the voxels (0 for air).")
 parser.add_argument("--output_json", type=str, default="geometry.json", help="Output JSON file name for the Geant4 geometry configuration.")
 
+parser.add_argument("--visual_testing_XY_slice", action="store_true", default=False,
+    help="If True, plots the XY slice of the geometry at the central Z voxel using matplotlib.")
+
 args = parser.parse_args()
-
-
-
-
 
 
 
@@ -95,8 +100,6 @@ ratio: int = args.ratio # must be a natural number >= 1
 # --- DEBUGGING --- 
 if ratio < 1 or not isinstance(ratio, int):
     sys.exit("[ERROR] ----- Ratio must be a natural number greater than or equal to 1.")
-elif ratio != npx/nx or ratio != npy/ny or ratio != npz/nz:
-    sys.exit("[ERROR] ----- Ratio does not match the number of voxels in POCA and Geant4.")
 # ---           ---    
 
 
@@ -159,7 +162,7 @@ def embed_word_in_geometry(word_matrix, boolean_matrix, start_vox: tuple, depth_
     ny_word, nx_word = word_matrix.shape 
     nx_world, ny_world, nz_world = boolean_matrix.shape # careful interpreting dimensions
     
-    if start_vox == None: # Default: insert in the center of the world
+    if start_vox is None: # Default: insert in the center of the world
         z_start = (nz_world // 2) - 2
         x_start = (nx_world // 2) - (nx_word // 2)
         y_start = (ny_world // 2) - (ny_word // 2)
@@ -195,7 +198,15 @@ def embed_word_in_geometry(word_matrix, boolean_matrix, start_vox: tuple, depth_
 
 #### EXECUTION OF THE PROGRAM ####
 
-word_matrix, shape_word_YX = get_word(word=args.word_geometry, font_size_x=args.FontSizeX, font_size_y=args.FontSizeY, stroke_width=args.StrokeWidth, spacing=args.spacing) 
+word_matrix, shape_word_YX = word_matrix, shape_word_YX = get_word(
+    word_string=args.word_geometry,
+    res_x_list=args.FontSizeX,
+    res_y_list=args.FontSizeY,
+    stroke_list=args.StrokeWidth,
+    spacing=args.spacing
+)
+
+print("[CORRECT] ----- Word matrix created successfully." )
 
 
  # 3. Insertar la palabra en el centro del mundo con un grosor de 5 vóxeles en Z
@@ -206,9 +217,10 @@ MatrixGeometryBoolean = embed_word_in_geometry(
     word_matrix = word_matrix,
     boolean_matrix = MatrixGeometryBoolean,
     start_vox = None, # Default: insert in the center of the world
-    depth_z = 5
+    depth_z = args.depth_z_word
 )
 
+print("[CORRECT] ----- Word matrix inserted successfully in G4 geometry." )
 
 
 MatrixGeometryMaterials[MatrixGeometryBoolean == 1] = args.material
@@ -230,57 +242,170 @@ MatrixGeometryDensity = density_dictionary[args.material] * MatrixGeometryBoolea
 np.save(args.output_ground_truth_density, MatrixGeometryDensity)
 
 
+
 ### CREATING THE JSON FILE FOR GEANT4 ###
-# print para los detectores: 
+
+# loop through each voxel. The one that is filled, we assign all its features (material, size, center) to the dictionary that will be exported to json. The one that is empty, we can ignore it (or assign it as air, depending on how we want to represent the geometry in Geant4). 
+
+global_dictionary = {
+    "theWorld": {
+    "xSizeWorld": Lx + 2,
+    "ySizeWorld": Ly + 2,
+    "zSizeWorld": Lz + 2,
+    "sizeBoxCRY": Lx,
+    "zOffsetCRY": Lz / 2.0,
+    },
+    "Detectors": [], # fill with detector_dictionaries
+    "VoxelConfig": {}, # usually should remain empty
+    "TheVoxels": [], # fill with voxel_dictionaries
+}
+
+
+Voxel_Example = {
+            "xPosVoxel": 0.0,
+            "yPosVoxel": 0.0,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": SizeG4Voxel_x,
+            "ySizeVoxel": SizeG4Voxel_y,
+            "zSizeVoxel": SizeG4Voxel_z,
+            "materialVoxel": "lead"
+        }
+
+
+# Loop through voxels
+for ix in range(nx):
+    for iy in range(ny):
+        for iz in range(nz):
+            if MatrixGeometryBoolean[ix, iy, iz] == 1: # only consider filled voxels
+                voxel_dict = {
+                    "xPosVoxel": float(MatrixGeometryCenter[ix, iy, iz, 0]),
+                    "yPosVoxel": float(MatrixGeometryCenter[ix, iy, iz, 1]),
+                    "zPosVoxel": float(MatrixGeometryCenter[ix, iy, iz, 2]),
+                    "xSizeVoxel": float(SizeG4Voxel_x),
+                    "ySizeVoxel": float(SizeG4Voxel_y),
+                    "zSizeVoxel": float(SizeG4Voxel_z),
+                    "materialVoxel": str(MatrixGeometryMaterials[ix, iy, iz])
+                }
+                global_dictionary["TheVoxels"].append(voxel_dict)
+
+print("[CORRECT] ----- Voxel dictionaries created successfully." )
+
+
+# detectors:
+Detectors = []
 nDetectors = 2
-nLayers = 4
+nLayers_per_Detector = 2
+total_layers = nDetectors * nLayers_per_Detector
+global_dictionary["Detectors"] = [ # should be replaced with something more modular, pending
+        {
+            "xPosDetector": 0,
+            "yPosDetector": 0,
+            "zPosDetector": args.zPosDetector_top,
+            "xDirDetector": 0,
+            "yDirDetector": 0,
+            "zDirDetector": 0,
+            "xSizeDetector": Lx,
+            "ySizeDetector": Ly,
+            "zSizeDetector": 20,
+            "Layers": [
+                {
+                    "xPosLayer": 0,
+                    "yPosLayer": 0,
+                    "zPosLayer": 0,
+                    "xDirLayer": 0,
+                    "yDirLayer": 0,
+                    "zDirLayer": 0,
+                    "xSizeLayer": Lx,
+                    "ySizeLayer": Ly,
+                    "zSizeLayer": 1
+                },
+                {
+                    "xPosLayer": 0,
+                    "yPosLayer": 0,
+                    "zPosLayer": -10,
+                    "xDirLayer": 0,
+                    "yDirLayer": 0,
+                    "zDirLayer": 0,
+                    "xSizeLayer": Lx,
+                    "ySizeLayer": Ly,
+                    "zSizeLayer": 1
+                }
+            ]
+        },
+        {
+            "xPosDetector": 0,
+            "yPosDetector": 0,
+            "zPosDetector": args.zPosDetector_bot,
+            "xDirDetector": 0,
+            "yDirDetector": 0,
+            "zDirDetector": 0,
+            "xSizeDetector": Lx,
+            "ySizeDetector": Ly,
+            "zSizeDetector": 20,
+            "Layers": [
+                {
+                    "xPosLayer": 0,
+                    "yPosLayer": 0,
+                    "zPosLayer": 0,
+                    "xDirLayer": 0,
+                    "yDirLayer": 0,
+                    "zDirLayer": 0,
+                    "xSizeLayer": Lx,
+                    "ySizeLayer": Ly,
+                    "zSizeLayer": 1
+                },
+                {
+                    "xPosLayer": 0,
+                    "yPosLayer": 0,
+                    "zPosLayer": 10,
+                    "xDirLayer": 0,
+                    "yDirLayer": 0,
+                    "zDirLayer": 0,
+                    "xSizeLayer": Lx,
+                    "ySizeLayer": Ly,
+                    "zSizeLayer": 1
+                }
+            ]
+        }
+]
 
- 
-# #We take the structure from this basic json file and adapt the dictionary
-# with open('../data/confExample.json', 'r') as f:
-#     data_ = json.load(f)
 
-# theWorld = data_['theWorld']
-# detector = data_['Detectors'][0]
-# layer = detector['Layers'][0]
-# sensor = layer['Sensors'][0]
+print("[CORRECT] ----- Full json file information created successfully." )
 
-# sensors = []
-# for isensor in range(0, nSensors):
-#     copysens = sensor.copy()
-#     sensors.append(copysens)
-# layer['Sensors'] = sensors
+# translate global_dictionary to a full json file
+with open(args.output_json, 'w') as f:
+    json.dump(global_dictionary, f, indent=4)
 
-# layers = []
-# for ilayer in range(0, nLayers):
-#     copylayer = layer.copy()
-#     layers.append(copylayer)
-# detector['Layers'] = layers
+print("[CORRECT] ----- Json file created successfully, avaliable at: " + args.output_json )
 
-# detectors = []
-# for idetector in range(0, nDetectors):
-#     copydetector = detector.copy()
-#     detectors.append(copydetector)
+### VISUAL TESTING ###
+if args.visual_testing_XY_slice:
+    print("[INFO] ----- Visual testing enabled. Plotting XY slice of the geometry at the central Z voxel...")
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
 
+    # We take the central Z slice (same one used for embedding)
+    z_center = (nz // 2) - 2  # same logic as embed_word_in_geometry with start_vox=None
+    xy_slice = MatrixGeometryBoolean[:, :, z_center]  # shape (nx, ny)
 
-# data = {} 
-# data['theWorld'] = theWorld
-# data['Detectors'] = detectors
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.imshow(
+        xy_slice.T,           # transpose so X is horizontal and Y is vertical
+        origin="lower",       # Y=0 at the bottom, consistent with physics convention
+        cmap="Greys",
+        interpolation="nearest",
+        extent=[-Lx/2, Lx/2, -Ly/2, Ly/2]  # real-world coordinates in cm
+    )
 
+    ax.set_title(f"XY slice at Z voxel {z_center} (zPos = {MatrixGeometryCenter[0, 0, z_center, 2]:.1f} cm)\n"
+                 f"Word: '{args.word_geometry}' | FontSize: {args.FontSizeX}x{args.FontSizeY} | "
+                 f"Stroke: {args.StrokeWidth} | G4 voxel size: {SizeG4Voxel_x:.1f} cm")
+    ax.set_xlabel("X (cm)")
+    ax.set_ylabel("Y (cm)")
 
+    lead_patch = mpatches.Patch(color="black", label="lead")
+    air_patch  = mpatches.Patch(color="white", label="air")
+    ax.legend(handles=[lead_patch, air_patch], loc="upper right")
 
-
-# stepxp = stepx * ratio 
-# stepyp = stepy * ratio 
-# stepzp = stepy * ratio 
-
-# nxp = math.floor(nx / ratio) 
-# nyp = math.floor(ny / ratio) 
-# nzp = math.floor(nz / ratio) 
-
-# print('Separacion---------------------------') 
-
-# for ix in range(nxp): 
-# for iy in range(nyp): 
-# for iz in range(nzp): 
-# print('There is a voxel at', -Lx/2.0 + ix * stepxp, -Ly/2.0 + iy * stepyp, -Lz/2.0 + iz * stepzp)
+    plt.tight_layout()
+    plt.show()
