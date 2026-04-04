@@ -65,7 +65,7 @@ else:
     sys.exit(1)
 
 
-
+print("Debugging: everything ok until here")
 
 
 # for loop generating the geometry files
