@@ -17,9 +17,9 @@ path_poca_output="/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data
 
 ##### 1st: Running the simulation #####
 "$path_generator" \
-    --input "$path_conf_geom/confMUON_Custom.json" \
-    --output "$path_output_raw/output_prueba_1000kmuons.root" \
-    --number 1000000 \
+    --input "$path_conf_geom/geometry.json" \
+    --output "$path_output_raw/output_generacion_geometrias.root" \
+    --number 10000 \
     --seed 1
 
 echo '[[[[[[[[[[[[[[[[[[SUCCESSFUL MONTECARLO SIMULATION]]]]]]]]]]]]]]]]]]]]]]]]'
