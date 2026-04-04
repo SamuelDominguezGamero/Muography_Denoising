@@ -6,6 +6,9 @@ import pandas as pd
 import argparse
 from bitmaps_letters import get_word, get_letter, dimensions_test
 
+# [¡¡AÑADIR!!]: crear una configuración geométrica SIN VÓXELES, para poder hacer normalizaciones de flujo de muones
+
+
 # Debugging: 
 dimensions_test() # should stop the whole program if the dimensions are not correct for the defined font sizes and stroke widths. This is crucial to ensure that the generated word matrices fit properly in the Geant4 geometry.
 
@@ -16,7 +19,7 @@ parser.add_argument("--Lpy", type=float, default=512.0, help="Dimension Y (cm)."
 parser.add_argument("--Lpz", type=float, default=512.0, help="Dimension Z (cm).")
 parser.add_argument("--npx", type=int, default=128, help="Number of voxels (X) Geant4.")
 parser.add_argument("--npy", type=int, default=128, help="NNumber of voxels (Y) Geant4.")
-parser.add_argument("--npz", type=int, default=64, help="NNumber of voxels (Z) Geant4.")
+parser.add_argument("--npz", type=int, default=64, help="Number of voxels (Z) Geant4.")
 parser.add_argument("--ratio", type=int, default=2, help="SizeVoxelGeant4 / SizeVoxelPOCA: (natural >= 1). Keep in mind that the number of voxels in POCA should be greater than or equal to those in Geant4. The resolution of POCA is the resolution of the image that will be given to the neural network.")
 parser.add_argument("--zPosDetector_top", type=float, default=118.0,
     help="Z position of the TOP detector (cm), above the geometry.")
@@ -28,8 +31,8 @@ parser.add_argument("--word_geometry", type=str, default="MUON", help="Word to b
 parser.add_argument("--FontSizeX", type=int, default=16, help="Font size in X for the word geometry. Measured in G4 voxels. Valid sizes are 8, 10, 12, 14, 16.")
 parser.add_argument("--FontSizeY", type=int, default=16, help="Font size in Y for the word geometry. Measured in G4 voxels. Valid sizes are 8, 10, 12, 14, 16.")
 parser.add_argument("--StrokeWidth", type=int, default=3, help="Stroke width for the word geometry. Measured in G4 voxels. Valid sizes are 1, 2, 3.")
-parser.add_argument("--spacing", type=int, default=2, help="Spacing between letters in the word geometry. Measured in G4 voxels. Valid sizes are 0, 1, 2, 3.")
-parser.add_argument("--depth_z_word", type=int, default=5, help="Depth in Z direction for the word geometry. Measured in G4 voxels. Valid sizes are 1, 2, 3, 4, 5.")
+parser.add_argument("--spacing", type=int, default=2, help="Spacing between letters in the word geometry. Measured in G4 voxels.")
+parser.add_argument("--depth_z_word", type=int, default=1, help="Depth in Z direction for the word geometry. Measured in G4 voxels.")
 
 parser.add_argument("--material", type=str, default="lead", help="Material for the word geometry. Default is 'lead'.")
 
@@ -198,7 +201,7 @@ def embed_word_in_geometry(word_matrix, boolean_matrix, start_vox: tuple, depth_
 
 #### EXECUTION OF THE PROGRAM ####
 
-word_matrix, shape_word_YX = word_matrix, shape_word_YX = get_word(
+word_matrix, shape_word_YX = get_word(
     word_string=args.word_geometry,
     res_x_list=args.FontSizeX,
     res_y_list=args.FontSizeY,

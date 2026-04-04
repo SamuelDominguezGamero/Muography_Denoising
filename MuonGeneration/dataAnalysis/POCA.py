@@ -1,35 +1,15 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-
-# Forzar modo Batch para evitar que ROOT intente abrir ventanas inexistentes
-os.environ['ROOT_TERMINAL_UTILS'] = '0'
-
 import numpy as np
 import argparse
+import ROOT
 
-try:
-    import ROOT
-    ROOT.gROOT.SetBatch(True)
-except ImportError:
-    ROOT = None
-
-# Forzar que los prints salgan SIEMPRE
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, flush=True, **kwargs)
-    print(*args, file=sys.stdout, flush=True, **kwargs)
-
-eprint("*Libraries imported successfully ------ [CORRECT]")
 
 def get_poca_info_ROOT(root_input_file):
     if ROOT is None:
-        eprint("Error: ROOT is not available.")
+        print("Error: ROOT is not available.")
         return None, None
-
-    # Limitar hilos para evitar bloqueo en SLURM
-    n_cpus = int(os.environ.get('SLURM_CPUS_PER_TASK', 4))
-    ROOT.EnableImplicitMT(n_cpus)
-    eprint(f"Initializing POCA with {n_cpus} cores on: {root_input_file}")
 
     df = ROOT.RDataFrame("events", root_input_file)
 
@@ -54,11 +34,11 @@ def get_poca_info_ROOT(root_input_file):
     df = df.Define("cos_theta", "B / (sqrt(C) * sqrt(E))")\
            .Define("theta", "acos(fmax(-1.0, fmin(1.0, cos_theta)))")
 
-    eprint("Executing RDataFrame graph...")
+    print("Executing RDataFrame graph...")
     # AddProgressBar a veces da problemas en clusters, lo quitamos para asegurar
     res = df.AsNumpy(columns=["poca_x", "poca_y", "poca_z", "theta"])
     
-    eprint(f"POCA applied. Events: {len(res['theta'])}")
+    print(f"POCA applied. Events: {len(res['theta'])}")
     return res, res["theta"]
 
 parser = argparse.ArgumentParser()
@@ -71,7 +51,7 @@ def main():
     X_LIM, Y_LIM, Z_LIM = 128.0, 128.0, 64.0
     NX, NY, NZ = 256, 256, 128
     
-    eprint("Geometry loaded. Starting POCA...")
+    print("Geometry loaded. Starting POCA...")
     poca_dict, theta = get_poca_info_ROOT(args.input)
     if poca_dict is None: return
 
@@ -93,7 +73,7 @@ def main():
         os.makedirs(output_dir)
 
     np.save(args.output, {"n_events": grid_N, "sum_theta": grid_sum, "sum_theta_sq": grid_sum_sq})
-    eprint(f"Done. Saved to {args.output}")
+    print(f"Done. Saved to {args.output}")
 
 if __name__ == "__main__":
     main()
