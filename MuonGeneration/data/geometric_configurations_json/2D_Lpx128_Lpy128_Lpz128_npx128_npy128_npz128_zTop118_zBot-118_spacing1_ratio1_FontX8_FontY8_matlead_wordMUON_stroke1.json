@@ -1,8 +1,8 @@
 {
     "theWorld": {
-        "xSizeWorld": 130.0,
-        "ySizeWorld": 130.0,
-        "zSizeWorld": 130.0,
+        "xSizeWorld": 128.0,
+        "ySizeWorld": 128.0,
+        "zSizeWorld": 128.0,
         "sizeBoxCRY": 128.0,
         "zOffsetCRY": 64.0
     },
