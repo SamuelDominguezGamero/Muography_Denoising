@@ -5,30 +5,30 @@ This file automates the full simulation pipeline:
        - Runs the Geant4 Monte Carlo simulation
        - Correlates muon tracks (makeHLTuple.py)
        - Runs the POCA reconstruction (POCA.py)
+  3. Submits a merge job per geometry with --dependency=afterok,
+     so it only runs when ALL jobs for that geometry finish successfully.
 
-Author: Samuel Dominguez
 """
 
 import subprocess
 import os
 import sys
-import glob
 
 
 # ===========================================================================
 # CONTROL FLAGS
 # ===========================================================================
-create_geometries = True   # set to False to skip geometry creation
-simulate          = False  # set to True to submit SLURM jobs (cluster only)
-environment       = "local"  # "local" or "cluster"
-dimension         = "2D"     # "2D" or "3D", used as prefix in filenames
+create_geometries = True
+simulate          = True  # set to True to submit SLURM jobs (cluster only)
+environment       = "cluster"
+dimension         = "2D"
 
 
 # ===========================================================================
 # SECURITY CHECKS
 # ===========================================================================
 if environment == "local":
-    simulate = False  # simulation can only run in the cluster
+    simulate = False
 
 if not create_geometries:
     sys.exit("[INFO] create_geometries=False. Set it to True to create geometries.")
@@ -39,6 +39,7 @@ if not create_geometries:
 # ===========================================================================
 SCRIPT_DIR             = os.path.dirname(os.path.abspath(__file__))
 CREATE_GEOMETRY_SCRIPT = os.path.join(SCRIPT_DIR, "create_geometry.py")
+MERGE_SCRIPT           = os.path.join(SCRIPT_DIR, "merge_results.py")
 
 if environment == "cluster":
     PATH_geometry_files = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
@@ -46,6 +47,7 @@ if environment == "cluster":
     PATH_output_raw     = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_raw"
     PATH_preprocessed   = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_preprocessed"
     PATH_poca_output    = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/post_POCA_data"
+    PATH_merged_output  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data"
     PATH_logs           = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/logs"
     PATH_data_analysis  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/dataAnalysis"
     PATH_generator      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration-build/Generator"
@@ -57,10 +59,11 @@ elif environment == "local":
     PATH_output_raw     = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_raw"
     PATH_preprocessed   = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_preprocessed"
     PATH_poca_output    = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/post_POCA_data"
+    PATH_merged_output  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/merged_poca_data"
     PATH_logs           = "/home/samuel/Work/Muography_Denoising/MuonGeneration/logs"
     PATH_data_analysis  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/dataAnalysis"
-    PATH_generator      = None  # not available locally
-    PATH_setup          = None  # not available locally
+    PATH_generator      = None
+    PATH_setup          = None
 
 else:
     sys.exit("[ERROR] environment must be 'local' or 'cluster'.")
@@ -70,28 +73,27 @@ print(f"[INFO] Script directory: {SCRIPT_DIR}")
 
 
 # ===========================================================================
-# GEOMETRY PARAMETERS
-# Fixed POCA voxelization parameters (should remain constant across dataset)
+# GEOMETRY PARAMETERS (fixed)
 # ===========================================================================
-Lpx = 128   # physical size of the reconstruction volume in X [cm]
-Lpy = 128   # physical size of the reconstruction volume in Y [cm]
-Lpz = 128   # physical size of the reconstruction volume in Z [cm]
-npx = 128   # number of POCA voxels in X
-npy = 128   # number of POCA voxels in Y
-npz = 128   # number of POCA voxels in Z
-zPosDetector_top =  118  # Z position of the top detector [cm]
-zPosDetector_bot = -118  # Z position of the bottom detector [cm]
+Lpx = 128
+Lpy = 128
+Lpz = 128
+npx = 128
+npy = 128
+npz = 128
+zPosDetector_top =  118
+zPosDetector_bot = -118
 
 
 # ===========================================================================
-# GEOMETRY VARIATIONS (dataset sweep)
+# GEOMETRY VARIATIONS
 # ===========================================================================
-spacings       = [1]        # spacing between letters [G4 voxels]
-ratios         = [1]        # G4 voxel size / POCA voxel size
-FontsSizeX     = [8]        # font size in X [G4 voxels] — available: 8, 10, 12, 14, 16
-materials      = ["lead"]   # available: "lead"
-words_geometry = ["MUON"]   # words to embed in the geometry
-strokes        = [1]        # stroke width [G4 voxels]
+spacings       = [1]
+ratios         = [1]
+FontsSizeX     = [8]
+materials      = ["lead"]
+words_geometry = ["MUON"]
+strokes        = [1]
 
 total_geometries = (
     len(spacings) * len(ratios) * len(FontsSizeX) *
@@ -158,7 +160,7 @@ for spacing in spacings:
                             "--material",         material,
                             "--word_geometry",    word,
                             "--StrokeWidth",      str(stroke),
-                            "--output_json",               output_json,
+                            "--output_json",                 output_json,
                             "--output_ground_truth_density", output_density,
                         ]
 
@@ -169,14 +171,12 @@ for spacing in spacings:
                         else:
                             print(f"[CORRECT] Geometry {i}/{total_geometries} created: {namefile}")
 
-
 print("\n[CORRECT] ALL GEOMETRIES CREATED SUCCESSFULLY")
 print("="*60 + "\n")
 
 
 # ===========================================================================
-# STEP 2: SLURM JOB SUBMISSION
-# One job per geometry x seed. Each job runs: Geant4 + makeHLTuple + POCA
+# STEP 2: SLURM JOB SUBMISSION + MERGE WITH DEPENDENCY
 # ===========================================================================
 print("="*60)
 print("STEP 2: SLURM JOB SUBMISSION")
@@ -185,13 +185,13 @@ print("="*60)
 if not simulate:
     sys.exit("[INFO] simulate=False. Set it to True to submit SLURM jobs.")
 
-os.makedirs(PATH_logs, exist_ok=True)
+os.makedirs(PATH_logs,          exist_ok=True)
+os.makedirs(PATH_merged_output, exist_ok=True)
 
 jobs_submitted = 0
 jobs_failed    = 0
+merges_submitted = 0
 
-# Re-iterate over the same geometry sweep so we have all parameters available
-# without needing to parse the JSON files (which would risk breaking the C++ pipeline)
 for spacing in spacings:
     for ratio in ratios:
         for x in FontsSizeX:
@@ -199,7 +199,6 @@ for spacing in spacings:
                 for word in words_geometry:
                     for stroke in strokes:
 
-                        # Reconstruct the geometry name (must match Step 1 exactly)
                         namefile = (
                             f"{dimension}"
                             f"_Lpx{Lpx}_Lpy{Lpy}_Lpz{Lpz}"
@@ -211,23 +210,24 @@ for spacing in spacings:
                         )
                         geometry_file = os.path.join(PATH_geometry_files, namefile + ".json")
 
-                        # Safety check: make sure the geometry file exists before submitting
                         if not os.path.exists(geometry_file):
                             print(f"[ERROR] Geometry file not found, skipping: {geometry_file}")
                             continue
 
                         print(f"\n[INFO] Submitting {n_jobs_per_geometry} jobs for: {namefile}")
 
+                        # Collect job IDs for this geometry to use in the merge dependency
+                        job_ids = []
+
                         for job in range(n_jobs_per_geometry):
                             seed = job
 
-                            # Output file paths for this specific job
-                            out_raw   = os.path.join(PATH_output_raw,  f"Out_{namefile}_seed{seed}.root")
-                            out_pre   = os.path.join(PATH_preprocessed, f"Pre_{namefile}_seed{seed}.root")
-                            out_poca  = os.path.join(PATH_poca_output,  f"POCA_{namefile}_seed{seed}.npy")
-                            out_log   = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.out")
-                            out_err   = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.err")
-                            out_sh    = os.path.join(PATH_logs, f"job_{namefile}_seed{seed}.sh")
+                            out_raw  = os.path.join(PATH_output_raw,   f"Out_{namefile}_seed{seed}.root")
+                            out_pre  = os.path.join(PATH_preprocessed, f"Pre_{namefile}_seed{seed}.root")
+                            out_poca = os.path.join(PATH_poca_output,  f"POCA_{namefile}_seed{seed}.npy")
+                            out_log  = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.out")
+                            out_err  = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.err")
+                            out_sh   = os.path.join(PATH_logs, f"job_{namefile}_seed{seed}.sh")
 
                             job_script = f"""#!/bin/bash
 #SBATCH --job-name=muon_seed{seed}
@@ -240,9 +240,7 @@ for spacing in spacings:
 
 source {PATH_setup}
 
-echo "[INFO] ======================================================"
 echo "[INFO] Job started: {namefile} | seed={seed}"
-echo "[INFO] ======================================================"
 
 # --- 1st: Geant4 Monte Carlo simulation ---
 echo "[INFO] Running Geant4 simulation..."
@@ -251,7 +249,6 @@ echo "[INFO] Running Geant4 simulation..."
     --output {out_raw} \\
     --number {n_muons_per_job} \\
     --seed   {seed}
-
 if [ $? -ne 0 ]; then echo "[ERROR] Geant4 failed. Aborting."; exit 1; fi
 echo "[CORRECT] Geant4 done."
 
@@ -259,9 +256,8 @@ echo "[CORRECT] Geant4 done."
 echo "[INFO] Running makeHLTuple..."
 python3 -u {PATH_data_analysis}/makeHLTuple.py \\
     --input  {out_raw} \\
-    --conf {geometry_file} \\
-    --output {out_pre} 
-
+    --conf   {geometry_file} \\
+    --output {out_pre}
 if [ $? -ne 0 ]; then echo "[ERROR] makeHLTuple failed. Aborting."; exit 1; fi
 echo "[CORRECT] makeHLTuple done."
 
@@ -272,16 +268,11 @@ python3 -u {PATH_data_analysis}/POCA.py \\
     --output {out_poca} \\
     --Lpx {Lpx} --Lpy {Lpy} --Lpz {Lpz} \\
     --npx {npx} --npy {npy} --npz {npz}
-
 if [ $? -ne 0 ]; then echo "[ERROR] POCA failed. Aborting."; exit 1; fi
 echo "[CORRECT] POCA done."
 
-echo "[CORRECT] ======================================================"
 echo "[CORRECT] Job finished: {namefile} | seed={seed}"
-echo "[CORRECT] ======================================================"
 """
-
-                            # Write the job script to disk and submit it
                             with open(out_sh, "w") as f:
                                 f.write(job_script)
 
@@ -294,11 +285,70 @@ echo "[CORRECT] ======================================================"
                                 print(f"[ERROR] sbatch failed: seed={seed} | {result.stderr.strip()}")
                                 jobs_failed += 1
                             else:
-                                print(f"[SUBMITTED] seed={seed:04d} --> {result.stdout.strip()}")
+                                # Extract job ID from "Submitted batch job 12345"
+                                job_id = result.stdout.strip().split()[-1]
+                                job_ids.append(job_id)
+                                print(f"[SUBMITTED] seed={seed:04d} --> job_id={job_id}")
                                 jobs_submitted += 1
+
+                        # ------------------------------------------------------
+                        # Submit merge job with dependency on ALL jobs finishing
+                        # --dependency=afterok:id1:id2:...:idN means the merge
+                        # job only runs if ALL listed jobs finish successfully.
+                        # If any job fails, the merge is cancelled automatically.
+                        # ------------------------------------------------------
+                        if not job_ids:
+                            print(f"[WARNING] No jobs submitted for {namefile}, skipping merge.")
+                            continue
+
+                        dependency_str = "afterok:" + ":".join(job_ids)
+                        out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}.npy")
+                        merge_log  = os.path.join(PATH_logs, f"log_merge_{namefile}.out")
+                        merge_err  = os.path.join(PATH_logs, f"log_merge_{namefile}.err")
+                        merge_sh   = os.path.join(PATH_logs, f"job_merge_{namefile}.sh")
+
+                        merge_script = f"""#!/bin/bash
+#SBATCH --job-name=merge_{word}
+#SBATCH --output={merge_log}
+#SBATCH --error={merge_err}
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=8G
+#SBATCH --time=00:30:00
+
+source {PATH_setup}
+
+echo "[INFO] Starting merge for: {namefile}"
+
+python3 -u {MERGE_SCRIPT} \\
+    --namefile         {namefile} \\
+    --n_jobs           {n_jobs_per_geometry} \\
+    --npx              {npx} \\
+    --npy              {npy} \\
+    --npz              {npz} \\
+    --path_poca_output {PATH_poca_output} \\
+    --output           {out_merged}
+
+echo "[CORRECT] Merge finished for: {namefile}"
+"""
+                        with open(merge_sh, "w") as f:
+                            f.write(merge_script)
+
+                        result = subprocess.run(
+                            ["sbatch", f"--dependency={dependency_str}", merge_sh],
+                            capture_output=True, text=True
+                        )
+
+                        if result.returncode != 0:
+                            print(f"[ERROR] Merge job submission failed: {result.stderr.strip()}")
+                        else:
+                            merge_id = result.stdout.strip().split()[-1]
+                            print(f"[SUBMITTED] Merge job --> job_id={merge_id} (depends on {len(job_ids)} jobs)")
+                            merges_submitted += 1
 
 
 print("\n" + "="*60)
-print(f"[INFO] Jobs submitted: {jobs_submitted}")
-print(f"[INFO] Jobs failed:    {jobs_failed}")
+print(f"[INFO] Simulation jobs submitted: {jobs_submitted}")
+print(f"[INFO] Simulation jobs failed:    {jobs_failed}")
+print(f"[INFO] Merge jobs submitted:      {merges_submitted}")
 print("="*60)
