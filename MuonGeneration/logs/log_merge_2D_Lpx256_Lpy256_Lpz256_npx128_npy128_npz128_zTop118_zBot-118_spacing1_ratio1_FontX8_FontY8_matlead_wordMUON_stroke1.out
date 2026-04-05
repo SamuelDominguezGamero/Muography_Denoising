@@ -1,0 +1,7 @@
+[INFO] Starting merge for: 2D_Lpx256_Lpy256_Lpz256_npx128_npy128_npz128_zTop118_zBot-118_spacing1_ratio1_FontX8_FontY8_matlead_wordMUON_stroke1
+[INFO] Merging 10 POCA files for: 2D_Lpx256_Lpy256_Lpz256_npx128_npy128_npz128_zTop118_zBot-118_spacing1_ratio1_FontX8_FontY8_matlead_wordMUON_stroke1
+[WARNING] Missing file for seed=0: /gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/post_POCA_data/POCA_2D_Lpx256_Lpy256_Lpz256_npx128_npy128_npz128_zTop118_zBot-118_spacing1_ratio1_FontX8_FontY8_matlead_wordMUON_stroke1_seed0.npy
+[WARNING] 1 files missing: seeds [0]
+[INFO] Total muon events accumulated: 2,839
+[CORRECT] Merged result saved to: /gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data/MERGED_2D_Lpx256_Lpy256_Lpz256_npx128_npy128_npz128_zTop118_zBot-118_spacing1_ratio1_FontX8_FontY8_matlead_wordMUON_stroke1.npy
+[CORRECT] Merge finished for: 2D_Lpx256_Lpy256_Lpz256_npx128_npy128_npz128_zTop118_zBot-118_spacing1_ratio1_FontX8_FontY8_matlead_wordMUON_stroke1
