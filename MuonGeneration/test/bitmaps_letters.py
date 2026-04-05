@@ -41,7 +41,6 @@ def get_word(word_string, res_x_list, res_y_list, stroke_list, spacing=2):
         stroke_list (list o int): Lista de strokes ej: [1, 1, 2, 3]
         spacing (int): Espaciado entre letras.
     """
-    word_string = word_string.upper()
     n = len(word_string)
 
     # Normalización: Si se pasa un int, se convierte en lista repetida para todas las letras
@@ -49,7 +48,7 @@ def get_word(word_string, res_x_list, res_y_list, stroke_list, spacing=2):
     if isinstance(res_y_list, int): res_y_list = [res_y_list] * n
     if isinstance(stroke_list, int): stroke_list = [stroke_list] * n
 
-    letters = []
+    letters = [] # lista de matrices
     for i, char in enumerate(word_string):
         # Buscamos cada letra con sus parámetros específicos
         img = get_letter(res_x_list[i], res_y_list[i], char, stroke_list[i])

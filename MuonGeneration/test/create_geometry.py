@@ -77,14 +77,14 @@ left_down_corner = np.array([-Lpx/2.0, -Lpy/2.0, -Lpz/2.0])
 first_voxel = left_down_corner + size_vec/2.0
 
 
-voxels_centers = []
+voxels_centers_poca = []
 test_print = False
 for ix in range(npx): 
     for iy in range(npy): 
         for iz in range(npz): 
             desplazamiento = np.array([ix * size_vec[0], iy * size_vec[1], iz * size_vec[2]])
             voxel_center = first_voxel + desplazamiento
-            voxels_centers.append(voxel_center)
+            voxels_centers_poca.append(voxel_center)
             if test_print: # debugging
                 print(f"Voxel (POCA) center at: {voxel_center}")
             
@@ -111,13 +111,14 @@ if npx % ratio != 0 or npy % ratio != 0 or npz % ratio != 0:
              f"Otherwise, the cells in Geant4 and POCA will not align spatially.")
 
 # once tests are passed: 
+# numbers of voxels in geant4 (real geometry):
 nx = npx // ratio # should be an integer
 ny = npy // ratio 
 nz = npz // ratio
 
 Lx = Lpx # cm
 Ly = Lpy
-Lz = Lpz
+Lz = Lpz*2 # in POCA we are not really interested in the whole z range, we don't care about the detectors 
 
 SizeG4Voxel_x = Lx/nx
 SizeG4Voxel_y = Ly/ny
