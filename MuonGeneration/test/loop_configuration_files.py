@@ -259,7 +259,8 @@ echo "[CORRECT] Geant4 done."
 echo "[INFO] Running makeHLTuple..."
 python3 -u {PATH_data_analysis}/makeHLTuple.py \\
     --input  {out_raw} \\
-    --output {out_pre}
+    --conf {geometry_file} \\
+    --output {out_pre} 
 
 if [ $? -ne 0 ]; then echo "[ERROR] makeHLTuple failed. Aborting."; exit 1; fi
 echo "[CORRECT] makeHLTuple done."

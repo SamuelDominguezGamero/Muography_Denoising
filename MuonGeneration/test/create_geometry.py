@@ -14,12 +14,12 @@ dimensions_test() # should stop the whole program if the dimensions are not corr
 
 
 parser = argparse.ArgumentParser(description="Creation of geometry from POCA resolution ---> key parameter = ratio.")
-parser.add_argument("--Lpx", type=float, default=512.0, help="Dimension X (cm).")
-parser.add_argument("--Lpy", type=float, default=512.0, help="Dimension Y (cm).")
-parser.add_argument("--Lpz", type=float, default=512.0, help="Dimension Z (cm).")
+parser.add_argument("--Lpx", type=float, default=128, help="Dimension X (cm).")
+parser.add_argument("--Lpy", type=float, default=128, help="Dimension Y (cm).")
+parser.add_argument("--Lpz", type=float, default=128, help="Dimension Z (cm).")
 parser.add_argument("--npx", type=int, default=128, help="Number of voxels (X) Geant4.")
 parser.add_argument("--npy", type=int, default=128, help="NNumber of voxels (Y) Geant4.")
-parser.add_argument("--npz", type=int, default=64, help="Number of voxels (Z) Geant4.")
+parser.add_argument("--npz", type=int, default=128, help="Number of voxels (Z) Geant4.")
 parser.add_argument("--ratio", type=int, default=2, help="SizeVoxelGeant4 / SizeVoxelPOCA: (natural >= 1). Keep in mind that the number of voxels in POCA should be greater than or equal to those in Geant4. The resolution of POCA is the resolution of the image that will be given to the neural network.")
 parser.add_argument("--zPosDetector_top", type=float, default=118.0,
     help="Z position of the TOP detector (cm), above the geometry.")
@@ -242,8 +242,21 @@ for element in np.unique(MatrixGeometryMaterials):
 
 density_dictionary = {"lead": 1, "air": 0} # not realistic, just for testing purposes, SHOULD BE CHANGED!!
 MatrixGeometryDensity = density_dictionary[args.material] * MatrixGeometryBoolean # assign density based on the material of each voxel
-np.save(args.output_ground_truth_density, MatrixGeometryDensity)
 
+# Upsample from Geant4 resolution (nx, ny, nz) to POCA resolution (npx, npy, npz)
+# Each G4 voxel expands into ratio x ratio x ratio POCA voxels with the same value
+MatrixGeometryBoolean_POCA  = np.kron(MatrixGeometryBoolean,  np.ones((ratio, ratio, ratio), dtype=int))
+MatrixGeometryDensity_POCA  = np.kron(MatrixGeometryDensity,  np.ones((ratio, ratio, ratio)))
+
+# Verify the output shape is correct
+assert MatrixGeometryBoolean_POCA.shape == (npx, npy, npz), \
+    f"[ERROR] Shape mismatch: {MatrixGeometryBoolean_POCA.shape} != {(npx, npy, npz)}"
+
+print(f"[CORRECT] Upsampled from ({nx},{ny},{nz}) to ({npx},{npy},{npz}) using ratio={ratio}")
+
+# Save at POCA resolution
+np.save(args.output_ground_truth_density, MatrixGeometryDensity_POCA)
+print(f"[CORRECT] Ground truth density saved successfully at: {args.output_ground_truth_density}" )
 
 
 ### CREATING THE JSON FILE FOR GEANT4 ###
@@ -252,9 +265,9 @@ np.save(args.output_ground_truth_density, MatrixGeometryDensity)
 
 global_dictionary = {
     "theWorld": {
-    "xSizeWorld": Lx + 2,
-    "ySizeWorld": Ly + 2,
-    "zSizeWorld": Lz + 2,
+    "xSizeWorld": Lx,
+    "ySizeWorld": Ly,
+    "zSizeWorld": Lz,
     "sizeBoxCRY": Lx,
     "zOffsetCRY": Lz / 2.0,
     },
@@ -380,6 +393,9 @@ with open(args.output_json, 'w') as f:
     json.dump(global_dictionary, f, indent=4)
 
 print("[CORRECT] ----- Json file created successfully, avaliable at: " + args.output_json )
+
+
+
 
 ### VISUAL TESTING ###
 if args.visual_testing_XY_slice:
