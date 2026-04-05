@@ -20,7 +20,7 @@ import sys
 # ===========================================================================
 create_geometries = False
 simulate          = True  # set to True to submit SLURM jobs (cluster only)
-environment       = "local"
+environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"
 
 
@@ -31,7 +31,7 @@ if environment == "local":
     simulate = False
 
 if not create_geometries:
-    sys.exit("[INFO] create_geometries=False. Set it to True to create geometries.")
+    print("[INFO] create_geometries=False. Set it to True to create geometries.")
 
 
 # ===========================================================================
@@ -123,13 +123,15 @@ print("="*60)
 
 i = 0
 for spacing in spacings:
+    if not create_geometries:
+        break
     for ratio in ratios:
         for x in FontsSizeX:
             for material in materials:
                 for word in words_geometry:
                     for stroke in strokes:
                         i += 1
-
+                        
                         namefile = (
                             f"{dimension}"
                             f"_Lpx{Lpx}_Lpy{Lpy}_Lpz{Lpz}"
