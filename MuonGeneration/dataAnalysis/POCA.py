@@ -4,13 +4,37 @@ POCA (Point Of Closest Approach) algorithm for muon scattering tomography.
 Takes a ROOT file with muon trajectories and produces a 3D voxelized grid
 with scattering angle statistics per voxel.
 """
+
+
+print("Iniciando POCA (python entered)")
 import os
-import numpy as np
-import argparse
+import sys
+print("basic libraries imported")
+
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
+
+print("importing ROOT...")
 import ROOT
+print("ROOT successfully imported")
+
+print("importing numpy...")
+import numpy as np
+print("numpy successfully imported")
+
+print("importing argparse ...")
+import argparse
+print("[CORRECT] ----- ALL LIBRARIES successfully imported")
+
+
+
+print("ALL IMPORTS DONE")
 ROOT.gROOT.SetBatch(True)  # ← imprescindible en clusters, para que no use interfaz gráfica
 
-
+print("Libraries imported... [CORRECT]")
 # ---------------------------------------------------------------------------
 # Argument parsing
 # ---------------------------------------------------------------------------

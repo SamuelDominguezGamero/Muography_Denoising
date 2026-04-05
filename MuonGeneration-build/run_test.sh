@@ -29,17 +29,17 @@ echo '[[[[[[[[[[[[[[[[[[SUCCESSFUL MONTECARLO SIMULATION]]]]]]]]]]]]]]]]]]]]]]]]
 
 # the system can easily run out of memory due to the large number of events, so we split the preprocessing in several jobs for the case of large datasets ---> check slurm documentation
 
-# python3 -u "$path_data_Analysis/makeHLTuple.py" \
-#    --input "$path_output_raw/output_prueba_10kmuons.root" \
-#    --conf "$path_conf_geom/confMUON_Custom.json" \
-#    --output "$path_output_preprocessed/preprocessed_prueba_10kmuons.root"
+python3 -u "$path_data_Analysis/makeHLTuple.py" \
+    --input "$path_output_raw/output_prueba_10kmuons.root" \
+    --conf "$path_conf_geom/confMUON_Custom.json" \
+    --output "$path_output_preprocessed/preprocessed_prueba_10kmuons.root"
 
-# echo '[[[[[[[[[[[[[[[[[[MUON HITS SUCCESSFULLY CORRELATED]]]]]]]]]]]]]]]]]]]]]]]]'
+echo '[[[[[[[[[[[[[[[[[[MUON HITS SUCCESSFULLY CORRELATED]]]]]]]]]]]]]]]]]]]]]]]]'
 
 ##### 3rd: POCA reconstruction #####
-# echo 'Starting POCA reconstruction...'
-# python3 -u "$path_data_Analysis/POCA.py" \
-# 	--input "$path_output_preprocessed/preprocessed_prueba_10kmuons.root" \
-# 	--output "$path_poca_output/final_poca_result_10kmuons.npy"
+echo 'Starting POCA reconstruction...'
+python3 -u "$path_data_Analysis/POCA.py" \
+ 	--input "$path_output_preprocessed/preprocessed_prueba_10kmuons.root" \
+ 	--output "$path_poca_output/final_poca_result_10kmuons.npy"
 
-# echo '[[[[[[[[[[[[[[[[[[POCA IMPLEMENTED SUCCESSFULLY]]]]]]]]]]]]]]]]]]]]]]]'
+echo '[[[[[[[[[[[[[[[[[[POCA IMPLEMENTED SUCCESSFULLY]]]]]]]]]]]]]]]]]]]]]]]'
