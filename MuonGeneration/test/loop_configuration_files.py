@@ -75,9 +75,9 @@ print(f"[INFO] Script directory: {SCRIPT_DIR}")
 # ===========================================================================
 # GEOMETRY PARAMETERS (fixed)
 # ===========================================================================
-Lpx = 128
-Lpy = 128
-Lpz = 128
+Lpx = 256
+Lpy = 256
+Lpz = 256
 npx = 128
 npy = 128
 npz = 128
@@ -105,7 +105,7 @@ print(f"[INFO] Total geometries to generate: {total_geometries}")
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 100_000_000
+total_muons_per_geometry = 100_000
 n_muons_per_job          = 10_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
