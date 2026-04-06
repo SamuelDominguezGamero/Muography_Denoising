@@ -17,24 +17,15 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
 
-print("importing ROOT...")
 import ROOT
-print("ROOT successfully imported")
-
-print("importing numpy...")
 import numpy as np
-print("numpy successfully imported")
-
-print("importing argparse ...")
 import argparse
+import pandas as pd
 print("[CORRECT] ----- ALL LIBRARIES successfully imported")
 
 
-
-print("ALL IMPORTS DONE")
 ROOT.gROOT.SetBatch(True)  # ← imprescindible en clusters, para que no use interfaz gráfica
 
-print("Libraries imported... [CORRECT]")
 # ---------------------------------------------------------------------------
 # Argument parsing
 # ---------------------------------------------------------------------------
@@ -48,6 +39,23 @@ parser.add_argument("--Lpz", type=float, default=128.0, help="Physical length of
 parser.add_argument("--npx", type=int, default=128, help="Number of voxels in X direction.")
 parser.add_argument("--npy", type=int, default=128, help="Number of voxels in Y direction.")
 parser.add_argument("--npz", type=int, default=128, help="Number of voxels in Z direction.")
+args = parser.parse_args()
+
+# ---------------------------------------------------------------------------
+# GEOMETRY INSTANTIATION
+# ---------------------------------------------------------------------------
+# Half-lengths of the physical volume [cm]
+X_LIM = args.Lpx / 2.0
+Y_LIM = args.Lpy / 2.0
+Z_LIM = args.Lpz / 2.0
+
+# Voxel grid dimensions
+NX, NY, NZ = args.npx, args.npy, args.npz
+
+print(f"Volume: [{-X_LIM},{X_LIM}] x [{-Y_LIM},{Y_LIM}] x [{-Z_LIM},{Z_LIM}] cm")
+print(f"Grid:   {NX} x {NY} x {NZ} voxels")
+print(f"Voxel size: {2*X_LIM/NX:.3f} x {2*Y_LIM/NY:.3f} x {2*Z_LIM/NZ:.3f} cm")
+
 
 
 # ---------------------------------------------------------------------------
@@ -55,6 +63,9 @@ parser.add_argument("--npz", type=int, default=128, help="Number of voxels in Z 
 # ---------------------------------------------------------------------------
 def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
     """
+    root_input_file structure:
+
+
     Computes the POCA point and scattering angle for each muon event.
 
     The POCA is the midpoint between the closest approach points on the
@@ -68,8 +79,9 @@ def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
                                The volume spans [-X_LIM, X_LIM] x [-Y_LIM, Y_LIM] x [-Z_LIM, Z_LIM].
 
     Returns:
-        res   : dict with arrays for poca_x, poca_y, poca_z, theta.
-        theta : scattering angle array [rad].
+        matrix_std_theta : 3D numpy array with shape (npy, npx, npz) containing std of scattering angle per voxel.
+                          Indexed as [iy, ix, iz] following standard numpy image convention.
+        matrix_counts     : 3D numpy array with shape (npy, npx, npz) containing event counts per voxel.
     """
     df = ROOT.RDataFrame("events", root_input_file)
 
@@ -111,66 +123,72 @@ def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
     # Scattering angle between incoming and outgoing trajectories
     df = df.Define("cos_theta", "B / (sqrt(C) * sqrt(E))") \
            .Define("theta", "acos(fmax(-1.0, fmin(1.0, cos_theta)))")
+    
 
-    print("Executing RDataFrame graph...")
-    res = df.AsNumpy(columns=["poca_x", "poca_y", "poca_z", "theta"])
+    print("[INFO] ----- Current: Voxelization of POCA points...")
+    df = df.Define("voxel_x", f"int(fmin({args.npx}-1, fmax(0, (poca_x + {X_LIM}) / (2*{X_LIM} / {args.npx}))))") \
+           .Define("voxel_y", f"int(fmin({args.npy}-1, fmax(0, (poca_y + {Y_LIM}) / (2*{Y_LIM} / {args.npy}))))") \
+           .Define("voxel_z", f"int(fmin({args.npz}-1, fmax(0, (poca_z + {Z_LIM}) / (2*{Z_LIM} / {args.npz}))))")
+
+    # change to pandas
+    res = df.AsNumpy(columns=["theta", "poca_x", "poca_y", "poca_z", "voxel_x", "voxel_y", "voxel_z"])
+
     print(f"POCA applied. Events after volume filter: {len(res['theta'])}")
 
-    return res, res["theta"]
+
+    df_events = pd.DataFrame(res)
+    df_voxels = df_events.groupby(["voxel_x", "voxel_y", "voxel_z"])["theta"].agg(['count', 'std']).reset_index()
+
+    matrix_std_theta = np.zeros((args.npy, args.npx, args.npz))
+    matrix_counts = np.zeros((args.npy, args.npx, args.npz))
+    matrix_sum_theta = np.zeros((args.npy, args.npx, args.npz))
+    matrix_sum_theta_sq = np.zeros((args.npy, args.npx, args.npz))
+
+    # Compute per-voxel statistics
+    for _, row in df_events.iterrows():
+        ix, iy, iz = int(row["voxel_x"]), int(row["voxel_y"]), int(row["voxel_z"])
+        if 0 <= ix < args.npx and 0 <= iy < args.npy and 0 <= iz < args.npz:
+            theta = row["theta"]
+            matrix_sum_theta[iy, ix, iz] += theta
+            matrix_sum_theta_sq[iy, ix, iz] += theta * theta
+            matrix_counts[iy, ix, iz] += 1
+
+    # Compute std theta where we have events
+    for _, row in df_voxels.iterrows():
+        ix, iy, iz = int(row["voxel_x"]), int(row["voxel_y"]), int(row["voxel_z"])
+        if 0 <= ix < args.npx and 0 <= iy < args.npy and 0 <= iz < args.npz:
+            std_val = row["std"] if not np.isnan(row["std"]) else 0.0
+            matrix_std_theta[iy, ix, iz] = std_val
+
+    return matrix_std_theta, matrix_counts, matrix_sum_theta, matrix_sum_theta_sq
 
 
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-def main():
-    args = parser.parse_args()
 
-    # Half-lengths of the physical volume [cm]
-    X_LIM = args.Lpx / 2.0
-    Y_LIM = args.Lpy / 2.0
-    Z_LIM = args.Lpz / 2.0
+# important comment: we are counting from the bottom-left corner of the volume
+# the spatial grid is indexed as follows (standard numpy image convention):
+# matrix[iy, ix, iz] where:
+#   - iy: row index (Y coordinate, 0 at bottom with origin='lower')
+#   - ix: column index (X coordinate, 0 at left)
+#   - iz: depth index (Z coordinate)
 
-    # Voxel grid dimensions
-    NX, NY, NZ = args.npx, args.npy, args.npz
-
-    print(f"Volume: [{-X_LIM},{X_LIM}] x [{-Y_LIM},{Y_LIM}] x [{-Z_LIM},{Z_LIM}] cm")
-    print(f"Grid:   {NX} x {NY} x {NZ} voxels")
-    print(f"Voxel size: {2*X_LIM/NX:.3f} x {2*Y_LIM/NY:.3f} x {2*Z_LIM/NZ:.3f} cm")
-
-    print("\nStarting POCA computation...")
-    poca_dict, theta = get_poca_info_ROOT(args.input, X_LIM, Y_LIM, Z_LIM)
-    if poca_dict is None:
-        return
-
-    # Accumulation grids
-    grid_N       = np.zeros((NX, NY, NZ))  # number of muons per voxel
-    grid_sum     = np.zeros((NX, NY, NZ))  # sum of scattering angles
-    grid_sum_sq  = np.zeros((NX, NY, NZ))  # sum of squared scattering angles (for variance)
-
-    # Convert physical coordinates to voxel indices.
-    # Formula: ix = (poca_x - (-X_LIM)) / (2*X_LIM) * NX
-    # This correctly handles any combination of physical size and voxel count.
-    ix = np.clip(((poca_dict["poca_x"] + X_LIM) / (2*X_LIM) * NX).astype(int), 0, NX-1)
-    iy = np.clip(((poca_dict["poca_y"] + Y_LIM) / (2*Y_LIM) * NY).astype(int), 0, NY-1)
-    iz = np.clip(((poca_dict["poca_z"] + Z_LIM) / (2*Z_LIM) * NZ).astype(int), 0, NZ-1)
-
-    # Accumulate statistics into the grids
-    np.add.at(grid_N,      (ix, iy, iz), 1)
-    np.add.at(grid_sum,    (ix, iy, iz), theta)
-    np.add.at(grid_sum_sq, (ix, iy, iz), theta**2)
-
-    # Save output
-    output_dir = os.path.dirname(args.output)
-    if output_dir and not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    np.save(args.output, {
-        "n_events":     grid_N,
-        "sum_theta":    grid_sum,
-        "sum_theta_sq": grid_sum_sq
-    })
-    print(f"\nDone. Results saved to {args.output}")
+matrix_std_theta, matrix_counts, matrix_sum_theta, matrix_sum_theta_sq = get_poca_info_ROOT(args.input, X_LIM, Y_LIM, Z_LIM)
 
 
-if __name__ == "__main__":
-    main()
+if args.plot:
+    import matplotlib.pyplot as plt
+    plt.imshow(matrix_std_theta[:,:,0], origin='lower', extent=[-X_LIM, X_LIM, -Y_LIM, Y_LIM])
+    plt.colorbar(label='Std of scattering angle (rad)')
+    plt.xlabel('X (cm)')
+    plt.ylabel('Y (cm)')
+    plt.title('POCA Scattering Angle Dispersion')
+    plt.show()
+
+
+# Save results in the format expected by merge_results.py
+np.save(args.output, {
+    "n_events":     matrix_counts,
+    "sum_theta":    matrix_sum_theta,
+    "sum_theta_sq": matrix_sum_theta_sq
+})
+
+print(f"[CORRECT] POCA results saved to: {args.output}")

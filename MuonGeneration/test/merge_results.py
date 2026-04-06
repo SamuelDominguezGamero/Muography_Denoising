@@ -27,7 +27,7 @@ grid_sum_total    = np.zeros((args.npy, args.npx, args.npz))
 grid_sum_sq_total = np.zeros((args.npy, args.npx, args.npz))
 
 missing = []
-for seed in range(args.n_jobs):
+for seed in range(1, args.n_jobs + 1):
     filepath = os.path.join(args.path_poca_output, f"POCA_{args.namefile}_seed{seed}.npy")
 
     if not os.path.exists(filepath):
