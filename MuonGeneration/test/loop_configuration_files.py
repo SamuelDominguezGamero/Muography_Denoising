@@ -223,7 +223,7 @@ for spacing in spacings:
                         job_ids = []
 
                         for job in range(n_jobs_per_geometry):
-                            seed = job
+                            seed = job+1
 
                             out_raw  = os.path.join(PATH_output_raw,   f"Out_{namefile}_seed{seed}.root")
                             out_pre  = os.path.join(PATH_preprocessed, f"Pre_{namefile}_seed{seed}.root")
@@ -247,6 +247,7 @@ echo "[INFO] Job started: {namefile} | seed={seed}"
 
 # --- 1st: Geant4 Monte Carlo simulation ---
 echo "[INFO] Running Geant4 simulation..."
+cd /gpfs/users/dominguezs/Muography_Denoising/MuonGeneration-build/
 {PATH_generator} \\
     --input  {geometry_file} \\
     --output {out_raw} \\
