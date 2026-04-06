@@ -22,9 +22,9 @@ args = parser.parse_args()
 
 print(f"[INFO] Merging {args.n_jobs} POCA files for: {args.namefile}")
 
-grid_N_total      = np.zeros((args.npx, args.npy, args.npz))
-grid_sum_total    = np.zeros((args.npx, args.npy, args.npz))
-grid_sum_sq_total = np.zeros((args.npx, args.npy, args.npz))
+grid_N_total      = np.zeros((args.npy, args.npx, args.npz))
+grid_sum_total    = np.zeros((args.npy, args.npx, args.npz))
+grid_sum_sq_total = np.zeros((args.npy, args.npx, args.npz))
 
 missing = []
 for seed in range(args.n_jobs):
@@ -37,8 +37,8 @@ for seed in range(args.n_jobs):
 
     data = np.load(filepath, allow_pickle=True).item()
 
-    if data["n_events"].shape != (args.npx, args.npy, args.npz):
-        print(f"[ERROR] Shape mismatch at seed={seed}: {data['n_events'].shape} != {(args.npx, args.npy, args.npz)}")
+    if data["n_events"].shape != (args.npy, args.npx, args.npz):
+        print(f"[ERROR] Shape mismatch at seed={seed}: {data['n_events'].shape} != {(args.npy, args.npx, args.npz)}")
         sys.exit(1)
 
     grid_N_total      += data["n_events"]

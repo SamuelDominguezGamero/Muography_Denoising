@@ -188,6 +188,7 @@ if not simulate:
     sys.exit("[INFO] simulate=False. Set it to True to submit SLURM jobs.")
 
 os.makedirs(PATH_logs,          exist_ok=True)
+os.makedirs(PATH_poca_output,   exist_ok=True)
 os.makedirs(PATH_merged_output, exist_ok=True)
 
 jobs_submitted = 0

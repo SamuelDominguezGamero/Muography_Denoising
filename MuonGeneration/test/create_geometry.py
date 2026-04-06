@@ -18,7 +18,7 @@ parser.add_argument("--Lpx", type=float, default=128, help="Dimension X (cm).")
 parser.add_argument("--Lpy", type=float, default=128, help="Dimension Y (cm).")
 parser.add_argument("--Lpz", type=float, default=128, help="Dimension Z (cm).")
 parser.add_argument("--npx", type=int, default=128, help="Number of voxels (X) Geant4.")
-parser.add_argument("--npy", type=int, default=128, help="NNumber of voxels (Y) Geant4.")
+parser.add_argument("--npy", type=int, default=128, help="Number of voxels (Y) Geant4.")
 parser.add_argument("--npz", type=int, default=128, help="Number of voxels (Z) Geant4.")
 parser.add_argument("--ratio", type=int, default=2, help="SizeVoxelGeant4 / SizeVoxelPOCA: (natural >= 1). Keep in mind that the number of voxels in POCA should be greater than or equal to those in Geant4. The resolution of POCA is the resolution of the image that will be given to the neural network.")
 parser.add_argument("--zPosDetector_top", type=float, default=118.0,
@@ -94,7 +94,7 @@ for ix in range(npx):
 
 # ====== GEANT4 ======
 # apply same logic for geant4 
-# ratio = nxp/nx = nyp/ny = npz/nz -> ratio between both resolutions  
+# ratio = npx/nx = nyp/ny = npz/nz -> ratio between both resolutions  
 # usually, there should be more voxels in poca than in geant4
 #                          """"""""""""""""""""""""""""""""""
 
@@ -114,11 +114,11 @@ if npx % ratio != 0 or npy % ratio != 0 or npz % ratio != 0:
 # numbers of voxels in geant4 (real geometry):
 nx = npx // ratio # should be an integer
 ny = npy // ratio 
-nz = npz // ratio
+nz = npz // ratio # afterwards, we will remove layers of voxels in Z that are not interesting for the POCA
 
 Lx = Lpx # cm
 Ly = Lpy
-Lz = Lpz*2 # in POCA we are not really interested in the whole z range, we don't care about the detectors 
+Lz = Lpz 
 
 SizeG4Voxel_x = Lx/nx
 SizeG4Voxel_y = Ly/ny
@@ -126,23 +126,21 @@ SizeG4Voxel_z = Lz/nz
 
 
 
-
 voxel_centers_G4 = []
-MatrixGeometryMaterials = np.zeros((nx, ny, nz), dtype=object)  # This will hold the material of each voxel
-MatrixGeometryBoolean = np.zeros((nx, ny, nz), dtype=int)  # This will hold 1 for filled voxels and 0 for empty voxels
-MatrixGeometryIndex = np.zeros((nx, ny, nz), dtype=object)  # This will hold the index of each voxel (for reference)
-MatrixGeometryCenter = np.zeros((nx, ny, nz, 3))  # This will hold the center coordinates of each voxel
-MatrixGeometryDensity = np.zeros((nx, ny, nz))  # This will hold the density of each voxel (for reference)
+MatrixGeometryMaterials = np.zeros((ny, nx, nz), dtype=object)  # This will hold the material of each voxel (ny, nx, nz) = (height, width, depth)
+MatrixGeometryBoolean = np.zeros((ny, nx, nz), dtype=int)  # This will hold 1 for filled voxels and 0 for empty voxels
+MatrixGeometryCenter = np.zeros((ny, nx, nz, 3))  # This will hold the center coordinates of each voxel
+MatrixGeometryDensity = np.zeros((ny, nx, nz))  # This will hold the density of each voxel (for reference)
 
-for ix in range(nx):
-    for iy in range(ny):
+for iy in range(ny):
+    for ix in range(nx):
         for iz in range(nz):
-            voxel_center_g4 = np.array([-Lx/2.0 + (ix + 0.5) * SizeG4Voxel_x, 
-                                        -Ly/2.0 + (iy + 0.5) * SizeG4Voxel_y, 
+            voxel_center_g4 = np.array([-Lx/2.0 + (ix + 0.5) * SizeG4Voxel_x,
+                                        -Ly/2.0 + (iy + 0.5) * SizeG4Voxel_y,
                                         -Lz/2.0 + (iz + 0.5) * SizeG4Voxel_z])
             voxel_centers_G4.append(voxel_center_g4)
-            MatrixGeometryCenter[ix, iy, iz] = voxel_center_g4
-            if test_print: # debugging
+            MatrixGeometryCenter[iy, ix, iz] = voxel_center_g4
+            if test_print:
                 print(f"Voxel (GEANT4) center at: {voxel_center_g4}")
 
 
@@ -154,23 +152,23 @@ for ix in range(nx):
 
 def embed_word_in_geometry(word_matrix, boolean_matrix, start_vox: tuple, depth_z: int):
     """
-    Inserts the word MUON into the real 3D geometry of Geant4, represented as a boolean matrix.    
-    
+    Inserts the word MUON into the real 3D geometry of Geant4, represented as a boolean matrix.
+
     Parameters:
     - word_matrix: 2D numpy array (ny_word, nx_word) with 1s where the letter is and 0s elsewhere. Shape is (height, width).
-    - boolean_matrix: 3D numpy array (nx_world, ny_world, nz_world) representing the Geant4 world. We will modify this in-place to insert the word.
-    - start_vox: Tuple (x0, y0, z0) indicating the starting voxel coordinates in the boolean_matrix where the top-left corner of the word will be placed. Coordinates are in the order (X, Y, Z) corresponding to (width, height, depth) of the world.
+    - boolean_matrix: 3D numpy array (ny_world, nx_world, nz_world) representing the Geant4 world. We will modify this in-place to insert the word. Shape is (height, width, depth).
+    - start_vox: Tuple (x0, y0, z0) indicating the starting voxel coordinates in the boolean_matrix where the top-left corner of the word will be placed. Coordinates are in the order (X, Y, Z).
     - depth_z: Integer indicating how many voxels in the Z direction the word should occupy (thickness of the word in Z). The word will be extruded in Z for this many voxels, starting from z0.
     """
-    # word_matrix.shape es (ny_word, nx_word) -> (height, width)
-    ny_word, nx_word = word_matrix.shape 
-    nx_world, ny_world, nz_world = boolean_matrix.shape # careful interpreting dimensions
+    # word_matrix.shape es (ny_word, nx_word) = (height, width) = (nrows, ncols)
+    ny_word, nx_word = word_matrix.shape
+    ny_world, nx_world, nz_world = boolean_matrix.shape # shape is (ny, nx, nz)
     
     if start_vox is None: # Default: insert in the center of the world
-        z_start = (nz_world // 2) - 2
+        z_start = (nz_world // 2)
         x_start = (nx_world // 2) - (nx_word // 2)
         y_start = (ny_world // 2) - (ny_word // 2)
-        start_vox = (x_start, y_start, z_start)  
+        start_vox = (x_start, y_start, z_start)
     
     x0, y0, z0 = start_vox
 
@@ -179,23 +177,22 @@ def embed_word_in_geometry(word_matrix, boolean_matrix, start_vox: tuple, depth_
 
     # Debugging: verify that the word fits in the world at the specified location and depth
     if (x0 + nx_word > nx_world) or (y0 + ny_word > ny_world) or (z0 + depth_z > nz_world):
-        print(f"Error de límites: Palabra {nx_word}x{ny_word} se sale de {nx_world}x{ny_world}")
+        print(f"Error: Palabra ({nx_word}x{ny_word}x{depth_z}) "
+            f"no cabe en ({nx_world}x{ny_world}x{nz_world}) "
+            f"desde posición ({x0}, {y0}, {z0})")        
         sys.exit(1)
 
-    # NumPy counts rows from top to bottom, but the physics (Y) counts from bottom to top.
+    # NumPy counts rows from top to bottom, but the physics counts from bottom to top.
     # By flipping vertically, we map the coordinates correctly.
     word_flipped = np.flipud(word_matrix)
 
-    print(f"Inserted word ({nx_word}x{ny_word}) in: [{x0}:{x0+nx_word}, {y0}:{y0+ny_word}, {z0}:{z0+depth_z}]")
+    print(f"Inserted word ({nx_word}x{ny_word}) in: [{y0}:{y0+ny_word}, {x0}:{x0+nx_word}, {z0}:{z0+depth_z}]")
 
-    # Inserción mediante slicing
-    # Usamos transpuesta (.T) para mapear (ny, nx) -> (nx, ny) del mundo
-    # boolean_matrix[X, Y, Z]
+    # Insert word into the 3D matrix
+    # boolean_matrix shape is (ny, nx, nz), so we index as [iy, ix, iz]
     for z in range(z0, z0 + depth_z):
-        boolean_matrix[x0 : x0 + nx_word, y0 : y0 + ny_word, z] = word_flipped.T
+        boolean_matrix[y0 : y0 + ny_word, x0 : x0 + nx_word, z] = word_flipped.T
 
-
-    
     return boolean_matrix
 
 
@@ -213,7 +210,7 @@ word_matrix, shape_word_YX = get_word(
 print("[CORRECT] ----- Word matrix created successfully." )
 
 
- # 3. Insertar la palabra en el centro del mundo con un grosor de 5 vóxeles en Z
+# 3. Insertar la palabra en el centro del mundo
 # Calculamos posición central
 
 
@@ -231,7 +228,11 @@ MatrixGeometryMaterials[MatrixGeometryBoolean == 1] = args.material
 MatrixGeometryMaterials[MatrixGeometryBoolean == 0] = "air"
 
 
-possible_materials = ["lead", "air"]
+possible_materials = ["lead", "air", "iron", "uranium", "aluminium", "argon", "silicon", "steel"] 
+# possible materials defined in DetectorConstruction.cc (Geant4)
+
+
+
 
 # ---- Debugging ---- 
 # verify that only allowed materials are present in the geometry
@@ -241,17 +242,31 @@ for element in np.unique(MatrixGeometryMaterials):
 # ----           ----
 
 
-density_dictionary = {"lead": 1, "air": 0} # not realistic, just for testing purposes, SHOULD BE CHANGED!!
+density_dictionary = {
+    "lead": 11.35,
+    "air": 0.00120479,
+    "iron": 7.874,
+    "uranium": 18.95,
+    "aluminium": 2.699,
+    "argon": 0.001639,  # Gas a STP (condiciones estándar)
+    "silicon": 2.33,
+    "steel": 8.00       # G4_STAINLESS-STEEL
+}
 MatrixGeometryDensity = density_dictionary[args.material] * MatrixGeometryBoolean # assign density based on the material of each voxel
+# https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
 
-# Upsample from Geant4 resolution (nx, ny, nz) to POCA resolution (npx, npy, npz)
+
+
+
+
+# Upsample from Geant4 resolution (ny, nx, nz) to POCA resolution (npy*ratio, npx*ratio, npz*ratio)
 # Each G4 voxel expands into ratio x ratio x ratio POCA voxels with the same value
 MatrixGeometryBoolean_POCA  = np.kron(MatrixGeometryBoolean,  np.ones((ratio, ratio, ratio), dtype=int))
 MatrixGeometryDensity_POCA  = np.kron(MatrixGeometryDensity,  np.ones((ratio, ratio, ratio)))
 
 # Verify the output shape is correct
-assert MatrixGeometryBoolean_POCA.shape == (npx, npy, npz), \
-    f"[ERROR] Shape mismatch: {MatrixGeometryBoolean_POCA.shape} != {(npx, npy, npz)}"
+assert MatrixGeometryBoolean_POCA.shape == (npy * ratio, npx * ratio, npz * ratio), \
+    f"[ERROR] Shape mismatch: {MatrixGeometryBoolean_POCA.shape} != {(npy * ratio, npx * ratio, npz * ratio)}"
 
 print(f"[CORRECT] Upsampled from ({nx},{ny},{nz}) to ({npx},{npy},{npz}) using ratio={ratio}")
 
@@ -278,30 +293,19 @@ global_dictionary = {
 }
 
 
-Voxel_Example = {
-            "xPosVoxel": 0.0,
-            "yPosVoxel": 0.0,
-            "zPosVoxel": 0.0,
-            "xSizeVoxel": SizeG4Voxel_x,
-            "ySizeVoxel": SizeG4Voxel_y,
-            "zSizeVoxel": SizeG4Voxel_z,
-            "materialVoxel": "lead"
-        }
-
-
 # Loop through voxels
-for ix in range(nx):
-    for iy in range(ny):
+for iy in range(ny):
+    for ix in range(nx):
         for iz in range(nz):
-            if MatrixGeometryBoolean[ix, iy, iz] == 1: # only consider filled voxels
+            if MatrixGeometryBoolean[iy, ix, iz] == 1: # only consider filled voxels
                 voxel_dict = {
-                    "xPosVoxel": float(MatrixGeometryCenter[ix, iy, iz, 0]),
-                    "yPosVoxel": float(MatrixGeometryCenter[ix, iy, iz, 1]),
-                    "zPosVoxel": float(MatrixGeometryCenter[ix, iy, iz, 2]),
+                    "xPosVoxel": float(MatrixGeometryCenter[iy, ix, iz, 0]),
+                    "yPosVoxel": float(MatrixGeometryCenter[iy, ix, iz, 1]),
+                    "zPosVoxel": float(MatrixGeometryCenter[iy, ix, iz, 2]),
                     "xSizeVoxel": float(SizeG4Voxel_x),
                     "ySizeVoxel": float(SizeG4Voxel_y),
                     "zSizeVoxel": float(SizeG4Voxel_z),
-                    "materialVoxel": str(MatrixGeometryMaterials[ix, iy, iz])
+                    "materialVoxel": str(MatrixGeometryMaterials[iy, ix, iz])
                 }
                 global_dictionary["TheVoxels"].append(voxel_dict)
 
@@ -309,10 +313,7 @@ print("[CORRECT] ----- Voxel dictionaries created successfully." )
 
 
 # detectors:
-Detectors = []
-nDetectors = 2
-nLayers_per_Detector = 2
-total_layers = nDetectors * nLayers_per_Detector
+
 global_dictionary["Detectors"] = [ # should be replaced with something more modular, pending
         {
             "xPosDetector": 0,
@@ -393,7 +394,7 @@ print("[CORRECT] ----- Full json file information created successfully." )
 with open(args.output_json, 'w') as f:
     json.dump(global_dictionary, f, indent=4)
 
-print("[CORRECT] ----- Json file created successfully, avaliable at: " + args.output_json )
+print("[CORRECT] ----- Json file created successfully, available at: " + args.output_json )
 
 
 
@@ -405,8 +406,8 @@ if args.visual_testing_XY_slice:
     import matplotlib.patches as mpatches
 
     # We take the central Z slice (same one used for embedding)
-    z_center = (nz // 2) - 2  # same logic as embed_word_in_geometry with start_vox=None
-    xy_slice = MatrixGeometryBoolean[:, :, z_center]  # shape (nx, ny)
+    z_center = (nz // 2)  # same logic as embed_word_in_geometry with start_vox=None
+    xy_slice = MatrixGeometryBoolean[:, :, z_center]  # shape (ny, nx)
 
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.imshow(
