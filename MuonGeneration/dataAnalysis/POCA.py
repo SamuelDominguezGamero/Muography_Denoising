@@ -20,7 +20,6 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 import ROOT
 import numpy as np
 import argparse
-import pandas as pd
 print("[CORRECT] ----- ALL LIBRARIES successfully imported")
 
 
@@ -130,38 +129,41 @@ def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
            .Define("voxel_y", f"int(fmin({args.npy}-1, fmax(0, (poca_y + {Y_LIM}) / (2*{Y_LIM} / {args.npy}))))") \
            .Define("voxel_z", f"int(fmin({args.npz}-1, fmax(0, (poca_z + {Z_LIM}) / (2*{Z_LIM} / {args.npz}))))")
 
-    # change to pandas
-    res = df.AsNumpy(columns=["theta", "poca_x", "poca_y", "poca_z", "voxel_x", "voxel_y", "voxel_z"])
 
-    print(f"POCA applied. Events after volume filter: {len(res['theta'])}")
+    res = df.AsNumpy(columns=["theta", "voxel_x", "voxel_y", "voxel_z"])
+    
+    n_events_filtered = len(res['theta'])
+    print(f"POCA aplicado. Eventos tras filtro: {n_events_filtered}")
 
-
-    df_events = pd.DataFrame(res)
-    df_voxels = df_events.groupby(["voxel_x", "voxel_y", "voxel_z"])["theta"].agg(['count', 'std']).reset_index()
-
-    matrix_std_theta = np.zeros((args.npy, args.npx, args.npz))
+    # 2. Inicializar matrices con Numpy
     matrix_counts = np.zeros((args.npy, args.npx, args.npz))
     matrix_sum_theta = np.zeros((args.npy, args.npx, args.npz))
     matrix_sum_theta_sq = np.zeros((args.npy, args.npx, args.npz))
 
-    # Compute per-voxel statistics
-    for _, row in df_events.iterrows():
-        ix, iy, iz = int(row["voxel_x"]), int(row["voxel_y"]), int(row["voxel_z"])
-        if 0 <= ix < args.npx and 0 <= iy < args.npy and 0 <= iz < args.npz:
-            theta = row["theta"]
-            matrix_sum_theta[iy, ix, iz] += theta
-            matrix_sum_theta_sq[iy, ix, iz] += theta * theta
-            matrix_counts[iy, ix, iz] += 1
+    # 3. Llenar matrices usando los índices de los vóxeles
+    # Obtenemos los arrays para evitar accesos repetidos al diccionario
+    v_x = res['voxel_x'].astype(int)
+    v_y = res['voxel_y'].astype(int)
+    v_z = res['voxel_z'].astype(int)
+    theta = res['theta']
 
-    # Compute std theta where we have events
-    for _, row in df_voxels.iterrows():
-        ix, iy, iz = int(row["voxel_x"]), int(row["voxel_y"]), int(row["voxel_z"])
-        if 0 <= ix < args.npx and 0 <= iy < args.npy and 0 <= iz < args.npz:
-            std_val = row["std"] if not np.isnan(row["std"]) else 0.0
-            matrix_std_theta[iy, ix, iz] = std_val
+    # Bucle eficiente en memoria (puedes usar np.add.at para ser aún más rápido)
+    np.add.at(matrix_counts, (v_y, v_x, v_z), 1)
+    np.add.at(matrix_sum_theta, (v_y, v_x, v_z), theta)
+    np.add.at(matrix_sum_theta_sq, (v_y, v_x, v_z), theta**2)
+
+    # 4. Calcular std_theta (sustituye lo que hacía df_voxels)
+    # Fórmula: std = sqrt( (sum_sq / N) - (sum/N)^2 )
+    with np.errstate(divide='ignore', invalid='ignore'):
+        mean = matrix_sum_theta / matrix_counts
+        variance = (matrix_sum_theta_sq / matrix_counts) - (mean**2)
+        # Limpiar posibles negativos ínfimos por precisión flotante
+        variance = np.maximum(0, variance)
+        matrix_std_theta = np.sqrt(variance)
+        # Poner 0 donde no hay eventos
+        matrix_std_theta[matrix_counts == 0] = 0.0
 
     return matrix_std_theta, matrix_counts, matrix_sum_theta, matrix_sum_theta_sq
-
 
 
 # important comment: we are counting from the bottom-left corner of the volume
