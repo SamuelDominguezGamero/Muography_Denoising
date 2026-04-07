@@ -259,14 +259,14 @@ MatrixGeometryDensity = density_dictionary[args.material] * MatrixGeometryBoolea
 
 
 
-# Upsample from Geant4 resolution (ny, nx, nz) to POCA resolution (npy*ratio, npx*ratio, npz*ratio)
+# Upsample from Geant4 resolution (ny, nx, nz) to POCA resolution (npy, npx, npz)
 # Each G4 voxel expands into ratio x ratio x ratio POCA voxels with the same value
 MatrixGeometryBoolean_POCA  = np.kron(MatrixGeometryBoolean,  np.ones((ratio, ratio, ratio), dtype=int))
 MatrixGeometryDensity_POCA  = np.kron(MatrixGeometryDensity,  np.ones((ratio, ratio, ratio)))
 
 # Verify the output shape is correct
-assert MatrixGeometryBoolean_POCA.shape == (npy * ratio, npx * ratio, npz * ratio), \
-    f"[ERROR] Shape mismatch: {MatrixGeometryBoolean_POCA.shape} != {(npy * ratio, npx * ratio, npz * ratio)}"
+assert MatrixGeometryBoolean_POCA.shape == (npy, npx, npz), \
+    f"[ERROR] Shape mismatch: {MatrixGeometryBoolean_POCA.shape} != {(npy, npx, npz)}"
 
 print(f"[CORRECT] Upsampled from ({nx},{ny},{nz}) to ({npx},{npy},{npz}) using ratio={ratio}")
 
