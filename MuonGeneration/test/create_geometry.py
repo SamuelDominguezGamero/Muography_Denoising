@@ -165,9 +165,11 @@ def embed_word_in_geometry(word_matrix, boolean_matrix, start_vox: tuple, depth_
     ny_world, nx_world, nz_world = boolean_matrix.shape # shape is (ny, nx, nz)
     
     if start_vox is None: # Default: insert in the center of the world
-        z_start = (nz_world // 2)
-        x_start = (nx_world // 2) - (nx_word // 2)
-        y_start = (ny_world // 2) - (ny_word // 2)
+        # For even/odd combinations, exact z=0 may not coincide with a voxel center.
+        # This choice minimizes the offset of the inserted slab center from z=0.
+        z_start = int(np.floor((nz_world - depth_z) / 2.0 + 0.5))
+        x_start = (nx_world - nx_word) // 2
+        y_start = (ny_world - ny_word) // 2
         start_vox = (x_start, y_start, z_start)
     
     x0, y0, z0 = start_vox
@@ -176,11 +178,20 @@ def embed_word_in_geometry(word_matrix, boolean_matrix, start_vox: tuple, depth_
     
 
     # Debugging: verify that the word fits in the world at the specified location and depth
-    if (x0 + nx_word > nx_world) or (y0 + ny_word > ny_world) or (z0 + depth_z > nz_world):
+    if (
+        x0 < 0 or y0 < 0 or z0 < 0 or
+        (x0 + nx_word > nx_world) or
+        (y0 + ny_word > ny_world) or
+        (z0 + depth_z > nz_world)
+    ):
         print(f"Error: Palabra ({nx_word}x{ny_word}x{depth_z}) "
             f"no cabe en ({nx_world}x{ny_world}x{nz_world}) "
             f"desde posición ({x0}, {y0}, {z0})")        
         sys.exit(1)
+
+    z_idx_center = z0 + depth_z / 2.0
+    z_center_cm = -Lz / 2.0 + z_idx_center * SizeG4Voxel_z
+    print(f"[INFO] Geometry slab center in Z: z={z_center_cm:.3f} cm (target z=0)")
 
     # NumPy counts rows from top to bottom, but the physics counts from bottom to top.
     # By flipping vertically, we map the coordinates correctly.
