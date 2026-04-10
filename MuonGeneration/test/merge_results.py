@@ -52,9 +52,27 @@ else:
 
 print(f"[INFO] Total muon events accumulated: {int(grid_N_total.sum()):,}")
 
+# Calculate theta_rms for U-Net input: theta_rms = sqrt(E[theta²] - (E[theta])²)
+# Only for voxels with at least 1 event (avoid division by zero)
+with np.errstate(divide='ignore', invalid='ignore'):
+    mean_theta = np.divide(grid_sum_total, grid_N_total, 
+                          out=np.zeros_like(grid_sum_total), where=grid_N_total>0)
+    mean_theta_sq = np.divide(grid_sum_sq_total, grid_N_total, 
+                             out=np.zeros_like(grid_sum_sq_total), where=grid_N_total>0)
+    variance = mean_theta_sq - np.square(mean_theta)
+    # Clamp negative variance (from floating point errors) to zero
+    variance = np.maximum(variance, 0.0)
+    theta_rms = np.sqrt(variance)
+
 np.save(args.output, {
     "n_events":     grid_N_total,
     "sum_theta":    grid_sum_total,
-    "sum_theta_sq": grid_sum_sq_total
+    "sum_theta_sq": grid_sum_sq_total,
+    "theta_rms":    theta_rms
 })
+# this form of saving then recquires allow_pickle=True when loading, but it's more compact and faster
+# then load as: data = np.load("merged_result.npy", allow_pickle=True).item() and access data["n_events"], etc.
+
 print(f"[CORRECT] Merged result saved to: {args.output}")
+print("Remember to load with: data = np.load('XXXX.npy', allow_pickle=True).item()")
+print("and access data['n_events'], data['sum_theta'], data['sum_theta_sq'], data['theta_rms']")
