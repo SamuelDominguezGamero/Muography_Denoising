@@ -1,13 +1,21 @@
+"""
+Creates the geometry json file to be parsed by Geant4.
+There are 2 main elements: 
+- detectors
+- voxels (the geometry itself, with their features: position, size, material)
+    -> should be positioned forming a selected word, usually MUON. 
+"""
+
+
+
 import json
 import math 
 import sys
 import numpy as np
 import pandas as pd
 import argparse
+import os
 from bitmaps_letters import get_word, get_letter, dimensions_test
-
-# [¡¡AÑADIR!!]: crear una configuración geométrica SIN VÓXELES, para poder hacer normalizaciones de flujo de muones
-
 
 # Debugging: 
 dimensions_test() # should stop the whole program if the dimensions are not correct for the defined font sizes and stroke widths. This is crucial to ensure that the generated word matrices fit properly in the Geant4 geometry.
@@ -28,19 +36,23 @@ parser.add_argument("--zPosDetector_bot", type=float, default=-118.0,
 
 
 parser.add_argument("--word_geometry", type=str, default="MUON", help="Word to be embedded in the geometry. Default is 'MUON'.")
-parser.add_argument("--FontSizeX", type=int, default=16, help="Font size in X for the word geometry. Measured in G4 voxels. Valid sizes are 8, 10, 12, 14, 16.")
-parser.add_argument("--FontSizeY", type=int, default=16, help="Font size in Y for the word geometry. Measured in G4 voxels. Valid sizes are 8, 10, 12, 14, 16.")
-parser.add_argument("--StrokeWidth", type=int, default=3, help="Stroke width for the word geometry. Measured in G4 voxels. Valid sizes are 1, 2, 3.")
-parser.add_argument("--spacing", type=int, default=2, help="Spacing between letters in the word geometry. Measured in G4 voxels.")
+parser.add_argument("--FontSizeX", type=int, default=12, help="Font size in X for the word geometry. Measured in G4 voxels. Valid sizes are 8, 10, 12, 14, 16.")
+parser.add_argument("--FontSizeY", type=int, default=12, help="Font size in Y for the word geometry. Measured in G4 voxels. Valid sizes are 8, 10, 12, 14, 16.")
+parser.add_argument("--StrokeWidth", type=int, default=1, help="Stroke width for the word geometry. Measured in G4 voxels. Valid sizes are 1, 2, 3.")
+parser.add_argument("--spacing", type=int, default=1, help="Spacing between letters in the word geometry. Measured in G4 voxels.")
 parser.add_argument("--depth_z_word", type=int, default=1, help="Depth in Z direction for the word geometry. Measured in G4 voxels.")
 
 parser.add_argument("--material", type=str, default="lead", help="Material for the word geometry. Default is 'lead'.")
 
 
-parser.add_argument("--output_ground_truth_density", type=str, default="ground_truth_density.npy", help="Output npy file (Tensor) for the ground truth density of the geometry, assigns the geometry of the material for each of the voxels (0 for air).")
-parser.add_argument("--output_json", type=str, default="geometry.json", help="Output JSON file name for the Geant4 geometry configuration.")
+script_dir = os.path.dirname(os.path.abspath(__file__))
+default_density_path = os.path.join(script_dir, "default_ground_truth_density.npy")
+default_json_path = os.path.join(script_dir, "default_geometry.json")
 
-parser.add_argument("--visual_testing_XY_slice", action="store_true", default=False,
+parser.add_argument("--output_ground_truth_density", type=str, default=default_density_path, help="Output npy file (Tensor) for the ground truth density of the geometry, assigns the geometry of the material for each of the voxels (0 for air).")
+parser.add_argument("--output_json", type=str, default=default_json_path, help="Output JSON file name for the Geant4 geometry configuration.")
+
+parser.add_argument("--visual_testing_XY_slice", action="store_false",
     help="If True, plots the XY slice of the geometry at the central Z voxel using matplotlib.")
 
 args = parser.parse_args()
@@ -99,12 +111,7 @@ for ix in range(npx):
 #                          """"""""""""""""""""""""""""""""""
 
 
-ratio: int = args.ratio # must be a natural number >= 1
-# --- DEBUGGING --- 
-if ratio < 1 or not isinstance(ratio, int):
-    sys.exit("[ERROR] ----- Ratio must be a natural number greater than or equal to 1.")
-# ---           ---    
-
+ratio = args.ratio # must be a natural number >= 1
 
 if npx % ratio != 0 or npy % ratio != 0 or npz % ratio != 0:
     sys.exit(f"[ERROR] ----- ratio ({ratio}) must be an exact divisor of the voxels in POCA ({npx}, {npy}, {npz}). "
@@ -184,25 +191,22 @@ def embed_word_in_geometry(word_matrix, boolean_matrix, start_vox: tuple, depth_
         (y0 + ny_word > ny_world) or
         (z0 + depth_z > nz_world)
     ):
-        print(f"Error: Palabra ({nx_word}x{ny_word}x{depth_z}) "
+        print(f"[ERROR] ----- Palabra ({nx_word}x{ny_word}x{depth_z}) "
             f"no cabe en ({nx_world}x{ny_world}x{nz_world}) "
-            f"desde posición ({x0}, {y0}, {z0})")        
+            f"desde posición ({x0}, {y0}, {z0})")
+        print("===========================================================")   
         sys.exit(1)
 
     z_idx_center = z0 + depth_z / 2.0
     z_center_cm = -Lz / 2.0 + z_idx_center * SizeG4Voxel_z
     print(f"[INFO] Geometry slab center in Z: z={z_center_cm:.3f} cm (target z=0)")
 
-    # NumPy counts rows from top to bottom, but the physics counts from bottom to top.
-    # By flipping vertically, we map the coordinates correctly.
-    word_flipped = np.flipud(word_matrix)
-
     print(f"Inserted word ({nx_word}x{ny_word}) in: [{y0}:{y0+ny_word}, {x0}:{x0+nx_word}, {z0}:{z0+depth_z}]")
 
-    # Insert word into the 3D matrix
-    # boolean_matrix shape is (ny, nx, nz), so we index as [iy, ix, iz]
+    # Insert word into the 3D matrix.
+    # `word_matrix` uses (ny, nx) = (height, width), matching boolean_matrix[y, x, z].
     for z in range(z0, z0 + depth_z):
-        boolean_matrix[y0 : y0 + ny_word, x0 : x0 + nx_word, z] = word_flipped.T
+        boolean_matrix[y0 : y0 + ny_word, x0 : x0 + nx_word, z] = word_matrix
 
     return boolean_matrix
 
@@ -272,8 +276,14 @@ MatrixGeometryDensity = density_dictionary[args.material] * MatrixGeometryBoolea
 
 # Upsample from Geant4 resolution (ny, nx, nz) to POCA resolution (npy, npx, npz)
 # Each G4 voxel expands into ratio x ratio x ratio POCA voxels with the same value
-MatrixGeometryBoolean_POCA  = np.kron(MatrixGeometryBoolean,  np.ones((ratio, ratio, ratio), dtype=int))
-MatrixGeometryDensity_POCA  = np.kron(MatrixGeometryDensity,  np.ones((ratio, ratio, ratio)))
+# MatrixGeometryBoolean_POCA  = np.kron(MatrixGeometryBoolean,  np.ones((ratio, ratio, ratio), dtype=int))
+# MatrixGeometryDensity_POCA  = np.kron(MatrixGeometryDensity,  np.ones((ratio, ratio, ratio)))
+if args.ratio == 1:
+    MatrixGeometryBoolean_POCA = MatrixGeometryBoolean
+    MatrixGeometryDensity_POCA = MatrixGeometryDensity
+else:
+    MatrixGeometryBoolean_POCA  = np.repeat(np.repeat(np.repeat(MatrixGeometryBoolean, ratio, axis=0), ratio, axis=1), ratio, axis=2)
+    MatrixGeometryDensity_POCA  = np.repeat(np.repeat(np.repeat(MatrixGeometryDensity, ratio, axis=0), ratio, axis=1), ratio, axis=2)
 
 # Verify the output shape is correct
 assert MatrixGeometryBoolean_POCA.shape == (npy, npx, npz), \
@@ -422,8 +432,8 @@ if args.visual_testing_XY_slice:
 
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.imshow(
-        xy_slice.T,           # transpose so X is horizontal and Y is vertical
-        origin="lower",       # Y=0 at the bottom, consistent with physics convention
+        xy_slice,             # shape is (ny, nx): rows are Y and columns are X
+        origin="lower",      # y index increases upwards in physical coordinates
         cmap="Greys",
         interpolation="nearest",
         extent=[-Lx/2, Lx/2, -Ly/2, Ly/2]  # real-world coordinates in cm
@@ -440,4 +450,7 @@ if args.visual_testing_XY_slice:
     ax.legend(handles=[lead_patch, air_patch], loc="upper right")
 
     plt.tight_layout()
-    plt.show()
+    plot_path = os.path.join(script_dir, "geometry_xy_slice.png")
+    plt.savefig(plot_path, dpi=150, bbox_inches='tight')
+    print(f"[CORRECT] ----- Visualization saved at: {plot_path}")
+    plt.close()

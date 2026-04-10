@@ -81,7 +81,11 @@ def get_word(word_string, res_x_list, res_y_list, stroke_list, spacing=2):
         # Avanzamos el puntero X: ancho de la letra + espaciado
         current_x += w + spacing
 
-    return word_matrix, word_matrix.shape # shape = (height, width)
+    # Convert from bitmap convention (row 0 at the top) to physical convention
+    # used by geometry arrays (y index increasing upwards).
+    word_matrix = np.flipud(word_matrix)
+
+    return word_matrix, word_matrix.shape # shape = (ny, nx) = (height, width)
 
 
 def dimensions_test():
@@ -94,7 +98,7 @@ def dimensions_test():
     total_checked = 0
 
     for res_tuple, strokes in BITMAP_DATA.items():
-        expected_y, expected_x = res_tuple  # (Filas, Columnas)
+        expected_x, expected_y = res_tuple  # (X, Y) = (Columnas, Filas)
         
         for stroke_val, letters in strokes.items():
             for char, matrix in letters.items():
@@ -398,7 +402,7 @@ N_12x12_s1 = np.array([
     [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
 ])
 
 # --- M 12x12 STROKE 2 ---
