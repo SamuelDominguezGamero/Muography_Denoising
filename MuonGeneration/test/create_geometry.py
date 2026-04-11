@@ -222,6 +222,10 @@ word_matrix, shape_word_YX = get_word(
     spacing=args.spacing
 )
 
+if word_matrix is None:
+    print("[ERROR] Failed to create word matrix. Check bitmap templates.")
+    sys.exit(1)
+
 print("[CORRECT] ----- Word matrix created successfully." )
 
 

@@ -24,9 +24,13 @@ def get_letter(res_x, res_y, letter, stroke):
     
     try:
         return BITMAP_DATA[dimensions][stroke][letter]
-    except KeyError:
-        print(f"Error: No existe plantilla para resolución {res_x}x{res_y} con Stroke {stroke}")
-        return None
+    except KeyError as e:
+        print(f"\n[ERROR] Letter bitmap not found:")
+        print(f"        Requested: Size={res_x}x{res_y}, Letter='{letter}', Stroke={stroke}")
+        print(f"        Available sizes: {list(BITMAP_DATA.keys())}")
+        if dimensions in BITMAP_DATA:
+            print(f"        Available strokes for {dimensions}: {list(BITMAP_DATA[dimensions].keys())}")
+        raise KeyError(f"Bitmap template missing for size {res_x}x{res_y}, stroke {stroke}, letter '{letter}'")
     
 
 
@@ -51,10 +55,16 @@ def get_word(word_string, res_x_list, res_y_list, stroke_list, spacing=2):
     letters = [] # lista de matrices
     for i, char in enumerate(word_string):
         # Buscamos cada letra con sus parámetros específicos
-        img = get_letter(res_x_list[i], res_y_list[i], char, stroke_list[i])
-        if img is None:
+        try:
+            img = get_letter(res_x_list[i], res_y_list[i], char, stroke_list[i])
+            if img is None:
+                raise KeyError(f"Bitmap for '{char}' returned None")
+            letters.append(img)
+        except KeyError as e:
+            print(f"\n[ERROR] Cannot create word '{word_string}':")
+            print(f"        Failed at character #{i+1}: '{char}'")
+            print(f"        Error: {e}")
             return None, None
-        letters.append(img)
 
     # El alto de la matriz total debe ser el máximo de las alturas pedidas
     max_h = max(res_y_list)

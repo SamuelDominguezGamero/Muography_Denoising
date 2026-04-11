@@ -18,10 +18,9 @@ import sys
 # ===========================================================================
 # CONTROL FLAGS
 # ===========================================================================
-create_geometries = False
-simulate          = True  # set to True to submit SLURM jobs (cluster only)
-environment       = "cluster"  # "local" or "cluster"
-dimension         = "2D"
+create_geometries = True
+simulate          = False  # set to True to submit SLURM jobs (cluster only)
+environment       = "local"  # "local" or "cluster"
 
 
 # ===========================================================================
@@ -91,17 +90,34 @@ zPosDetector_bot = -54
 # ===========================================================================
 # GEOMETRY VARIATIONS
 # ===========================================================================
-spacings       = [1]
-ratios         = [1]
-FontsSizeX     = [8]
-materials      = ["lead"]
-words_geometry = ["MUON"]
-strokes        = [1]
+# IMPORTANT: Not all combinations are valid. Check bitmaps_letters.py BITMAP_DATA:
+#   - Sizes 8, 10, 12: Only stroke 1, 2 available
+#   - Sizes 14, 16: Stroke 1, 2, 3 available
+#   - Only letters available: M, U, O, N
 
-total_geometries = (
-    len(spacings) * len(ratios) * len(FontsSizeX) *
-    len(materials) * len(words_geometry) * len(strokes)
-)
+spacings       = [1, 2]
+ratios         = [1]
+# Strategy: Use multiple sizes with stroke variations that are actually available
+FontSizes      = [
+    {"size": 8,  "strokes": [1, 2]},
+    {"size": 10, "strokes": [1, 2]},
+    {"size": 12, "strokes": [1, 2]},
+    {"size": 14, "strokes": [1, 2, 3]},  # stroke 3 available
+    {"size": 16, "strokes": [1, 2, 3]},  # stroke 3 available
+]
+materials      = ["lead", "uranium"]
+words_geometry = ["MUON", "MOUN", "NUMO", "UNOM", "ONUM", "UMON", "MUNU", "NOMU", "UMNU", "MONU"]
+
+# Count total valid geometries
+total_geometries = 0
+for spacing in spacings:
+    for ratio in ratios:
+        for fontsize_dict in FontSizes:
+            for material in materials:
+                for word in words_geometry:
+                    for stroke in fontsize_dict["strokes"]:
+                        total_geometries += 1
+
 print(f"[INFO] ----- Total geometries to generate: {total_geometries}")
 
 
@@ -129,14 +145,14 @@ for spacing in spacings:
     if not create_geometries:
         break
     for ratio in ratios:
-        for x in FontsSizeX:
+        for fontsize_dict in FontSizes:
+            x = fontsize_dict["size"]
             for material in materials:
                 for word in words_geometry:
-                    for stroke in strokes:
+                    for stroke in fontsize_dict["strokes"]:
                         i += 1
                         
                         namefile = (
-                            f"{dimension}"
                             f"_Lpx{Lpx}_Lpy{Lpy}_Lpz{Lpz}"
                             f"_npx{npx}_npy{npy}_npz{npz}"
                             f"_zTop{zPosDetector_top}_zBot{zPosDetector_bot}"
@@ -176,6 +192,13 @@ for spacing in spacings:
                         else:
                             print(f"[CORRECT] Geometry {i}/{total_geometries} created: {namefile}")
 
+if create_geometries:
+    command_GitAdd = f"git add {PATH_geometry_files}/*.json {PATH_density_files}/*_ground_truth_density.npy"
+    subprocess.run(command_GitAdd, shell=True)
+    command_GitCommit = f'git commit -m "Add geometry JSON files and ground truth density tensors"'
+    subprocess.run(command_GitCommit, shell=True)
+    command_GitPush = "git push"
+    subprocess.run(command_GitPush, shell=True)
 print("\n[CORRECT] ALL GEOMETRIES CREATED SUCCESSFULLY")
 print("="*60 + "\n")
 
@@ -203,13 +226,13 @@ merges_submitted = 0
 
 for spacing in spacings:
     for ratio in ratios:
-        for x in FontsSizeX:
+        for fontsize_dict in FontSizes:
+            x = fontsize_dict["size"]
             for material in materials:
                 for word in words_geometry:
-                    for stroke in strokes:
+                    for stroke in fontsize_dict["strokes"]:
 
                         namefile = (
-                            f"{dimension}"
                             f"_Lpx{Lpx}_Lpy{Lpy}_Lpz{Lpz}"
                             f"_npx{npx}_npy{npy}_npz{npz}"
                             f"_zTop{zPosDetector_top}_zBot{zPosDetector_bot}"
