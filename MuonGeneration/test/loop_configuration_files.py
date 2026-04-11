@@ -18,9 +18,9 @@ import sys
 # ===========================================================================
 # CONTROL FLAGS
 # ===========================================================================
-create_geometries = True
-simulate          = False  # set to True to submit SLURM jobs (cluster only)
-environment       = "local"  # "local" or "cluster"
+create_geometries = False
+simulate          = True  # set to True to submit SLURM jobs (cluster only)
+environment       = "cluster"  # "local" or "cluster"
 
 
 # ===========================================================================
