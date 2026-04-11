@@ -18,8 +18,8 @@ import sys
 # ===========================================================================
 # CONTROL FLAGS
 # ===========================================================================
-create_geometries = False
-simulate          = True  # set to True to submit SLURM jobs (cluster only)
+create_geometries = True
+simulate          = False  # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 
 
@@ -95,17 +95,17 @@ zPosDetector_bot = -54
 #   - Sizes 14, 16: Stroke 1, 2, 3 available
 #   - Only letters available: M, U, O, N
 
-spacings       = [1]
+spacings       = [1, 2]
 ratios         = [1]
 # Strategy: Use multiple sizes with stroke variations that are actually available
 FontSizes      = [
-    # {"size": 8,  "strokes": [1, 2]},
+    {"size": 8,  "strokes": [1, 2]},
     {"size": 10, "strokes": [1, 2]},
-    # {"size": 12, "strokes": [1, 2]},
-    # {"size": 14, "strokes": [1, 2, 3]},  # stroke 3 available
-    # {"size": 16, "strokes": [1, 2, 3]},  # stroke 3 available
+    {"size": 12, "strokes": [1, 2]},
+    {"size": 14, "strokes": [1, 2, 3]},  # stroke 3 available
+    {"size": 16, "strokes": [1, 2, 3]},  # stroke 3 available
 ]
-materials      = ["lead"]
+materials      = ["lead", "uranium", "iron"]
 words_geometry = ["MUON"]
 
 # Count total valid geometries
@@ -160,6 +160,9 @@ for spacing in spacings:
                             f"_FontX{x}_FontY{x}"
                             f"_mat{material}_word{word}_stroke{stroke}"
                         )
+                        # if os.path.exists(os.path.join(PATH_geometry_files, namefile + ".json")):
+                        #     print(f"[INFO] Geometry {i}/{total_geometries} already exists, skipping: {namefile}")
+                        #     continue
 
                         output_json    = os.path.join(PATH_geometry_files, namefile + ".json")
                         output_density = os.path.join(PATH_density_files,  namefile + "_ground_truth_density.npy")
@@ -184,8 +187,24 @@ for spacing in spacings:
                             "--output_json",                 output_json,
                             "--output_ground_truth_density", output_density,
                         ]
-
-                        result = subprocess.run(command, capture_output=True, text=True)
+                        if environment == "local":
+                            result = subprocess.run(command, capture_output=True, text=True)
+                        elif environment == "cluster":
+                            # Unimos la lista 'command' en un string simple
+                            inner_command = " ".join(command)
+                            
+                            # Metemos el source DENTRO del wrap para que el nodo de cómputo tenga el entorno
+                            # Añadimos límites de recursos (mem, time) para que no use los por defecto del cluster
+                            full_wrap = f"source {PATH_setup} && {inner_command}"
+                            
+                            sbatch_command = (
+                                f"sbatch --job-name=geom_{i} "
+                                f"--mem=4G --time=00:15:00 "
+                                f"--output={PATH_logs}/log_geom_{i}.out "
+                                f"--wrap=\"{full_wrap}\""
+                            )
+                            
+                            result = subprocess.run(sbatch_command, shell=True, capture_output=True, text=True)
 
                         if result.returncode != 0:
                             print(f"[ERROR] Geometry {i}/{total_geometries} failed:\n{result.stderr}")
@@ -240,6 +259,11 @@ for spacing in spacings:
                             f"_FontX{x}_FontY{x}"
                             f"_mat{material}_word{word}_stroke{stroke}"
                         )
+                        
+                        # if os.path.exists(os.path.join(PATH_geometry_files, namefile + ".json")):
+                        #     print(f"[INFO] Geometry {i}/{total_geometries} already exists, skipping: {namefile}")
+                        #     continue
+
                         geometry_file = os.path.join(PATH_geometry_files, namefile + ".json")
 
                         if not os.path.exists(geometry_file):
@@ -313,16 +337,6 @@ echo "[CORRECT] POCA done."
 rm {out_pre}
 echo "[INFO] Preprocessed file removed to save space: {out_pre}"
 
-# --- LIMPIEZA FINAL DE LOGS ---
-# Si llegamos aquí es que POCA (el último paso) terminó bien ($? -eq 0)
-if [ $? -eq 0 ]; then
-    echo "[INFO] Todo correcto. Borrando logs para ahorrar espacio..."
-    # Esperamos 5 segundos para asegurar que el sistema de archivos ha terminado de escribir
-    sleep 5
-    rm {out_log} {out_err}
-    # Nota: El archivo .out se borrará, pero SLURM podría crear un residuo mínimo al cerrar el job.
-fi
-
 echo "[CORRECT] Job finished: {namefile} | seed={seed}"
 """
                             with open(out_sh, "w") as f:
@@ -387,8 +401,16 @@ if [ $? -ne 0 ]; then echo "[ERROR] Merge failed. Aborting."; exit 1; fi
 echo "[CORRECT] Merge finished for: {namefile}"
 
 echo "[INFO] Removing splitted POCA files for: {namefile}"
-rm {PATH_poca_output}/*.npy
+# Usamos el prefijo específico para no borrar lo de otros jobs
+rm {PATH_poca_output}/POCA_{namefile}_seed*.npy
 echo "[CORRECT] Split POCA files removed for: {namefile}"
+
+echo "[INFO] Cleaning up seed logs..."
+sleep 10
+rm {PATH_logs}/log_{namefile}_seed*.out
+rm {PATH_logs}/log_{namefile}_seed*.err
+rm {PATH_logs}/job_{namefile}_seed*.sh
+echo "[CORRECT] Cleanup finished."
 """
                         with open(merge_sh, "w") as f:
                             f.write(merge_script)
