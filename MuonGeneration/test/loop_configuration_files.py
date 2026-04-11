@@ -313,6 +313,15 @@ echo "[CORRECT] POCA done."
 rm {out_pre}
 echo "[INFO] Preprocessed file removed to save space: {out_pre}"
 
+# --- LIMPIEZA FINAL DE LOGS ---
+# Si llegamos aquí es que POCA (el último paso) terminó bien ($? -eq 0)
+if [ $? -eq 0 ]; then
+    echo "[INFO] Todo correcto. Borrando logs para ahorrar espacio..."
+    # Esperamos 5 segundos para asegurar que el sistema de archivos ha terminado de escribir
+    sleep 5
+    rm {out_log} {out_err}
+    # Nota: El archivo .out se borrará, pero SLURM podría crear un residuo mínimo al cerrar el job.
+fi
 
 echo "[CORRECT] Job finished: {namefile} | seed={seed}"
 """
