@@ -78,14 +78,14 @@ print(f"[INFO] Script directory: {SCRIPT_DIR}")
 # ===========================================================================
 # GEOMETRY PARAMETERS (fixed)
 # ===========================================================================
-Lpx = 256
-Lpy = 256
-Lpz = 256
+Lpx = 128
+Lpy = 128
+Lpz = 128
 npx = 128
 npy = 128
 npz = 128
-zPosDetector_top =  118
-zPosDetector_bot = -118
+zPosDetector_top =  54
+zPosDetector_bot = -54
 
 
 # ===========================================================================
@@ -102,14 +102,14 @@ total_geometries = (
     len(spacings) * len(ratios) * len(FontsSizeX) *
     len(materials) * len(words_geometry) * len(strokes)
 )
-print(f"[INFO] Total geometries to generate: {total_geometries}")
+print(f"[INFO] ----- Total geometries to generate: {total_geometries}")
 
 
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 100_000
-n_muons_per_job          = 10_000
+total_muons_per_geometry = 10_000_000
+n_muons_per_job          = 100_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
 print(f"[INFO] Muons per job:      {n_muons_per_job:,}")
@@ -225,9 +225,6 @@ for spacing in spacings:
 
                         print(f"\n[INFO] Submitting {n_jobs_per_geometry} jobs for: {namefile}")
 
-                        # creation of a directory for this geometry's logs (optional, can also keep all logs in one dir)
-                        geometry_log_dir = os.path.join(PATH_logs, namefile)
-                        os.makedirs(geometry_log_dir, exist_ok=True)
                         
                         # Collect job IDs for this geometry to use in the merge dependency
                         job_ids = []
@@ -238,9 +235,9 @@ for spacing in spacings:
                             out_raw  = os.path.join(PATH_output_raw,   f"Out_{namefile}_seed{seed}.root")
                             out_pre  = os.path.join(PATH_preprocessed, f"Pre_{namefile}_seed{seed}.root")
                             out_poca = os.path.join(PATH_poca_output,  f"POCA_{namefile}_seed{seed}.npy")
-                            out_log  = os.path.join(geometry_log_dir, f"log_{namefile}_seed{seed}.out")
-                            out_err  = os.path.join(geometry_log_dir, f"log_{namefile}_seed{seed}.err")
-                            out_sh   = os.path.join(geometry_log_dir, f"job_{namefile}_seed{seed}.sh")
+                            out_log  = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.out")
+                            out_err  = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.err")
+                            out_sh   = os.path.join(PATH_logs, f"job_{namefile}_seed{seed}.sh")
 
                             job_script = f"""#!/bin/bash
 #SBATCH --job-name=muon_seed{seed}
@@ -248,6 +245,7 @@ for spacing in spacings:
 #SBATCH --error={out_err}
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
+#SBATCH --mem=4G
 #SBATCH --time=01:00:00
 
 source {PATH_setup}
@@ -318,9 +316,9 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
                         out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}.npy")
                         ground_truth_tensor = os.path.join(PATH_density_files, f"{namefile}_ground_truth_density.npy")
                         png_name = f"{namefile}.png"
-                        merge_log  = os.path.join(geometry_log_dir, f"log_merge_{namefile}.out")
-                        merge_err  = os.path.join(geometry_log_dir, f"log_merge_{namefile}.err")
-                        merge_sh   = os.path.join(geometry_log_dir, f"job_merge_{namefile}.sh")
+                        merge_log  = os.path.join(PATH_logs, f"log_merge_{namefile}.out")
+                        merge_err  = os.path.join(PATH_logs, f"log_merge_{namefile}.err")
+                        merge_sh   = os.path.join(PATH_logs, f"job_merge_{namefile}.sh")
 
                         merge_script = f"""#!/bin/bash
 #SBATCH --job-name=merge_{word}
@@ -328,7 +326,7 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
 #SBATCH --error={merge_err}
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=4G
+#SBATCH --mem=8G
 #SBATCH --time=00:30:00
 
 source {PATH_setup}

@@ -322,7 +322,7 @@ Some /vis commands (optionally) take a string to specify colour.
 Starging the party joder
 Starging the party
 G4ProductionCutsTable::UpdateCoupleTable() - Elapsed time for calculation of energy cuts: 
-User=0.000000s Real=0.000068s Sys=0.000000s [Cpu=0.0%]
+User=0.000000s Real=0.000063s Sys=0.000000s [Cpu=0.0%]
 =======================================================================
 ======                 Electromagnetic Physics Parameters      ========
 =======================================================================
@@ -396,7 +396,7 @@ Screening factor                                   1
 G4VUserPhysicsList::BuildPhysicsTable does not retrieve Cut Table but calculate 
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for gamma
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% gamma
- ProcessManager : 0x1447eb0 ProcessManagerShadow : 0x1447eb0
+ ProcessManager : 0x115eeb0 ProcessManagerShadow : 0x115eeb0
   0 - Transportation
   1 - phot
   2 - compt
@@ -432,7 +432,7 @@ conv:  for gamma SubType=14 BuildTable=1
      BetheHeitlerLPM : Emin=    0 eV  Emax=  100 TeV  ModifiedTsai
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for e-
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% e-
- ProcessManager : 0x14477c0 ProcessManagerShadow : 0x14477c0
+ ProcessManager : 0x115e7c0 ProcessManagerShadow : 0x115e7c0
   0 - Transportation
   1 - msc
   2 - eIoni
@@ -464,7 +464,7 @@ eBrem:  for e-  XStype:4  SubType=3
             eBremLPM : Emin=    1 GeV Emax=  100 TeV  ModifiedTsai
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for e+
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% e+
- ProcessManager : 0x1447570 ProcessManagerShadow : 0x1447570
+ ProcessManager : 0x115e570 ProcessManagerShadow : 0x115e570
   0 - Transportation
   1 - msc
   2 - eIoni
@@ -502,7 +502,7 @@ annihil:  for e+ XStype:2 SubType=5 BuildTable=0
             eplus2gg : Emin=    0 eV  Emax=  100 TeV
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for proton
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% proton
- ProcessManager : 0x144af40 ProcessManagerShadow : 0x144af40
+ ProcessManager : 0x1161f40 ProcessManagerShadow : 0x1161f40
   0 - Transportation
   1 - msc
   2 - hIoni
@@ -525,7 +525,7 @@ hIoni:  for proton  XStype:3  SubType=2
           BetheBloch : Emin=    2 MeV Emax=  100 TeV
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for GenericIon
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% GenericIon
- ProcessManager : 0x143f5e0 ProcessManagerShadow : 0x143f5e0
+ ProcessManager : 0x11565e0 ProcessManagerShadow : 0x11565e0
   0 - Transportation
   1 - msc
   2 - hIoni
@@ -548,7 +548,7 @@ hIoni:  for GenericIon  XStype:3  SubType=2
           BetheBloch : Emin=    2 MeV Emax=  100 TeV
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for He3
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% He3
- ProcessManager : 0x1443a10 ProcessManagerShadow : 0x1443a10
+ ProcessManager : 0x115aa10 ProcessManagerShadow : 0x115aa10
   0 - Transportation
   1 - msc
   2 - hIoni
@@ -558,7 +558,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% He3
   2 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for alpha
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% alpha
- ProcessManager : 0x1443ba0 ProcessManagerShadow : 0x1443ba0
+ ProcessManager : 0x115aba0 ProcessManagerShadow : 0x115aba0
   0 - Transportation
   1 - msc
   2 - hIoni
@@ -581,7 +581,7 @@ hIoni:  for alpha  XStype:3  SubType=2
           BetheBloch : Emin=7.9452 MeV Emax=  100 TeV
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_He3
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_He3
- ProcessManager : 0x1443df0 ProcessManagerShadow : 0x1443df0
+ ProcessManager : 0x115adf0 ProcessManagerShadow : 0x115adf0
   0 - Transportation
   1 - msc
   2 - hIoni
@@ -591,7 +591,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_He3
   2 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_alpha
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_alpha
- ProcessManager : 0x1444040 ProcessManagerShadow : 0x1444040
+ ProcessManager : 0x115b040 ProcessManagerShadow : 0x115b040
   0 - Transportation
   1 - msc
   2 - hIoni
@@ -601,7 +601,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_alpha
   2 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_deuteron
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_deuteron
- ProcessManager : 0x1444290 ProcessManagerShadow : 0x1444290
+ ProcessManager : 0x115b290 ProcessManagerShadow : 0x115b290
   0 - Transportation
   1 - msc
   2 - hIoni
@@ -611,7 +611,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_deuteron
   2 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_doublehyperH4
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_doublehyperH4
- ProcessManager : 0x14444e0 ProcessManagerShadow : 0x14444e0
+ ProcessManager : 0x115b4e0 ProcessManagerShadow : 0x115b4e0
   0 - Transportation
   1 - Decay
   2 - msc
@@ -623,7 +623,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_doublehyperH4
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_doublehyperdoubleneutron
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_doublehyperdoubleneutron
- ProcessManager : 0x1444730 ProcessManagerShadow : 0x1444730
+ ProcessManager : 0x115b730 ProcessManagerShadow : 0x115b730
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -631,7 +631,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_doublehyperdoubleneutron
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_hyperH4
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_hyperH4
- ProcessManager : 0x1444980 ProcessManagerShadow : 0x1444980
+ ProcessManager : 0x115b980 ProcessManagerShadow : 0x115b980
   0 - Transportation
   1 - Decay
   2 - msc
@@ -643,7 +643,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_hyperH4
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_hyperHe5
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_hyperHe5
- ProcessManager : 0x1444bd0 ProcessManagerShadow : 0x1444bd0
+ ProcessManager : 0x115bbd0 ProcessManagerShadow : 0x115bbd0
   0 - Transportation
   1 - Decay
   2 - msc
@@ -655,7 +655,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_hyperHe5
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_hyperalpha
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_hyperalpha
- ProcessManager : 0x1444e20 ProcessManagerShadow : 0x1444e20
+ ProcessManager : 0x115be20 ProcessManagerShadow : 0x115be20
   0 - Transportation
   1 - Decay
   2 - msc
@@ -667,7 +667,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_hyperalpha
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_hypertriton
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_hypertriton
- ProcessManager : 0x1445070 ProcessManagerShadow : 0x1445070
+ ProcessManager : 0x115c070 ProcessManagerShadow : 0x115c070
   0 - Transportation
   1 - Decay
   2 - msc
@@ -679,7 +679,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_hypertriton
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_kaon0
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_kaon0
- ProcessManager : 0x14452c0 ProcessManagerShadow : 0x14452c0
+ ProcessManager : 0x115c2c0 ProcessManagerShadow : 0x115c2c0
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -687,7 +687,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_kaon0
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_lambda
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_lambda
- ProcessManager : 0x1445510 ProcessManagerShadow : 0x1445510
+ ProcessManager : 0x115c510 ProcessManagerShadow : 0x115c510
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -695,7 +695,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_lambda
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_neutron
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_neutron
- ProcessManager : 0x1445760 ProcessManagerShadow : 0x1445760
+ ProcessManager : 0x115c760 ProcessManagerShadow : 0x115c760
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -703,19 +703,19 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_neutron
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_nu_e
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_nu_e
- ProcessManager : 0x14459b0 ProcessManagerShadow : 0x14459b0
+ ProcessManager : 0x115c9b0 ProcessManagerShadow : 0x115c9b0
   0 - Transportation
 --------------------------------------------------------------
   0 - Transportation
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_nu_mu
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_nu_mu
- ProcessManager : 0x1445c00 ProcessManagerShadow : 0x1445c00
+ ProcessManager : 0x115cc00 ProcessManagerShadow : 0x115cc00
   0 - Transportation
 --------------------------------------------------------------
   0 - Transportation
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_omega-
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_omega-
- ProcessManager : 0x1445e50 ProcessManagerShadow : 0x1445e50
+ ProcessManager : 0x115ce50 ProcessManagerShadow : 0x115ce50
   0 - Transportation
   1 - Decay
   2 - msc
@@ -727,7 +727,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_omega-
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_proton
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_proton
- ProcessManager : 0x14460a0 ProcessManagerShadow : 0x14460a0
+ ProcessManager : 0x115d0a0 ProcessManagerShadow : 0x115d0a0
   0 - Transportation
   1 - msc
   2 - hIoni
@@ -750,7 +750,7 @@ hIoni:  for anti_proton  XStype:3  SubType=2
           BetheBloch : Emin=    2 MeV Emax=  100 TeV
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_sigma0
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_sigma0
- ProcessManager : 0x14462f0 ProcessManagerShadow : 0x14462f0
+ ProcessManager : 0x115d2f0 ProcessManagerShadow : 0x115d2f0
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -758,7 +758,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_sigma0
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_triton
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_triton
- ProcessManager : 0x1446540 ProcessManagerShadow : 0x1446540
+ ProcessManager : 0x115d540 ProcessManagerShadow : 0x115d540
   0 - Transportation
   1 - Decay
   2 - msc
@@ -770,7 +770,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_triton
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_xi-
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_xi-
- ProcessManager : 0x1446790 ProcessManagerShadow : 0x1446790
+ ProcessManager : 0x115d790 ProcessManagerShadow : 0x115d790
   0 - Transportation
   1 - Decay
   2 - msc
@@ -782,7 +782,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_xi-
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for anti_xi0
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_xi0
- ProcessManager : 0x14469e0 ProcessManagerShadow : 0x14469e0
+ ProcessManager : 0x115d9e0 ProcessManagerShadow : 0x115d9e0
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -790,13 +790,13 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% anti_xi0
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for chargedgeantino
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% chargedgeantino
- ProcessManager : 0x1446c30 ProcessManagerShadow : 0x1446c30
+ ProcessManager : 0x115dc30 ProcessManagerShadow : 0x115dc30
   0 - Transportation
 --------------------------------------------------------------
   0 - Transportation
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for deuteron
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% deuteron
- ProcessManager : 0x1446e80 ProcessManagerShadow : 0x1446e80
+ ProcessManager : 0x115de80 ProcessManagerShadow : 0x115de80
   0 - Transportation
   1 - msc
   2 - hIoni
@@ -806,7 +806,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% deuteron
   2 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for doublehyperH4
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% doublehyperH4
- ProcessManager : 0x14470d0 ProcessManagerShadow : 0x14470d0
+ ProcessManager : 0x115e0d0 ProcessManagerShadow : 0x115e0d0
   0 - Transportation
   1 - Decay
   2 - msc
@@ -818,7 +818,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% doublehyperH4
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for doublehyperdoubleneutron
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% doublehyperdoubleneutron
- ProcessManager : 0x1447320 ProcessManagerShadow : 0x1447320
+ ProcessManager : 0x115e320 ProcessManagerShadow : 0x115e320
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -826,7 +826,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% doublehyperdoubleneutron
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for eta
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% eta
- ProcessManager : 0x1447a10 ProcessManagerShadow : 0x1447a10
+ ProcessManager : 0x115ea10 ProcessManagerShadow : 0x115ea10
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -834,7 +834,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% eta
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for eta_prime
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% eta_prime
- ProcessManager : 0x1447c60 ProcessManagerShadow : 0x1447c60
+ ProcessManager : 0x115ec60 ProcessManagerShadow : 0x115ec60
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -842,13 +842,13 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% eta_prime
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for geantino
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% geantino
- ProcessManager : 0x1448100 ProcessManagerShadow : 0x1448100
+ ProcessManager : 0x115f100 ProcessManagerShadow : 0x115f100
   0 - Transportation
 --------------------------------------------------------------
   0 - Transportation
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for hyperH4
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% hyperH4
- ProcessManager : 0x1448350 ProcessManagerShadow : 0x1448350
+ ProcessManager : 0x115f350 ProcessManagerShadow : 0x115f350
   0 - Transportation
   1 - Decay
   2 - msc
@@ -860,7 +860,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% hyperH4
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for hyperHe5
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% hyperHe5
- ProcessManager : 0x14485a0 ProcessManagerShadow : 0x14485a0
+ ProcessManager : 0x115f5a0 ProcessManagerShadow : 0x115f5a0
   0 - Transportation
   1 - Decay
   2 - msc
@@ -872,7 +872,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% hyperHe5
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for hyperalpha
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% hyperalpha
- ProcessManager : 0x14487f0 ProcessManagerShadow : 0x14487f0
+ ProcessManager : 0x115f7f0 ProcessManagerShadow : 0x115f7f0
   0 - Transportation
   1 - Decay
   2 - msc
@@ -884,7 +884,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% hyperalpha
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for hypertriton
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% hypertriton
- ProcessManager : 0x1448a40 ProcessManagerShadow : 0x1448a40
+ ProcessManager : 0x115fa40 ProcessManagerShadow : 0x115fa40
   0 - Transportation
   1 - Decay
   2 - msc
@@ -896,7 +896,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% hypertriton
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for kaon+
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% kaon+
- ProcessManager : 0x1448c90 ProcessManagerShadow : 0x1448c90
+ ProcessManager : 0x115fc90 ProcessManagerShadow : 0x115fc90
   0 - Transportation
   1 - Decay
   2 - msc
@@ -921,7 +921,7 @@ hIoni:  for kaon+  XStype:3  SubType=2
           BetheBloch : Emin=1.05231 MeV Emax=  100 TeV
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for kaon-
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% kaon-
- ProcessManager : 0x1448ee0 ProcessManagerShadow : 0x1448ee0
+ ProcessManager : 0x115fee0 ProcessManagerShadow : 0x115fee0
   0 - Transportation
   1 - Decay
   2 - msc
@@ -946,7 +946,7 @@ hIoni:  for kaon-  XStype:3  SubType=2
           BetheBloch : Emin=1.05231 MeV Emax=  100 TeV
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for kaon0
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% kaon0
- ProcessManager : 0x1449130 ProcessManagerShadow : 0x1449130
+ ProcessManager : 0x1160130 ProcessManagerShadow : 0x1160130
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -954,7 +954,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% kaon0
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for kaon0L
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% kaon0L
- ProcessManager : 0x1449380 ProcessManagerShadow : 0x1449380
+ ProcessManager : 0x1160380 ProcessManagerShadow : 0x1160380
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -962,7 +962,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% kaon0L
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for kaon0S
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% kaon0S
- ProcessManager : 0x14495d0 ProcessManagerShadow : 0x14495d0
+ ProcessManager : 0x11605d0 ProcessManagerShadow : 0x11605d0
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -970,7 +970,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% kaon0S
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for lambda
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% lambda
- ProcessManager : 0x1449820 ProcessManagerShadow : 0x1449820
+ ProcessManager : 0x1160820 ProcessManagerShadow : 0x1160820
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -978,7 +978,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% lambda
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for mu+
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% mu+
- ProcessManager : 0x1449a70 ProcessManagerShadow : 0x1449a70
+ ProcessManager : 0x1160a70 ProcessManagerShadow : 0x1160a70
   0 - Transportation
   1 - Decay
   2 - msc
@@ -1020,7 +1020,7 @@ muPairProd:  for mu+  XStype:1  SubType=4
           muPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for mu-
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% mu-
- ProcessManager : 0x1449cc0 ProcessManagerShadow : 0x1449cc0
+ ProcessManager : 0x1160cc0 ProcessManagerShadow : 0x1160cc0
   0 - Transportation
   1 - Decay
   2 - msc
@@ -1062,7 +1062,7 @@ muPairProd:  for mu-  XStype:1  SubType=4
           muPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for neutron
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% neutron
- ProcessManager : 0x1449f10 ProcessManagerShadow : 0x1449f10
+ ProcessManager : 0x1160f10 ProcessManagerShadow : 0x1160f10
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -1070,19 +1070,19 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% neutron
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for nu_e
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% nu_e
- ProcessManager : 0x144a160 ProcessManagerShadow : 0x144a160
+ ProcessManager : 0x1161160 ProcessManagerShadow : 0x1161160
   0 - Transportation
 --------------------------------------------------------------
   0 - Transportation
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for nu_mu
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% nu_mu
- ProcessManager : 0x144a3b0 ProcessManagerShadow : 0x144a3b0
+ ProcessManager : 0x11613b0 ProcessManagerShadow : 0x11613b0
   0 - Transportation
 --------------------------------------------------------------
   0 - Transportation
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for omega-
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% omega-
- ProcessManager : 0x144a600 ProcessManagerShadow : 0x144a600
+ ProcessManager : 0x1161600 ProcessManagerShadow : 0x1161600
   0 - Transportation
   1 - Decay
   2 - msc
@@ -1094,7 +1094,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% omega-
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for pi+
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% pi+
- ProcessManager : 0x144a850 ProcessManagerShadow : 0x144a850
+ ProcessManager : 0x1161850 ProcessManagerShadow : 0x1161850
   0 - Transportation
   1 - Decay
   2 - msc
@@ -1119,7 +1119,7 @@ hIoni:  for pi+  XStype:3  SubType=2
           BetheBloch : Emin=297.505 keV Emax=  100 TeV
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for pi-
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% pi-
- ProcessManager : 0x144aaa0 ProcessManagerShadow : 0x144aaa0
+ ProcessManager : 0x1161aa0 ProcessManagerShadow : 0x1161aa0
   0 - Transportation
   1 - Decay
   2 - msc
@@ -1144,7 +1144,7 @@ hIoni:  for pi-  XStype:3  SubType=2
           BetheBloch : Emin=297.505 keV Emax=  100 TeV
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for pi0
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% pi0
- ProcessManager : 0x144acf0 ProcessManagerShadow : 0x144acf0
+ ProcessManager : 0x1161cf0 ProcessManagerShadow : 0x1161cf0
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -1152,7 +1152,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% pi0
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for sigma+
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% sigma+
- ProcessManager : 0x144b190 ProcessManagerShadow : 0x144b190
+ ProcessManager : 0x1162190 ProcessManagerShadow : 0x1162190
   0 - Transportation
   1 - Decay
   2 - msc
@@ -1164,7 +1164,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% sigma+
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for sigma-
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% sigma-
- ProcessManager : 0x144b3e0 ProcessManagerShadow : 0x144b3e0
+ ProcessManager : 0x11623e0 ProcessManagerShadow : 0x11623e0
   0 - Transportation
   1 - Decay
   2 - msc
@@ -1176,7 +1176,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% sigma-
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for sigma0
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% sigma0
- ProcessManager : 0x144b630 ProcessManagerShadow : 0x144b630
+ ProcessManager : 0x1162630 ProcessManagerShadow : 0x1162630
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -1184,7 +1184,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% sigma0
   1 - Decay
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for triton
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% triton
- ProcessManager : 0x144b880 ProcessManagerShadow : 0x144b880
+ ProcessManager : 0x1162880 ProcessManagerShadow : 0x1162880
   0 - Transportation
   1 - Decay
   2 - msc
@@ -1196,7 +1196,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% triton
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for xi-
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% xi-
- ProcessManager : 0x144bad0 ProcessManagerShadow : 0x144bad0
+ ProcessManager : 0x1162ad0 ProcessManagerShadow : 0x1162ad0
   0 - Transportation
   1 - Decay
   2 - msc
@@ -1208,7 +1208,7 @@ G4VUserPhysicsList::BuildPhysicsTable %%%%%% xi-
   3 - hIoni
 G4VUserPhysicsList::BuildPhysicsTable  Calculate Physics Table for xi0
 G4VUserPhysicsList::BuildPhysicsTable %%%%%% xi0
- ProcessManager : 0x144bd20 ProcessManagerShadow : 0x144bd20
+ ProcessManager : 0x1162d20 ProcessManagerShadow : 0x1162d20
   0 - Transportation
   1 - Decay
 --------------------------------------------------------------
@@ -1271,7 +1271,7 @@ See commands in /vis/modeling/trajectories/ for other options.
  Run terminated.
 Run Summary
   Number of events processed : 10000
-  User=1.850000s Real=1.862864s Sys=0.000000s [Cpu=99.3%]
+  User=1.830000s Real=1.846722s Sys=0.000000s [Cpu=99.1%]
 Graphics systems deleted.
 Visualization Manager deleting...
 G4 kernel has come to Quit state.
