@@ -95,18 +95,18 @@ zPosDetector_bot = -54
 #   - Sizes 14, 16: Stroke 1, 2, 3 available
 #   - Only letters available: M, U, O, N
 
-spacings       = [1, 2]
+spacings       = [1]
 ratios         = [1]
 # Strategy: Use multiple sizes with stroke variations that are actually available
 FontSizes      = [
-    {"size": 8,  "strokes": [1, 2]},
+    # {"size": 8,  "strokes": [1, 2]},
     {"size": 10, "strokes": [1, 2]},
-    {"size": 12, "strokes": [1, 2]},
-    {"size": 14, "strokes": [1, 2, 3]},  # stroke 3 available
-    {"size": 16, "strokes": [1, 2, 3]},  # stroke 3 available
+    # {"size": 12, "strokes": [1, 2]},
+    # {"size": 14, "strokes": [1, 2, 3]},  # stroke 3 available
+    # {"size": 16, "strokes": [1, 2, 3]},  # stroke 3 available
 ]
-materials      = ["lead", "uranium"]
-words_geometry = ["MUON", "MOUN", "NUMO", "UNOM", "ONUM", "UMON", "MUNU", "NOMU", "UMNU", "MONU"]
+materials      = ["lead"]
+words_geometry = ["MUON"]
 
 # Count total valid geometries
 total_geometries = 0
@@ -295,6 +295,10 @@ python3 -u {PATH_data_analysis}/makeHLTuple.py \\
 if [ $? -ne 0 ]; then echo "[ERROR] makeHLTuple failed. Aborting."; exit 1; fi
 echo "[CORRECT] makeHLTuple done."
 
+# eliminate intermediate files to save space
+rm {out_raw}
+echo "[INFO] Raw file removed to save space: {out_raw}"
+
 # --- 3rd: POCA reconstruction ---
 echo "[INFO] Running POCA..."
 python3 -u {PATH_data_analysis}/POCA.py \\
@@ -304,6 +308,11 @@ python3 -u {PATH_data_analysis}/POCA.py \\
     --npx {npx} --npy {npy} --npz {npz}
 if [ $? -ne 0 ]; then echo "[ERROR] POCA failed. Aborting."; exit 1; fi
 echo "[CORRECT] POCA done."
+
+# eliminate intermediate files to save space
+rm {out_pre}
+echo "[INFO] Preprocessed file removed to save space: {out_pre}"
+
 
 echo "[CORRECT] Job finished: {namefile} | seed={seed}"
 """
@@ -366,22 +375,11 @@ python3 -u {MERGE_SCRIPT} \\
     --output           {out_merged}
 if [ $? -ne 0 ]; then echo "[ERROR] Merge failed. Aborting."; exit 1; fi
 
-if [ ! -f {ground_truth_tensor} ]; then
-    echo "[ERROR] Ground truth tensor not found: {ground_truth_tensor}"
-    exit 1
-fi
-
-echo "[INFO] Generating PNG comparison for: {namefile}"
-python3 -u {PLOT_SCRIPT} \\
-    --poca_merged         {out_merged} \\
-    --ground_truth_tensor {ground_truth_tensor} \\
-    --Lx {Lpx} --Ly {Lpy} --Lz {Lpz} \\
-    --z 0 \\
-    --output_dir {PATH_png_comparisons} \\
-    --output_name {png_name}
-if [ $? -ne 0 ]; then echo "[ERROR] PNG comparison generation failed. Aborting."; exit 1; fi
-
 echo "[CORRECT] Merge finished for: {namefile}"
+
+echo "[INFO] Removing splitted POCA files for: {namefile}"
+rm {PATH_poca_output}/*.npy
+echo "[CORRECT] Split POCA files removed for: {namefile}"
 """
                         with open(merge_sh, "w") as f:
                             f.write(merge_script)
