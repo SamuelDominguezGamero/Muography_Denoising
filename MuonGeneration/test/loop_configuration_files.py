@@ -160,9 +160,10 @@ for spacing in spacings:
                             f"_FontX{x}_FontY{x}"
                             f"_mat{material}_word{word}_stroke{stroke}"
                         )
-                        # if os.path.exists(os.path.join(PATH_geometry_files, namefile + ".json")):
-                        #     print(f"[INFO] Geometry {i}/{total_geometries} already exists, skipping: {namefile}")
-                        #     continue
+
+                        if os.path.exists(os.path.join(PATH_geometry_files, namefile + ".json")):
+                            print(f"[INFO] Geometry {i}/{total_geometries} already exists, skipping: {namefile}")
+                            continue
 
                         output_json    = os.path.join(PATH_geometry_files, namefile + ".json")
                         output_density = os.path.join(PATH_density_files,  namefile + "_ground_truth_density.npy")
@@ -202,6 +203,7 @@ for spacing in spacings:
                                 f"--mem=4G --time=00:15:00 "
                                 f"--output={PATH_logs}/log_geom_{i}.out "
                                 f"--wrap=\"{full_wrap}\""
+                                f"echo '[INFO] Geometry {i}/{total_geometries} creation started: {namefile}'"
                             )
                             
                             result = subprocess.run(sbatch_command, shell=True, capture_output=True, text=True)
@@ -211,13 +213,13 @@ for spacing in spacings:
                         else:
                             print(f"[CORRECT] Geometry {i}/{total_geometries} created: {namefile}")
 
-if create_geometries:
-    command_GitAdd = f"git add {PATH_geometry_files}/*.json {PATH_density_files}/*_ground_truth_density.npy"
-    subprocess.run(command_GitAdd, shell=True)
-    command_GitCommit = f'git commit -m "Add geometry JSON files and ground truth density tensors"'
-    subprocess.run(command_GitCommit, shell=True)
-    command_GitPush = "git push"
-    subprocess.run(command_GitPush, shell=True)
+# if create_geometries:
+#     command_GitAdd = f"git add {PATH_geometry_files}/*.json {PATH_density_files}/*_ground_truth_density.npy"
+#     subprocess.run(command_GitAdd, shell=True)
+#     command_GitCommit = f'git commit -m "Add geometry JSON files and ground truth density tensors"'
+#     subprocess.run(command_GitCommit, shell=True)
+#     command_GitPush = "git push"
+#     subprocess.run(command_GitPush, shell=True)
 print("\n[CORRECT] ALL GEOMETRIES CREATED SUCCESSFULLY")
 print("="*60 + "\n")
 
