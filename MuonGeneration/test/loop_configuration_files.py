@@ -19,8 +19,8 @@ import sys
 # CONTROL FLAGS
 # ===========================================================================
 create_geometries = True
-simulate          = False    # set to True to submit SLURM jobs (cluster only)
-environment       = "local"  # "local" or "cluster"
+simulate          = True    # set to True to submit SLURM jobs (cluster only)
+environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
 max_geometries    = 5        # the first geometries to be tested on
 # ===========================================================================
