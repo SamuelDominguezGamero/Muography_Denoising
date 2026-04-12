@@ -49,12 +49,17 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 default_density_path = os.path.join(script_dir, "default_ground_truth_density.npy")
 default_json_path = os.path.join(script_dir, "default_geometry.json")
 
-parser.add_argument("--output_ground_truth_density", type=str, default=default_density_path, help="Output npy file (Tensor) for the ground truth density of the geometry, assigns the geometry of the material for each of the voxels (0 for air).")
+# outputs
+parser.add_argument("--dimensions", type=str, default="2D", help="Dimensions for the UNET (2d or 3d).")
+parser.add_argument("--output3D_density", type=str, default=default_density_path, help="Output npy file (Tensor) for the ground truth density of the geometry, assigns the geometry of the material for each of the voxels (0 for air).")
 parser.add_argument("--output_json", type=str, default=default_json_path, help="Output JSON file name for the Geant4 geometry configuration.")
+parser.add_argument("--output2D_density", type=str, default="2D", help="Output path for the 2D geometry.")
 
+# plotting
 parser.add_argument("--visual_testing_XY_slice", action="store_false",
     help="If True, plots the XY slice of the geometry at the central Z voxel using matplotlib.")
 
+# save all the arguments:
 args = parser.parse_args()
 
 
@@ -295,9 +300,6 @@ assert MatrixGeometryBoolean_POCA.shape == (npy, npx, npz), \
 
 print(f"[CORRECT] Upsampled from ({nx},{ny},{nz}) to ({npx},{npy},{npz}) using ratio={ratio}")
 
-# Save at POCA resolution
-np.save(args.output_ground_truth_density, MatrixGeometryDensity_POCA)
-print(f"[CORRECT] Ground truth density saved successfully at: {args.output_ground_truth_density}" )
 
 
 ### CREATING THE JSON FILE FOR GEANT4 ###
@@ -422,18 +424,35 @@ with open(args.output_json, 'w') as f:
 print("[CORRECT] ----- Json file created successfully, available at: " + args.output_json )
 
 
+#######################
+### SAVING RESULTS  ###
+#######################
 
 
+if args.dimensions == "2D":
+    # Central Z slice (same one used for embedding)
+    z_center    = (nz // 2)  # same logic as embed_word_in_geometry with start_vox=None
+    xy_slice    = MatrixGeometryBoolean[:, :, z_center]  # shape (ny, nx)    
+    np.save(args.output2D_density, xy_slice)
+    
+    print(f"[CORRECT] ----- 2D geometry slice saved successfully at: {args.output2D_density}" )
+
+elif args.dimensions == "3D":
+    np.save(args.output3D_density, MatrixGeometryDensity_POCA)
+    print(f"[CORRECT] ----- 3D Ground truth density saved successfully at: {args.output3D_density}" )
+
+
+
+
+######################
 ### VISUAL TESTING ###
+######################
 if args.visual_testing_XY_slice:
     print("[INFO] ----- Visual testing enabled. Plotting XY slice of the geometry at the central Z voxel...")
     import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
 
-    # We take the central Z slice (same one used for embedding)
-    z_center = (nz // 2)  # same logic as embed_word_in_geometry with start_vox=None
-    xy_slice = MatrixGeometryBoolean[:, :, z_center]  # shape (ny, nx)
-
+    
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.imshow(
         xy_slice,             # shape is (ny, nx): rows are Y and columns are X
@@ -458,3 +477,5 @@ if args.visual_testing_XY_slice:
     plt.savefig(plot_path, dpi=150, bbox_inches='tight')
     print(f"[CORRECT] ----- Visualization saved at: {plot_path}")
     plt.close()
+else:
+    print("[INFO] ----- Visual testing disabled. To enable, use the flag --visual_testing_XY_slice when running the script.")

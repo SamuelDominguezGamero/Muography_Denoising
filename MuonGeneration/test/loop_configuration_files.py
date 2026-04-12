@@ -19,10 +19,10 @@ import sys
 # CONTROL FLAGS
 # ===========================================================================
 create_geometries = True
-simulate          = False  # set to True to submit SLURM jobs (cluster only)
-environment       = "cluster"  # "local" or "cluster"
-
-
+simulate          = False    # set to True to submit SLURM jobs (cluster only)
+environment       = "local"  # "local" or "cluster"
+dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
+max_geometries    = 5        # the first geometries to be tested on
 # ===========================================================================
 # SECURITY CHECKS
 # ===========================================================================
@@ -43,7 +43,8 @@ PLOT_SCRIPT            = os.path.join(SCRIPT_DIR, "plot_central_slice_comparison
 
 if environment == "cluster":
     PATH_geometry_files = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
-    PATH_density_files  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/ground_truth_data"
+    PATH_density_files3D  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/ground_truth_data/3Dimensions"
+    PATH_density_files2D  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions"
     PATH_output_raw     = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_raw"
     PATH_preprocessed   = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_preprocessed"
     PATH_poca_output    = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/post_POCA_data"
@@ -56,7 +57,8 @@ if environment == "cluster":
 
 elif environment == "local":
     PATH_geometry_files = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
-    PATH_density_files  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data"
+    PATH_density_files3D  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/3Dimensions"
+    PATH_density_files2D  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions"
     PATH_output_raw     = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_raw"
     PATH_preprocessed   = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_preprocessed"
     PATH_poca_output    = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/post_POCA_data"
@@ -151,7 +153,9 @@ for spacing in spacings:
                 for word in words_geometry:
                     for stroke in fontsize_dict["strokes"]:
                         i += 1
-                        
+                        if i > max_geometries:
+                            print(f"[INFO] Reached max_geometries={max_geometries}. Stopping geometry creation.")
+                            break
                         namefile = (
                             f"_Lpx{Lpx}_Lpy{Lpy}_Lpz{Lpz}"
                             f"_npx{npx}_npy{npy}_npz{npz}"
@@ -166,7 +170,8 @@ for spacing in spacings:
                             continue
 
                         output_json    = os.path.join(PATH_geometry_files, namefile + ".json")
-                        output_density = os.path.join(PATH_density_files,  namefile + "_ground_truth_density.npy")
+                        output_density3D = os.path.join(PATH_density_files3D,  namefile + "_ground_truth_density3D.npy")
+                        output_density2D = os.path.join(PATH_density_files2D,  namefile + "_ground_truth_density2D.npy")
 
                         command = [
                             "python3", CREATE_GEOMETRY_SCRIPT,
@@ -176,17 +181,19 @@ for spacing in spacings:
                             "--npx", str(npx),
                             "--npy", str(npy),
                             "--npz", str(npz),
-                            "--zPosDetector_top", str(zPosDetector_top),
-                            "--zPosDetector_bot", str(zPosDetector_bot),
-                            "--spacing",          str(spacing),
-                            "--ratio",            str(ratio),
-                            "--FontSizeX",        str(x),
-                            "--FontSizeY",        str(x),
-                            "--material",         material,
-                            "--word_geometry",    word,
-                            "--StrokeWidth",      str(stroke),
-                            "--output_json",                 output_json,
-                            "--output_ground_truth_density", output_density,
+                            "--zPosDetector_top",             str(zPosDetector_top),
+                            "--zPosDetector_bot",             str(zPosDetector_bot),
+                            "--spacing",                      str(spacing),
+                            "--ratio",                        str(ratio),
+                            "--FontSizeX",                    str(x),
+                            "--FontSizeY",                    str(x),
+                            "--material",                     material,
+                            "--word_geometry",                word,
+                            "--StrokeWidth",                  str(stroke),
+                            "--output_json",                  output_json,
+                            "--dimensions",                   str(dimension),
+                            "--output2D_density",             output_density2D,
+                            "--output3D_density",             output_density3D
                         ]
                         if environment == "local":
                             result = subprocess.run(command, capture_output=True, text=True)
@@ -208,6 +215,7 @@ for spacing in spacings:
                             
                             result = subprocess.run(sbatch_command, shell=True, capture_output=True, text=True)
 
+                        
                         if result.returncode != 0:
                             print(f"[ERROR] Geometry {i}/{total_geometries} failed:\n{result.stderr}")
                         else:
@@ -265,6 +273,7 @@ for spacing in spacings:
                         # if os.path.exists(os.path.join(PATH_geometry_files, namefile + ".json")):
                         #     print(f"[INFO] Geometry {i}/{total_geometries} already exists, skipping: {namefile}")
                         #     continue
+
 
                         geometry_file = os.path.join(PATH_geometry_files, namefile + ".json")
 

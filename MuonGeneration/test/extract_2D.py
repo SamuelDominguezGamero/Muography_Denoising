@@ -12,7 +12,6 @@ Output: 2D slices (npy, npx) saved as
         - {config}_2DXY_ground_truth_density.npy: normalized GT [0, 1]
         - MERGED_{config}_2DXY_theta_rms.npy: normalized POCA [0, 1]
 
-IMPORTANT: Both outputs normalized to [0, 1] per-sample for U-Net training.
 
 Conventional shape indexing (inherited from POCA/create_geometry):
   3D: [iy, ix, iz] = [height, width, depth] = [npy, npx, npz]
@@ -57,14 +56,14 @@ if environment == "cluster":
 
 elif environment == "local":
     PATH_geometry_files = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
-    PATH_density_files  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data"
+    PATH_density_files3D= "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/3Dimensions"
     PATH_output_raw     = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_raw"
     PATH_preprocessed   = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_preprocessed"
     PATH_poca_output    = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/post_POCA_data"
     PATH_merged_output  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/merged_poca_data"
-    PATH_png_comparisons = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/png_comparisons"
-    PATH_2D_GT          = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/2D_ground_truth"
-    PATH_2D_POCA        = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/2D_poca_theta_rms"
+    PATH_png_comparisons= "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/png_comparisons"
+    PATH_2D_GT          = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions"
+    PATH_2D_POCA        = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/training_UNET/2D"
 
 else:
     sys.exit("[ERROR] environment must be 'local' or 'cluster'.")
@@ -84,21 +83,6 @@ if verbose:
     print(f"[INFO] Min material voxels for correlation: {MIN_MATERIAL_VOXELS}\n")
 
 
-# ===========================================================================
-# HELPER: Normalize array to [0, 1] per-sample
-# ===========================================================================
-def normalize_to_01(data):
-    """
-    Min-max normalization to [0, 1].
-    Handles case where all values are identical.
-    """
-    data_min = np.min(data)
-    data_max = np.max(data)
-    
-    if np.isclose(data_max, data_min):  # All values identical
-        return np.ones_like(data) * 0.5  # Return middle value
-    
-    return (data - data_min) / (data_max - data_min)
 
 
 # ===========================================================================
@@ -106,7 +90,7 @@ def normalize_to_01(data):
 # ===========================================================================
 print("[INFO] ========== EXTRACTING GROUND TRUTH 2D SLICES ==========")
 
-gt_files = sorted(glob.glob(os.path.join(PATH_density_files, "*_ground_truth_density.npy")))
+gt_files = sorted(glob.glob(os.path.join(PATH_density_files3D, "*_ground_truth_density.npy")))
 
 if not gt_files:
     print("[WARNING] No ground truth files found.")
@@ -123,8 +107,7 @@ else:
             z_center = npz // 2
             density_2d = density_3d[:, :, z_center]
             
-            # Normalize to [0, 1]
-            density_2d_norm = normalize_to_01(density_2d)
+            # Normalize to [0, 1] (not yet implemented)
             
             # Construct output filename: replace _ground_truth_density with _2DXY_ground_truth_density
             basename = os.path.basename(gt_file)
