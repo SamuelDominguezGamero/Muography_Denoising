@@ -379,8 +379,13 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
                             continue
 
                         dependency_str = "afterok:" + ":".join(job_ids)
+                        
+                        if dimension == "2D":
+                            out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_2D.npy")
+                        elif dimension == "3D":
+                            out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_3D.npy")
+                        
                         out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}.npy")
-                        ground_truth_tensor = os.path.join(PATH_density_files, f"{namefile}_ground_truth_density.npy")
                         png_name = f"{namefile}.png"
                         merge_log  = os.path.join(PATH_logs, f"log_merge_{namefile}.out")
                         merge_err  = os.path.join(PATH_logs, f"log_merge_{namefile}.err")
@@ -393,7 +398,7 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=8G
-#SBATCH --time=00:30:00
+#SBATCH --time=01:00:00
 
 source {PATH_setup}
 

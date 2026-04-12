@@ -38,6 +38,8 @@ parser.add_argument("--Lpz", type=float, default=128.0, help="Physical length of
 parser.add_argument("--npx", type=int, default=128, help="Number of voxels in X direction.")
 parser.add_argument("--npy", type=int, default=128, help="Number of voxels in Y direction.")
 parser.add_argument("--npz", type=int, default=128, help="Number of voxels in Z direction.")
+
+parser.add_argument("--dimension", type=str, default="2D", choices=["2D","3D"], help="Dimensionality of the voxel grid (2D or 3D). If 2, only X and Y dimensions are used for voxelization.")
 args = parser.parse_args()
 
 # ---------------------------------------------------------------------------
@@ -78,9 +80,9 @@ def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
                                The volume spans [-X_LIM, X_LIM] x [-Y_LIM, Y_LIM] x [-Z_LIM, Z_LIM].
 
     Returns:
-        matrix_std_theta : 3D numpy array with shape (npy, npx, npz) containing std of scattering angle per voxel.
-                          Indexed as [iy, ix, iz] following standard numpy image convention.
         matrix_counts     : 3D numpy array with shape (npy, npx, npz) containing event counts per voxel.
+        matrix_sum_theta  : 3D numpy array with shape (npy, npx, npz) containing sum of scattering angles per voxel.
+        matrix_sum_theta_sq : 3D numpy array with shape (npy, npx, npz) containing sum of squared scattering angles per voxel.
     """
     df = ROOT.RDataFrame("events", root_input_file)
 
@@ -152,18 +154,7 @@ def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
     np.add.at(matrix_sum_theta, (v_y, v_x, v_z), theta)
     np.add.at(matrix_sum_theta_sq, (v_y, v_x, v_z), theta**2)
 
-    # 4. Calcular std_theta (sustituye lo que hacía df_voxels)
-    # Fórmula: std = sqrt( (sum_sq / N) - (sum/N)^2 )
-    with np.errstate(divide='ignore', invalid='ignore'):
-        mean = matrix_sum_theta / matrix_counts
-        variance = (matrix_sum_theta_sq / matrix_counts) - (mean**2)
-        # Limpiar posibles negativos ínfimos por precisión flotante
-        variance = np.maximum(0, variance)
-        matrix_std_theta = np.sqrt(variance)
-        # Poner 0 donde no hay eventos
-        matrix_std_theta[matrix_counts == 0] = 0.0
-
-    return matrix_std_theta, matrix_counts, matrix_sum_theta, matrix_sum_theta_sq
+    return matrix_counts, matrix_sum_theta, matrix_sum_theta_sq
 
 
 # important comment: we are counting from the bottom-left corner of the volume
@@ -173,20 +164,21 @@ def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
 #   - ix: column index (X coordinate, 0 at left)
 #   - iz: depth index (Z coordinate)
 
-matrix_std_theta, matrix_counts, matrix_sum_theta, matrix_sum_theta_sq = get_poca_info_ROOT(args.input, X_LIM, Y_LIM, Z_LIM)
+matrix_counts, matrix_sum_theta, matrix_sum_theta_sq = get_poca_info_ROOT(args.input, X_LIM, Y_LIM, Z_LIM)
 
-
-if args.plot:
-    import matplotlib.pyplot as plt
-    plt.imshow(matrix_std_theta[:,:,0], origin='lower', extent=[-X_LIM, X_LIM, -Y_LIM, Y_LIM])
-    plt.colorbar(label='Std of scattering angle (rad)')
-    plt.xlabel('X (cm)')
-    plt.ylabel('Y (cm)')
-    plt.title('POCA Scattering Angle Dispersion')
-    plt.show()
 
 
 # Save results in the format expected by merge_results.py
+if args.dimension == "2D":
+       # For 2D, we only keep the X and Y dimensions, collapsing Z
+       # we will see the information integrated along the Z axis
+       matrix_counts = np.sum(matrix_counts, axis=2)
+       matrix_sum_theta = np.sum(matrix_sum_theta, axis=2)
+       matrix_sum_theta_sq = np.sum(matrix_sum_theta_sq, axis=2)
+elif args.dimension == "3D":
+       pass
+
+
 np.save(args.output, {
     "n_events":     matrix_counts,
     "sum_theta":    matrix_sum_theta,
