@@ -13,7 +13,7 @@ This file automates the full simulation pipeline:
 import subprocess
 import os
 import sys
-
+import time
 
 # ===========================================================================
 # CONTROL FLAGS
@@ -143,18 +143,28 @@ print("STEP 1: GEOMETRY CREATION")
 print("="*60)
 
 i = 0
+done_creating = False
 for spacing in spacings:
-    if not create_geometries:
+    if not create_geometries or done_creating:
         break
     for ratio in ratios:
+        if done_creating:
+            break
         for fontsize_dict in FontSizes:
+            if done_creating:
+                break
             x = fontsize_dict["size"]
             for material in materials:
+                if done_creating:
+                    break
                 for word in words_geometry:
+                    if done_creating:
+                        break
                     for stroke in fontsize_dict["strokes"]:
                         i += 1
                         if i > max_geometries:
                             print(f"[INFO] Reached max_geometries={max_geometries}. Stopping geometry creation.")
+                            done_creating = True
                             break
                         namefile = (
                             f"_Lpx{Lpx}_Lpy{Lpy}_Lpz{Lpz}"
@@ -376,7 +386,7 @@ for spacing in spacings:
 
                         # wait some time to ensure all jobs are registered in the scheduler before submitting the merge job
                         print(f"[INFO] Waiting 1 minute before submitting merge job for: {namefile}")
-                        import time
+                        
                         time.sleep(60)
                         
                         
@@ -398,7 +408,7 @@ for spacing in spacings:
                                     os.remove(filepath)    
                             continue 
 
-
+                        print(f"[INFO] ------ Submitting merge job for: {namefile} with dependency on {len(job_ids)} jobs.")
                         dependency_str = "afterok:" + ":".join(job_ids)
                         
                         if dimension == "2D":

@@ -23,54 +23,43 @@ args = parser.parse_args()
 
 print(f"[INFO] Merging {args.n_jobs} POCA files for: {args.namefile}")
 
-# check that all the expected files exist before starting the merge, to avoid doing half the work and then finding out that some files are missing
-expected_files = [os.path.join(args.path_poca_output, f"POCA_{args.namefile}_seed{seed}.npy") for seed in range(1, args.n_jobs + 1)]
-missing_files = [f for f in expected_files if not os.path.exists(f)]
+# Check that all expected files exist before starting the merge
+missing_files = []
+for seed in range(1, args.n_jobs + 1):
+    filepath = os.path.join(args.path_poca_output, f"POCA_{args.namefile}_seed{seed}.npy")
+    if not os.path.exists(filepath):
+        missing_files.append(filepath)
+
 if missing_files:
-    
-    print(f"[ERROR] ----- Missing {len(missing_files)} files: {missing_files}")
-    print(f"[INFO] ----- ")
-    
+    print(f"[ERROR] Missing {len(missing_files)} POCA files. Cannot proceed with merge.")
+    for f in missing_files:
+        print(f"         {f}")
     sys.exit(1)
 
 if args.dimension == "2D":
 
-    m_counts_2d      = np.zeros((args.npy, args.npx, 1))
-    m_sum_theta_2d    = np.zeros((args.npy, args.npx, 1))
-    m_sum_theta_sq_2d = np.zeros((args.npy, args.npx, 1))
+    m_counts_2d      = np.zeros((args.npy, args.npx))
+    m_sum_theta_2d    = np.zeros((args.npy, args.npx))
+    m_sum_theta_sq_2d = np.zeros((args.npy, args.npx))
 
     missing = []
 
     for seed in range(1, args.n_jobs + 1):
         filepath = os.path.join(args.path_poca_output, f"POCA_{args.namefile}_seed{seed}.npy")
-
-        if not os.path.exists(filepath):
-            print(f"[WARNING] Missing file for seed={seed}: {filepath}")
-            missing.append(seed)
-            continue
-
         data = np.load(filepath, allow_pickle=True).item()
 
-        if data["n_events"].shape != (args.npy, args.npx, args.npz):
-            print(f"[ERROR] Shape mismatch at seed={seed}: {data['n_events'].shape} != {(args.npy, args.npx, args.npz)}")
-            sys.exit(1)
+        # Validate shapes: all 2D arrays should be (npy, npx, 1)
+        expected_shape = (args.npy, args.npx, 1)
+        for key in ["counts_2d", "sum_theta_2d", "sum_theta_sq_2d"]:
+            if data[key].shape != expected_shape:
+                print(f"[ERROR] Shape mismatch at seed={seed}, key '{key}': {data[key].shape} != {expected_shape}")
+                sys.exit(1)
 
         m_counts_2d      += data["counts_2d"]
         m_sum_theta_2d    += data["sum_theta_2d"]
         m_sum_theta_sq_2d += data["sum_theta_sq_2d"]
 
-    # remove the previous files to save space, we already have the merged result in memory
-    for seed in range(1, args.n_jobs + 1):
-        filepath = os.path.join(args.path_poca_output, f"POCA_{args.namefile}_seed{seed}.npy")
-        if os.path.exists(filepath):
-            os.remove(filepath)
-        
-
-    if missing:
-        print(f"[WARNING] {len(missing)} files missing: seeds {missing}")
-        sys.exit()
-    else:
-        print(f"[CORRECT] All {args.n_jobs} files merged successfully.")
+    print(f"[CORRECT] All {args.n_jobs} files merged successfully.")
 
     
     # CALCULATIONS: CHANNELS FOR THE UNET
