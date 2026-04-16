@@ -149,7 +149,7 @@ def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
     v_z = res['voxel_z'].astype(int)
     theta = res['theta']
 
-    # Bucle eficiente en memoria (puedes usar np.add.at para ser aún más rápido)
+
     np.add.at(matrix_counts, (v_y, v_x, v_z), 1)
     np.add.at(matrix_sum_theta, (v_y, v_x, v_z), theta)
     np.add.at(matrix_sum_theta_sq, (v_y, v_x, v_z), theta**2)
@@ -167,22 +167,35 @@ def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
 matrix_counts, matrix_sum_theta, matrix_sum_theta_sq = get_poca_info_ROOT(args.input, X_LIM, Y_LIM, Z_LIM)
 
 
-
-# Save results in the format expected by merge_results.py
 if args.dimension == "2D":
+# we are projecting the 3D grid onto the XY plane, summing over Z, so we see the integrated information along the Z axis. This is equivalent to having a 2D grid where each cell contains the total counts and scattering angle statistics for all POCA points that fall within that XY cell, regardless of their Z coordinate.
+
+# we are going to generate several channels (2D matrices), with different information
+
        # For 2D, we only keep the X and Y dimensions, collapsing Z
        # we will see the information integrated along the Z axis
-       matrix_counts = np.sum(matrix_counts, axis=2)
-       matrix_sum_theta = np.sum(matrix_sum_theta, axis=2)
-       matrix_sum_theta_sq = np.sum(matrix_sum_theta_sq, axis=2)
+       
+       m_counts_2d = np.sum(matrix_counts, axis=2)
+       m_sum_theta_2d = np.sum(matrix_sum_theta, axis=2)
+       m_sum_theta_sq_2d = np.sum(matrix_sum_theta_sq, axis=2)
+
+       
+       # Save results in the format expected by merge_results.py
+
+       output_dict = {
+       "counts_2d": m_counts_2d,
+       "sum_theta_2d": m_sum_theta_2d,
+       "sum_theta_sq_2d": m_sum_theta_sq_2d
+       }
+
+       np.save(args.output, output_dict)
+
+       print(f"[CORRECT] POCA results saved to: {args.output}")
+       print("[INFO] ----- 2Dimensions!")
+
+
 elif args.dimension == "3D":
-       pass
+       # complete code
+       print(f"[ERROR] ----- Dimension {args.dimension} not implemented yet.")
+       sys.exit()
 
-
-np.save(args.output, {
-    "n_events":     matrix_counts,
-    "sum_theta":    matrix_sum_theta,
-    "sum_theta_sq": matrix_sum_theta_sq
-})
-
-print(f"[CORRECT] POCA results saved to: {args.output}")
