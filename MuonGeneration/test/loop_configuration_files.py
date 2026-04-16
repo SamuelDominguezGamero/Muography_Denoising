@@ -23,6 +23,7 @@ simulate          = True    # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
 max_geometries    = 1        # the first geometries to be tested on
+force_resimulate  = False    # set to True to re-process geometries even if merged results exist
 # ===========================================================================
 # SECURITY CHECKS
 # ===========================================================================
@@ -278,10 +279,17 @@ for spacing in spacings:
                             f"_mat{material}_word{word}_stroke{stroke}"
                         )
                         
-                        # if os.path.exists(os.path.join(PATH_geometry_files, namefile + ".json")):
-                        #     print(f"[INFO] Geometry {i}/{total_geometries} already exists, skipping: {namefile}")
-                        #     continue
-
+                        # Check if merged result already exists (skip unless force_resimulate=True)
+                        if dimension == "2D":
+                            merged_output = os.path.join(PATH_merged_output, f"MERGED_{namefile}_2D.npy")
+                        elif dimension == "3D":
+                            merged_output = os.path.join(PATH_merged_output, f"MERGED_{namefile}_3D.npy")
+                        
+                        if os.path.exists(merged_output) and not force_resimulate:
+                            print(f"[SKIP] Already processed: {namefile}")
+                            continue
+                        elif os.path.exists(merged_output) and force_resimulate:
+                            print(f"[RESIMULATE] Force flag enabled, re-processing: {namefile}")
 
                         geometry_file = os.path.join(PATH_geometry_files, namefile + ".json")
 
@@ -388,7 +396,7 @@ for spacing in spacings:
                         print(f"[INFO] Waiting 1 minute before submitting merge job for: {namefile}")
                         
                         time.sleep(60)
-                        
+                        print("[INFO] Wait finished. Proceeding to merge job submission.")
                         
                         if not job_ids:
                             print(f"[WARNING] No jobs submitted for {namefile}, skipping merge.")
