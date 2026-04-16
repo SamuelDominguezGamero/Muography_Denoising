@@ -263,46 +263,48 @@ jobs_submitted = 0
 jobs_failed    = 0
 merges_submitted = 0
 
-for spacing in spacings:
-    for ratio in ratios:
-        for fontsize_dict in FontSizes:
-            x = fontsize_dict["size"]
-            for material in materials:
-                for word in words_geometry:
-                    for stroke in fontsize_dict["strokes"]:
+# ===========================================================================
+# SCAN FILESYSTEM FOR CREATED GEOMETRIES
+# ===========================================================================
+print("\n[INFO] Scanning for created geometries...")
+created_geometries = []
+if os.path.exists(PATH_geometry_files):
+    geometry_files = [f for f in os.listdir(PATH_geometry_files) if f.endswith('.json')]
+    created_geometries = [f[:-5] for f in geometry_files]  # Remove .json extension
+    print(f"[INFO] Found {len(created_geometries)} geometries to process")
+    if len(created_geometries) == 0:
+        print("[WARNING] No geometry files found. Skipping STEP 2.")
+        sys.exit(0)
+else:
+    print(f"[ERROR] Geometry path does not exist: {PATH_geometry_files}")
+    sys.exit(1)
 
-                        namefile = (
-                            f"_Lpx{Lpx}_Lpy{Lpy}_Lpz{Lpz}"
-                            f"_npx{npx}_npy{npy}_npz{npz}"
-                            f"_zTop{zPosDetector_top}_zBot{zPosDetector_bot}"
-                            f"_spacing{spacing}_ratio{ratio}"
-                            f"_FontX{x}_FontY{x}"
-                            f"_mat{material}_word{word}_stroke{stroke}"
-                        )
-                        
-                        # Check if merged result already exists (skip unless force_resimulate=True)
-                        if dimension == "2D":
-                            merged_output = os.path.join(PATH_merged_output, f"MERGED_{namefile}_2D.npy")
-                        elif dimension == "3D":
-                            merged_output = os.path.join(PATH_merged_output, f"MERGED_{namefile}_3D.npy")
-                        
-                        if os.path.exists(merged_output) and not force_resimulate:
-                            print(f"[SKIP] Already processed: {namefile}")
-                            continue
-                        elif os.path.exists(merged_output) and force_resimulate:
-                            print(f"[RESIMULATE] Force flag enabled, re-processing: {namefile}")
-
-                        geometry_file = os.path.join(PATH_geometry_files, namefile + ".json")
-
-                        if not os.path.exists(geometry_file):
-                            print(f"[ERROR] Geometry file not found, skipping: {geometry_file}")
-                            continue
-
-                        print(f"\n[INFO] Submitting {n_jobs_per_geometry} jobs for: {namefile}")
-
-                        
-                        # Collect job IDs for this geometry to use in the merge dependency
-                        job_ids = []
+# ===========================================================================
+# ITERATE OVER CREATED GEOMETRIES (NOT ALL COMBINATIONS)
+# ===========================================================================
+for namefile in created_geometries:
+    geometry_file = os.path.join(PATH_geometry_files, namefile + ".json")
+    
+    if not os.path.exists(geometry_file):
+        print(f"[WARNING] Geometry file disappeared: {geometry_file}")
+        continue
+    
+    # Check if merged result already exists (skip unless force_resimulate=True)
+    if dimension == "2D":
+        merged_output = os.path.join(PATH_merged_output, f"MERGED_{namefile}_2D.npy")
+    elif dimension == "3D":
+        merged_output = os.path.join(PATH_merged_output, f"MERGED_{namefile}_3D.npy")
+    
+    if os.path.exists(merged_output) and not force_resimulate:
+        print(f"[SKIP] Already processed: {namefile}")
+        continue
+    elif os.path.exists(merged_output) and force_resimulate:
+        print(f"[RESIMULATE] Force flag enabled, re-processing: {namefile}")
+    
+    print(f"\n[INFO] Submitting {n_jobs_per_geometry} jobs for: {namefile}")
+    
+    # Collect job IDs for this geometry to use in the merge dependency
+    job_ids = []
 
                         for job in range(n_jobs_per_geometry):
                             seed = job+1
