@@ -175,9 +175,9 @@ if args.dimension == "2D":
        # For 2D, we only keep the X and Y dimensions, collapsing Z
        # we will see the information integrated along the Z axis
        
-       m_counts_2d = np.sum(matrix_counts, axis=2)
-       m_sum_theta_2d = np.sum(matrix_sum_theta, axis=2)
-       m_sum_theta_sq_2d = np.sum(matrix_sum_theta_sq, axis=2)
+       m_counts_2d = np.sum(matrix_counts, axis=2)[:, :, np.newaxis]  # reshape to (npy, npx, 1)
+       m_sum_theta_2d = np.sum(matrix_sum_theta, axis=2)[:, :, np.newaxis]
+       m_sum_theta_sq_2d = np.sum(matrix_sum_theta_sq, axis=2)[:, :, np.newaxis]
 
        
        # Save results in the format expected by merge_results.py

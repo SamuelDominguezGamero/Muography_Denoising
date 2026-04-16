@@ -38,9 +38,9 @@ if missing_files:
 
 if args.dimension == "2D":
 
-    m_counts_2d      = np.zeros((args.npy, args.npx))
-    m_sum_theta_2d    = np.zeros((args.npy, args.npx))
-    m_sum_theta_sq_2d = np.zeros((args.npy, args.npx))
+    m_counts_2d      = np.zeros((args.npy, args.npx, 1))
+    m_sum_theta_2d    = np.zeros((args.npy, args.npx, 1))
+    m_sum_theta_sq_2d = np.zeros((args.npy, args.npx, 1))
 
     missing = []
 
