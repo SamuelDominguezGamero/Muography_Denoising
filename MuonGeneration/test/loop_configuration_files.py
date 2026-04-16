@@ -219,6 +219,7 @@ for spacing in spacings:
                                 "--mem=4G",
                                 "--time=00:15:00",
                                 f"--output={PATH_logs}/log_geom_{i}.out",
+                                f"--workdir={PATH_logs}",
                                 f"--wrap={full_wrap}"
                             ]
                             
@@ -317,6 +318,7 @@ for spacing in spacings:
                                 #SBATCH --job-name=muon_seed{seed}
                                 #SBATCH --output={out_log}
                                 #SBATCH --error={out_err}
+                                #SBATCH --workdir={PATH_logs}
                                 #SBATCH --ntasks=1
                                 #SBATCH --cpus-per-task=1
                                 #SBATCH --mem=4G
@@ -434,6 +436,7 @@ for spacing in spacings:
                             #SBATCH --job-name=merge_{namefile}
                             #SBATCH --output={merge_log}
                             #SBATCH --error={merge_err}
+                            #SBATCH --workdir={PATH_logs}
                             #SBATCH --ntasks=1
                             #SBATCH --cpus-per-task=1
                             #SBATCH --mem=8G
