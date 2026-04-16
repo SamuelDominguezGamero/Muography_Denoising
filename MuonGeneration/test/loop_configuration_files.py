@@ -219,7 +219,7 @@ for spacing in spacings:
                                 "--mem=4G",
                                 "--time=00:15:00",
                                 f"--output={PATH_logs}/log_geom_{i}.out",
-                                f"--workdir={PATH_logs}",
+                                f"--chdir={PATH_logs}",
                                 f"--wrap={full_wrap}"
                             ]
                             
