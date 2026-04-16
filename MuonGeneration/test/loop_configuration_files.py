@@ -242,6 +242,27 @@ for spacing in spacings:
 print("\n[CORRECT] ALL GEOMETRIES CREATED SUCCESSFULLY")
 print("="*60 + "\n")
 
+# ===========================================================================
+# WAIT FOR GEOMETRY JOBS TO FINISH (if cluster environment)
+# ===========================================================================
+if create_geometries and environment == "cluster":
+    print("[INFO] Waiting for geometry creation jobs to complete...")
+    import subprocess as sp
+    max_wait = 1800  # 30 minutes max
+    elapsed = 0
+    while elapsed < max_wait:
+        result = sp.run(["squeue", "-u", "dominguezs", "-h"], capture_output=True, text=True)
+        job_count = len([l for l in result.stdout.strip().split('\n') if l and 'geom_' in l])
+        if job_count == 0:
+            print("[INFO] All geometry jobs finished.")
+            break
+        print(f"[INFO] Waiting for {job_count} geometry job(s)... ({elapsed}s)")
+        time.sleep(5)
+        elapsed += 5
+    if elapsed >= max_wait:
+        print("[WARNING] Timeout waiting for geometry jobs. Proceeding anyway.")
+    print()
+
 
 # ===========================================================================
 # STEP 2: SLURM JOB SUBMISSION + MERGE WITH DEPENDENCY
