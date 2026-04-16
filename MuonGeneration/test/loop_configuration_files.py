@@ -391,34 +391,17 @@ for spacing in spacings:
                         # --dependency=afterok:id1:id2:...:idN means the merge
                         # job only runs if ALL listed jobs finish successfully.
                         # If any job fails, the merge is cancelled automatically.
+                        # SLURM handles the waiting automatically, no explicit sleep needed.
                         # ------------------------------------------------------
-                        
-
-                        # wait some time to ensure all jobs are registered in the scheduler before submitting the merge job
-                        print(f"[INFO] Waiting 1 minute before submitting merge job for: {namefile}")
-                        
-                        time.sleep(60)
-                        print("[INFO] Wait finished. Proceeding to merge job submission.")
                         
                         if not job_ids:
                             print(f"[WARNING] No jobs submitted for {namefile}, skipping merge.")
                             continue
                         elif len(job_ids) < n_jobs_per_geometry:
-                            print(f"[WARNING] Only {len(job_ids)}/{n_jobs_per_geometry} jobs submitted for {namefile}. Merge will be submitted but may fail if missing jobs were not just delayed.")
-                            print(f"[INFO] ----- Waiting an additional 60 seconds to see if more jobs appear")
-                            time.sleep(60)
+                            print(f"[WARNING] Only {len(job_ids)}/{n_jobs_per_geometry} jobs submitted for {namefile}.")
+                            print(f"[WARNING] Merge job will be submitted with dependency on available jobs.")
                         
-                        if len(job_ids) < n_jobs_per_geometry:
-                            print(f"[WARNING] Still only {len(job_ids)}/{n_jobs_per_geometry} jobs submitted for {namefile}. Merge will be submitted but may fail if missing jobs were not just delayed.")
-                            print(f"[WARNING] ----- SKIPING MERGE for {namefile} due to insufficient jobs submitted.")
-                            print(f"[WARNING] ----- Deleting any residual files regarding the following geometry: \n {namefile}")
-                            for seed in range(1, n_jobs_per_geometry + 1):
-                                filepath = os.path.join(PATH_poca_output, f"POCA_{namefile}_seed{seed}.npy")
-                                if os.path.exists(filepath):
-                                    os.remove(filepath)    
-                            continue 
-
-                        print(f"[INFO] ------ Submitting merge job for: {namefile} with dependency on {len(job_ids)} jobs.")
+                        print(f"[INFO] Submitting merge job for: {namefile} with dependency on {len(job_ids)} jobs.")
                         dependency_str = "afterok:" + ":".join(job_ids)
                         
                         if dimension == "2D":
