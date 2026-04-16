@@ -267,6 +267,7 @@ merges_submitted = 0
 # SCAN FILESYSTEM FOR CREATED GEOMETRIES
 # ===========================================================================
 print("\n[INFO] Scanning for created geometries...")
+print(f"[DEBUG] Scanning path: {PATH_geometry_files}")
 created_geometries = []
 if os.path.exists(PATH_geometry_files):
     geometry_files = [f for f in os.listdir(PATH_geometry_files) if f.endswith('.json')]
