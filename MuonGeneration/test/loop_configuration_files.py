@@ -306,169 +306,169 @@ for namefile in created_geometries:
     # Collect job IDs for this geometry to use in the merge dependency
     job_ids = []
 
-                        for job in range(n_jobs_per_geometry):
-                            seed = job+1
+    for job in range(n_jobs_per_geometry):
+        seed = job+1
 
-                            out_raw  = os.path.join(PATH_output_raw,   f"Out_{namefile}_seed{seed}.root")
-                            out_pre  = os.path.join(PATH_preprocessed, f"Pre_{namefile}_seed{seed}.root")
-                            out_poca = os.path.join(PATH_poca_output,  f"POCA_{namefile}_seed{seed}.npy")
-                            out_log  = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.out")
-                            out_err  = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.err")
-                            out_sh   = os.path.join(PATH_logs, f"job_{namefile}_seed{seed}.sh")
+        out_raw  = os.path.join(PATH_output_raw,   f"Out_{namefile}_seed{seed}.root")
+        out_pre  = os.path.join(PATH_preprocessed, f"Pre_{namefile}_seed{seed}.root")
+        out_poca = os.path.join(PATH_poca_output,  f"POCA_{namefile}_seed{seed}.npy")
+        out_log  = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.out")
+        out_err  = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.err")
+        out_sh   = os.path.join(PATH_logs, f"job_{namefile}_seed{seed}.sh")
 
-                            job_script = f"""#!/bin/bash
-                                #SBATCH --job-name=muon_seed{seed}
-                                #SBATCH --output={out_log}
-                                #SBATCH --error={out_err}
-                                #SBATCH --workdir={PATH_logs}
-                                #SBATCH --ntasks=1
-                                #SBATCH --cpus-per-task=1
-                                #SBATCH --mem=4G
-                                #SBATCH --time=01:00:00
+        job_script = f"""#!/bin/bash
+#SBATCH --job-name=muon_seed{seed}
+#SBATCH --output={out_log}
+#SBATCH --error={out_err}
+#SBATCH --workdir={PATH_logs}
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=4G
+#SBATCH --time=01:00:00
 
-                                source {PATH_setup}
+source {PATH_setup}
 
-                                echo "[INFO] Job started: {namefile} | seed={seed}"
+echo "[INFO] Job started: {namefile} | seed={seed}"
 
-                                # --- 1st: Geant4 Monte Carlo simulation ---
-                                echo "[INFO] Running Geant4 simulation..."
-                                cd /gpfs/users/dominguezs/Muography_Denoising/MuonGeneration-build/
-                                {PATH_generator} \\
-                                    --input  {geometry_file} \\
-                                    --output {out_raw} \\
-                                    --number {n_muons_per_job} \\
-                                    --seed   {seed}
-                                if [ $? -ne 0 ]; then echo "[ERROR] Geant4 failed. Aborting."; exit 1; fi
-                                echo "[CORRECT] Geant4 done."
+# --- 1st: Geant4 Monte Carlo simulation ---
+echo "[INFO] Running Geant4 simulation..."
+cd /gpfs/users/dominguezs/Muography_Denoising/MuonGeneration-build/
+{PATH_generator} \\
+    --input  {geometry_file} \\
+    --output {out_raw} \\
+    --number {n_muons_per_job} \\
+    --seed   {seed}
+if [ $? -ne 0 ]; then echo "[ERROR] Geant4 failed. Aborting."; exit 1; fi
+echo "[CORRECT] Geant4 done."
 
-                                # --- 2nd: Track correlation ---
-                                echo "[INFO] Running makeHLTuple..."
-                                python3 -u {PATH_data_analysis}/makeHLTuple.py \\
-                                    --input  {out_raw} \\
-                                    --conf   {geometry_file} \\
-                                    --output {out_pre}
-                                if [ $? -ne 0 ]; then echo "[ERROR] makeHLTuple failed. Aborting."; exit 1; fi
-                                echo "[CORRECT] makeHLTuple done."
+# --- 2nd: Track correlation ---
+echo "[INFO] Running makeHLTuple..."
+python3 -u {PATH_data_analysis}/makeHLTuple.py \\
+    --input  {out_raw} \\
+    --conf   {geometry_file} \\
+    --output {out_pre}
+if [ $? -ne 0 ]; then echo "[ERROR] makeHLTuple failed. Aborting."; exit 1; fi
+echo "[CORRECT] makeHLTuple done."
 
-                                # eliminate intermediate files to save space
-                                rm {out_raw}
-                                echo "[INFO] Raw file removed to save space: {out_raw}"
+# eliminate intermediate files to save space
+rm {out_raw}
+echo "[INFO] Raw file removed to save space: {out_raw}"
 
-                                # --- 3rd: POCA reconstruction ---
-                                echo "[INFO] Running POCA..."
-                                python3 -u {PATH_data_analysis}/POCA.py \\
-                                    --input  {out_pre} \\
-                                    --output {out_poca} \\
-                                    --Lpx {Lpx} --Lpy {Lpy} --Lpz {Lpz} \\
-                                    --npx {npx} --npy {npy} --npz {npz}
-                                if [ $? -ne 0 ]; then echo "[ERROR] POCA failed. Aborting."; exit 1; fi
-                                echo "[CORRECT] POCA done."
+# --- 3rd: POCA reconstruction ---
+echo "[INFO] Running POCA..."
+python3 -u {PATH_data_analysis}/POCA.py \\
+    --input  {out_pre} \\
+    --output {out_poca} \\
+    --Lpx {Lpx} --Lpy {Lpy} --Lpz {Lpz} \\
+    --npx {npx} --npy {npy} --npz {npz}
+if [ $? -ne 0 ]; then echo "[ERROR] POCA failed. Aborting."; exit 1; fi
+echo "[CORRECT] POCA done."
 
-                                # eliminate intermediate files to save space
-                                rm {out_pre}
-                                echo "[INFO] Preprocessed file removed to save space: {out_pre}"
+# eliminate intermediate files to save space
+rm {out_pre}
+echo "[INFO] Preprocessed file removed to save space: {out_pre}"
 
-                                echo "[CORRECT] Job finished: {namefile} | seed={seed}"
-                                """
-                            with open(out_sh, "w") as f:
-                                f.write(job_script)
+echo "[CORRECT] Job finished: {namefile} | seed={seed}"
+"""
+        with open(out_sh, "w") as f:
+            f.write(job_script)
 
-                            result = subprocess.run(
-                                ["sbatch", out_sh],
-                                capture_output=True, text=True
-                            )
+        result = subprocess.run(
+            ["sbatch", out_sh],
+            capture_output=True, text=True
+        )
 
-                            if result.returncode != 0:
-                                print(f"[ERROR] sbatch failed: seed={seed} | {result.stderr.strip()}")
-                                jobs_failed += 1
-                            else:
-                                # Extract job ID from "Submitted batch job 12345"
-                                job_id = result.stdout.strip().split()[-1]
-                                job_ids.append(job_id)
-                                print(f"[SUBMITTED] seed={seed:04d} --> job_id={job_id}")
-                                jobs_submitted += 1
+        if result.returncode != 0:
+            print(f"[ERROR] sbatch failed: seed={seed} | {result.stderr.strip()}")
+            jobs_failed += 1
+        else:
+            # Extract job ID from "Submitted batch job 12345"
+            job_id = result.stdout.strip().split()[-1]
+            job_ids.append(job_id)
+            print(f"[SUBMITTED] seed={seed:04d} --> job_id={job_id}")
+            jobs_submitted += 1
 
-                        # ------------------------------------------------------
-                        # Submit merge job with dependency on ALL jobs finishing
-                        # --dependency=afterok:id1:id2:...:idN means the merge
-                        # job only runs if ALL listed jobs finish successfully.
-                        # If any job fails, the merge is cancelled automatically.
-                        # SLURM handles the waiting automatically, no explicit sleep needed.
-                        # ------------------------------------------------------
-                        
-                        if not job_ids:
-                            print(f"[WARNING] No jobs submitted for {namefile}, skipping merge.")
-                            continue
-                        elif len(job_ids) < n_jobs_per_geometry:
-                            print(f"[WARNING] Only {len(job_ids)}/{n_jobs_per_geometry} jobs submitted for {namefile}.")
-                            print(f"[WARNING] Merge job will be submitted with dependency on available jobs.")
-                        
-                        print(f"[INFO] Submitting merge job for: {namefile} with dependency on {len(job_ids)} jobs.")
-                        dependency_str = "afterok:" + ":".join(job_ids)
-                        
-                        if dimension == "2D":
-                            out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_2D.npy")
-                            png_name = f"{namefile}_2D.png"
-                        elif dimension == "3D":
-                            out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_3D.npy")
-                            png_name = f"{namefile}_3D.png"
+    # --------------------------------------------------
+    # Submit merge job with dependency on ALL jobs finishing
+    # --dependency=afterok:id1:id2:...:idN means the merge
+    # job only runs if ALL listed jobs finish successfully.
+    # If any job fails, the merge is cancelled automatically.
+    # SLURM handles the waiting automatically, no explicit sleep needed.
+    # --------------------------------------------------
+    
+    if not job_ids:
+        print(f"[WARNING] No jobs submitted for {namefile}, skipping merge.")
+        continue
+    elif len(job_ids) < n_jobs_per_geometry:
+        print(f"[WARNING] Only {len(job_ids)}/{n_jobs_per_geometry} jobs submitted for {namefile}.")
+        print(f"[WARNING] Merge job will be submitted with dependency on available jobs.")
+    
+    print(f"[INFO] Submitting merge job for: {namefile} with dependency on {len(job_ids)} jobs.")
+    dependency_str = "afterok:" + ":".join(job_ids)
+    
+    if dimension == "2D":
+        out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_2D.npy")
+        png_name = f"{namefile}_2D.png"
+    elif dimension == "3D":
+        out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_3D.npy")
+        png_name = f"{namefile}_3D.png"
 
-                        merge_log  = os.path.join(PATH_logs, f"log_merge_{namefile}.out")
-                        merge_err  = os.path.join(PATH_logs, f"log_merge_{namefile}.err")
-                        merge_sh   = os.path.join(PATH_logs, f"job_merge_{namefile}.sh")
+    merge_log  = os.path.join(PATH_logs, f"log_merge_{namefile}.out")
+    merge_err  = os.path.join(PATH_logs, f"log_merge_{namefile}.err")
+    merge_sh   = os.path.join(PATH_logs, f"job_merge_{namefile}.sh")
 
-                        merge_script = f"""#!/bin/bash
-                            #SBATCH --job-name=merge_{namefile}
-                            #SBATCH --output={merge_log}
-                            #SBATCH --error={merge_err}
-                            #SBATCH --workdir={PATH_logs}
-                            #SBATCH --ntasks=1
-                            #SBATCH --cpus-per-task=1
-                            #SBATCH --mem=8G
-                            #SBATCH --time=01:00:00
+    merge_script = f"""#!/bin/bash
+#SBATCH --job-name=merge_{namefile}
+#SBATCH --output={merge_log}
+#SBATCH --error={merge_err}
+#SBATCH --workdir={PATH_logs}
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=8G
+#SBATCH --time=01:00:00
 
-                            source {PATH_setup}
+source {PATH_setup}
 
-                            echo "[INFO] Starting merge for: {namefile}"
+echo "[INFO] Starting merge for: {namefile}"
 
-                            python3 -u {MERGE_SCRIPT} \\
-                                --namefile         {namefile} \\
-                                --n_jobs           {n_jobs_per_geometry} \\
-                                --npx              {npx} \\
-                                --npy              {npy} \\
-                                --npz              {npz} \\
-                                --path_poca_output {PATH_poca_output} \\
-                                --output           {out_merged}
-                            if [ $? -ne 0 ]; then echo "[ERROR] Merge failed. Aborting."; exit 1; fi
+python3 -u {MERGE_SCRIPT} \\
+    --namefile         {namefile} \\
+    --n_jobs           {n_jobs_per_geometry} \\
+    --npx              {npx} \\
+    --npy              {npy} \\
+    --npz              {npz} \\
+    --path_poca_output {PATH_poca_output} \\
+    --output           {out_merged}
+if [ $? -ne 0 ]; then echo "[ERROR] Merge failed. Aborting."; exit 1; fi
 
-                            echo "[CORRECT] Merge finished for: {namefile}"
+echo "[CORRECT] Merge finished for: {namefile}"
 
-                            echo "[INFO] Removing splitted POCA files for: {namefile}"
-                            # Usamos el prefijo específico para no borrar lo de otros jobs
-                            rm {PATH_poca_output}/POCA_{namefile}_seed*.npy
-                            echo "[CORRECT] Split POCA files removed for: {namefile}"
+echo "[INFO] Removing splitted POCA files for: {namefile}"
+# Usamos el prefijo específico para no borrar lo de otros jobs
+rm {PATH_poca_output}/POCA_{namefile}_seed*.npy
+echo "[CORRECT] Split POCA files removed for: {namefile}"
 
-                            echo "[INFO] Cleaning up seed logs..."
-                            sleep 10
-                            rm {PATH_logs}/log_{namefile}_seed*.out
-                            rm {PATH_logs}/log_{namefile}_seed*.err
-                            rm {PATH_logs}/job_{namefile}_seed*.sh
-                            echo "[CORRECT] Cleanup finished."
-                            """
-                        with open(merge_sh, "w") as f:
-                            f.write(merge_script)
+echo "[INFO] Cleaning up seed logs..."
+sleep 10
+rm {PATH_logs}/log_{namefile}_seed*.out
+rm {PATH_logs}/log_{namefile}_seed*.err
+rm {PATH_logs}/job_{namefile}_seed*.sh
+echo "[CORRECT] Cleanup finished."
+"""
+    with open(merge_sh, "w") as f:
+        f.write(merge_script)
 
-                        result = subprocess.run(
-                            ["sbatch", f"--dependency={dependency_str}", merge_sh],
-                            capture_output=True, text=True
-                        )
+    result = subprocess.run(
+        ["sbatch", f"--dependency={dependency_str}", merge_sh],
+        capture_output=True, text=True
+    )
 
-                        if result.returncode != 0:
-                            print(f"[ERROR] Merge job submission failed: {result.stderr.strip()}")
-                        else:
-                            merge_id = result.stdout.strip().split()[-1]
-                            print(f"[SUBMITTED] Merge job --> job_id={merge_id} (depends on {len(job_ids)} jobs)")
-                            merges_submitted += 1
+    if result.returncode != 0:
+        print(f"[ERROR] Merge job submission failed: {result.stderr.strip()}")
+    else:
+        merge_id = result.stdout.strip().split()[-1]
+        print(f"[SUBMITTED] Merge job --> job_id={merge_id} (depends on {len(job_ids)} jobs)")
+        merges_submitted += 1
 
 
 print("\n" + "="*60)
