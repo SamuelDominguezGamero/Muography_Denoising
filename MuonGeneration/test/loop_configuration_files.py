@@ -131,7 +131,7 @@ print(f"[INFO] ----- Total geometries to generate: {total_geometries}")
 # SIMULATION PARAMETERS
 # ===========================================================================
 total_muons_per_geometry = 10_000_000
-n_muons_per_job          = 1_000_000
+n_muons_per_job          = 500_000    # Reduced to 500k to save disk space (more jobs, smaller files)
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
 print(f"[INFO] Muons per job:      {n_muons_per_job:,}")
@@ -400,10 +400,33 @@ python3 -u {PATH_data_analysis}/POCA.py \\
 if [ $? -ne 0 ]; then echo "[ERROR] POCA failed. Aborting."; exit 1; fi
 echo "[CORRECT] POCA done."
 
-# eliminate intermediate files to save space
-rm {out_pre}
-echo "[INFO] Preprocessed file removed to save space: {out_pre}"
+# ==================================================
+# AGGRESSIVE CLEANUP: Free disk space immediately
+# ==================================================
+echo "[INFO] Aggressive cleanup: removing intermediate files..."
 
+# Remove raw file if it still exists (should have been removed earlier)
+if [ -f "{out_raw}" ]; then
+    rm -f "{out_raw}" 2>/dev/null
+    if [ $? -eq 0 ]; then
+        echo "[✓] Raw file removed (was still there): {out_raw}"
+    else
+        echo "[✗] Failed to remove raw file: {out_raw}"
+    fi
+fi
+
+# Remove preprocessed file
+if [ -f "{out_pre}" ]; then
+    rm -f "{out_pre}" 2>/dev/null
+    if [ $? -eq 0 ]; then
+        echo "[✓] Preprocessed file removed: {out_pre}"
+    else
+        echo "[✗] Failed to remove preprocessed file: {out_pre}"
+    fi
+fi
+
+# Verify disk freed
+echo "[INFO] Cleanup finished. POCA output ready: {out_poca}"
 echo "[CORRECT] Job finished: {namefile} | seed={seed}"
 """
         with open(out_sh, "w") as f:
