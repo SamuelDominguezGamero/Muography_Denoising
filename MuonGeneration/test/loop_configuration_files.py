@@ -14,6 +14,7 @@ import subprocess
 import os
 import sys
 import time
+import glob
 
 # ===========================================================================
 # CONTROL FLAGS
@@ -129,8 +130,8 @@ print(f"[INFO] ----- Total geometries to generate: {total_geometries}")
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 100_000
-n_muons_per_job          = 10_000
+total_muons_per_geometry = 10_000_000
+n_muons_per_job          = 1_000_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
 print(f"[INFO] Muons per job:      {n_muons_per_job:,}")
@@ -330,6 +331,12 @@ for namefile in created_geometries:
         continue
     elif os.path.exists(merged_output) and force_resimulate:
         print(f"[RESIMULATE] Force flag enabled, re-processing: {namefile}")
+        # Clean old files before re-simulating
+        old_poca = glob.glob(os.path.join(PATH_poca_output, f"POCA_{namefile}_seed*.npy"))
+        for f in old_poca:
+            os.remove(f)
+        os.remove(merged_output)  # Remove old merged result
+        print(f"[INFO] Cleaned old files for: {namefile}")
     
     print(f"\n[INFO] Submitting {n_jobs_per_geometry} jobs for: {namefile}")
     
