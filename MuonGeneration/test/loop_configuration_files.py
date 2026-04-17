@@ -23,8 +23,8 @@ create_geometries = True
 simulate          = True    # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
-max_geometries    = 1        # the first geometries to be tested on
-max_geometries_simulated = 1  # the first geometries to be simulated (if simulate=True)
+max_geometries    = 20        # the first geometries to be tested on
+max_geometries_simulated = 20  # the first geometries to be simulated (if simulate=True)
 
 force_resimulate  = False    # set to True to re-process geometries even if merged results exist
 # ===========================================================================
