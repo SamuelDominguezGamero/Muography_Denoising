@@ -105,6 +105,7 @@ if args.dimension == "2D":
         "var_theta_z": matrix_var_theta_z, # Var(theta)_z per XY cell
         "log_counts": matrix_log_counts # log(N+1) per XY cell
     }
+    np.save(args.output, output_dict)
     print(f"[CORRECT] Merged result saved to: {args.output}")
     # Remember to load with: data = np.load('XXXX.npy', allow_pickle=True).item() and access data['n_events'], data['sum_theta'], data['sum_theta_sq'], data['theta_rms']
 

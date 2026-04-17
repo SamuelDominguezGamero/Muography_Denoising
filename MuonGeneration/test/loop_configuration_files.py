@@ -217,7 +217,7 @@ for spacing in spacings:
                                 "sbatch",
                                 f"--job-name=geom_{i}",
                                 "--mem=4G",
-                                "--time=00:15:00",
+                                "--time=01:00:00",
                                 f"--output={PATH_logs}/log_geom_{i}.out",
                                 f"--chdir={PATH_logs}",
                                 f"--wrap={full_wrap}"
