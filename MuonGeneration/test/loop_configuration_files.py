@@ -359,7 +359,7 @@ for namefile in created_geometries:
 #SBATCH --error={out_err}
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=4G
+#SBATCH --mem=10G
 #SBATCH --time=01:00:00
 
 source {PATH_setup}
