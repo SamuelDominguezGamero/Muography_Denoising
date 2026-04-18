@@ -433,7 +433,7 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
             f.write(job_script)
 
         result = subprocess.run(
-            ["sbatch", out_sh],
+            ["sbatch", "--begin=now", out_sh],
             capture_output=True, text=True
         )
 
@@ -517,7 +517,7 @@ echo "[CORRECT] Cleanup finished."
         f.write(merge_script)
 
     result = subprocess.run(
-        ["sbatch", f"--dependency={dependency_str}", merge_sh],
+        ["sbatch", "--begin=now", f"--dependency={dependency_str}", merge_sh],
         capture_output=True, text=True
     )
 
