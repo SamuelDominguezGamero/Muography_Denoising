@@ -1,0 +1,9 @@
+[INFO] Starting merge for: _Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing1_ratio1_FontX8_FontY8_matlead_wordMUON_stroke1
+[INFO] Merging 10 POCA files for: _Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing1_ratio1_FontX8_FontY8_matlead_wordMUON_stroke1
+[CORRECT] All 10 files merged successfully.
+[CORRECT] Merged result saved to: /gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data/MERGED__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing1_ratio1_FontX8_FontY8_matlead_wordMUON_stroke1_2D.npy
+[CORRECT] Merge finished for: _Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing1_ratio1_FontX8_FontY8_matlead_wordMUON_stroke1
+[INFO] Removing splitted POCA files for: _Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing1_ratio1_FontX8_FontY8_matlead_wordMUON_stroke1
+[CORRECT] Split POCA files removed for: _Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing1_ratio1_FontX8_FontY8_matlead_wordMUON_stroke1
+[INFO] Cleaning up seed logs...
+[CORRECT] Cleanup finished.
