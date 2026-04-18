@@ -357,10 +357,8 @@ for namefile in created_geometries:
 #SBATCH --job-name=muon_seed{seed}
 #SBATCH --output={out_log}
 #SBATCH --error={out_err}
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=10G
-#SBATCH --time=01:00:00
+#SBATCH --partition=wncompute_ifca
+
 
 source {PATH_setup}
 
@@ -480,10 +478,7 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
 #SBATCH --job-name=merge_{namefile}
 #SBATCH --output={merge_log}
 #SBATCH --error={merge_err}
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=4G
-#SBATCH --time=01:00:00
+#SBATCH --partition=wncompute_ifca
 
 source {PATH_setup}
 
