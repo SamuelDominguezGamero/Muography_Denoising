@@ -131,7 +131,7 @@ print(f"[INFO] ----- Total geometries to generate: {total_geometries}")
 # SIMULATION PARAMETERS
 # ===========================================================================
 total_muons_per_geometry = 1_000_000
-n_muons_per_job          = 250_000    # Reduced to 500k to save disk space (more jobs, smaller files)
+n_muons_per_job          = 50_000    # Reduced to 100k to save disk space (more jobs, smaller files)
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
 print(f"[INFO] Muons per job:      {n_muons_per_job:,}")
