@@ -23,8 +23,8 @@ create_geometries = True
 simulate          = True    # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
-max_geometries    = 20        # the first geometries to be tested on
-max_geometries_simulated = 20  # the first geometries to be simulated (if simulate=True)
+max_geometries    = 25       # the first geometries to be tested on
+max_geometries_simulated = 25  # the first geometries to be simulated (if simulate=True)
 
 force_resimulate  = False    # set to True to re-process geometries even if merged results exist
 # ===========================================================================
@@ -112,7 +112,7 @@ FontSizes      = [
     {"size": 16, "strokes": [1, 2, 3]},  # stroke 3 available
 ]
 materials      = ["lead", "uranium", "iron"]
-words_geometry = ["MUON"]
+words_geometry = ["MUON", "MUNO", "NOMU", "MOUN", "NOUM", "NMOU", "MNOU", "NMUO", "MNUO", "ONUM", "OUMN", "UONM"]
 
 # Count total valid geometries
 total_geometries = 0
@@ -130,8 +130,8 @@ print(f"[INFO] ----- Total geometries to generate: {total_geometries}")
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 100_000
-n_muons_per_job          = 10_000    # Reduced to 100k to save disk space (more jobs, smaller files)
+total_muons_per_geometry = 1_000_000
+n_muons_per_job          = 20_000    # Reduced to 100k to save disk space (more jobs, smaller files)
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
 print(f"[INFO] Muons per job:      {n_muons_per_job:,}")
@@ -219,11 +219,11 @@ for spacing in spacings:
                             sbatch_args = [
                                 "sbatch",
                                 f"--job-name=geom_{i}",
-                                "--mem=4G",
                                 "--time=01:00:00",
                                 f"--output={PATH_logs}/log_geom_{i}.out",
                                 f"--chdir={PATH_logs}",
                                 f"--wrap={full_wrap}"
+                                "--partition=wncompute_ifca"
                             ]
                             
                             result = subprocess.run(sbatch_args, capture_output=True, text=True)
