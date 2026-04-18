@@ -130,8 +130,8 @@ print(f"[INFO] ----- Total geometries to generate: {total_geometries}")
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 10_000_000
-n_muons_per_job          = 500_000    # Reduced to 500k to save disk space (more jobs, smaller files)
+total_muons_per_geometry = 1_000_000
+n_muons_per_job          = 250_000    # Reduced to 500k to save disk space (more jobs, smaller files)
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
 print(f"[INFO] Muons per job:      {n_muons_per_job:,}")
@@ -359,7 +359,7 @@ for namefile in created_geometries:
 #SBATCH --error={out_err}
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=10G
+#SBATCH --mem=5G
 #SBATCH --time=01:00:00
 
 source {PATH_setup}
@@ -482,7 +482,7 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
 #SBATCH --error={merge_err}
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=8G
+#SBATCH --mem=4G
 #SBATCH --time=01:00:00
 
 source {PATH_setup}
