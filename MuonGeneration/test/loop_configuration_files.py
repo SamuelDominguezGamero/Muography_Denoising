@@ -220,9 +220,11 @@ for spacing in spacings:
                                 "sbatch",
                                 f"--job-name=geom_{i}",
                                 "--time=01:00:00",
+                                "--mem=8G",
+                                "--cpus-per-task=2",
                                 f"--output={PATH_logs}/log_geom_{i}.out",
                                 f"--chdir={PATH_logs}",
-                                f"--wrap={full_wrap}"
+                                f"--wrap={full_wrap}",
                                 "--partition=wncompute_ifca"
                             ]
                             
