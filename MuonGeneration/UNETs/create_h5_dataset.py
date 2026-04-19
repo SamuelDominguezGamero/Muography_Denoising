@@ -901,11 +901,11 @@ def main():
     print("=" * 80)
     print("NEXT STEPS:")
     print("=" * 80)
-    print("""
+    print(f"""
 1. VERIFY DATASET:
    python3 << 'EOF'
    import h5py
-   h5_path = "{}/128x128x3.h5"
+   h5_path = "{PATH_OUTPUT}/128x128x3.h5"
    with h5py.File(h5_path, 'r') as f:
        print("Training images:", f['training/images'].shape)
        print("Training labels:", f['training/labels'].shape)
@@ -916,19 +916,19 @@ def main():
 2. ANALYZE METADATA DISTRIBUTION:
    python3 << 'EOF'
    import h5py
-   h5_path = "{}/128x128x3.h5"
+   h5_path = "{PATH_OUTPUT}/128x128x3.h5"
    with h5py.File(h5_path, 'r') as f:
        muons_list = []
        for i in range(min(50, f['training'].attrs['n_samples'])):
-           n = f[f'training/metadata/sample_{i:06d}'].attrs['n_muons_total']
+           n = f[f'training/metadata/sample_{{i:06d}}'].attrs['n_muons_total']
            muons_list.append(n)
        print("Sample muon counts:", set(muons_list))
    EOF
 
-2. TRAIN UNET MODEL:
+3. TRAIN UNET MODEL:
    python3 UNET0_2D.py
    
-3. TO APPEND MORE DATA LATER:
+4. TO APPEND MORE DATA LATER:
    - Run loop_configuration_files.py to generate new MERGED_*.npy files
    - Run this script again (it will add to existing H5 files)
    - Or manually extend with h5py:
@@ -940,25 +940,25 @@ def main():
          f['training/images'][n_current:] = new_images
          f['training/labels'][n_current:] = new_labels
 
-4. ANALYZE DATASET COMPOSITION:
+5. ANALYZE DATASET COMPOSITION:
    python3 << 'EOF'
    import h5py
-   h5_path = "{}/128x128x3_Muons_1000000.h5"
+   h5_path = "{PATH_OUTPUT}/128x128x3_Muons_1000000.h5"
    with h5py.File(h5_path, 'r') as f:
-       split_info = {
+       split_info = {{
            'train': (f['training/images'].shape[0], f['training/labels'].shape[0]),
            'validation': (f['validation/images'].shape[0], f['validation/labels'].shape[0]),
            'test': (f['test/images'].shape[0], f['test/labels'].shape[0])
-       }
+       }}
        for split, (n_img, n_lbl) in split_info.items():
-           print(f"{split:12s}: {n_img:4d} samples")
+           print(f"{{split:12s}}: {{n_img:4d}} samples")
    EOF
 
-5. MONITOR TRAINING:
+6. MONITOR TRAINING:
    - Use TensorFlow callbacks to track validation metrics
    - Compare training on different muon count datasets
    - Check if n_muons_per_simulation correlates with training difficulty
-""".format(PATH_OUTPUT, PATH_OUTPUT))
+""")
     
     return True
 
