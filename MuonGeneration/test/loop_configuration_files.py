@@ -363,7 +363,9 @@ for namefile in created_geometries:
     child_seeds = ss.spawn(n_jobs_per_geometry)
     
     for job in range(n_jobs_per_geometry):
-        seed = child_seeds[job]
+        # Convert SeedSequence to integer for use in simulation
+        rng = Generator(PCG64(child_seeds[job]))
+        seed = rng.integers(0, 2**31 - 1)
 
         out_raw  = os.path.join(PATH_output_raw,   f"Out_{namefile}_seed{seed}.root")
         out_pre  = os.path.join(PATH_preprocessed, f"Pre_{namefile}_seed{seed}.root")
