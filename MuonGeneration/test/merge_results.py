@@ -8,6 +8,7 @@ import numpy as np
 import argparse
 import os
 import sys
+import glob
 
 parser = argparse.ArgumentParser(description="Merge POCA results from all seeds for a given geometry.")
 parser.add_argument("--namefile",         required=True,  help="Geometry name (without extension).")
@@ -21,14 +22,23 @@ parser.add_argument("--dimension",        required=False, default="2D", choices=
 args = parser.parse_args()
 
 
-print(f"[INFO] Merging {args.n_jobs} POCA files for: {args.namefile}")
+print(f"[INFO] Merging POCA files for: {args.namefile}")
 
-# Check that all expected files exist before starting the merge
-missing_files = []
-for seed in range(1, args.n_jobs + 1):
-    filepath = os.path.join(args.path_poca_output, f"POCA_{args.namefile}_seed{seed}.npy")
-    if not os.path.exists(filepath):
-        missing_files.append(filepath)
+# Find all matching POCA files dynamically (handles random seeds)
+poca_files = sorted(glob.glob(os.path.join(args.path_poca_output, f"POCA_{args.namefile}_seed*.npy")))
+
+if len(poca_files) != args.n_jobs:
+    print(f"[ERROR] Expected {args.n_jobs} POCA files but found {len(poca_files)}")
+    print(f"[ERROR] Search directory: {args.path_poca_output}")
+    print(f"[ERROR] Pattern: POCA_{args.namefile}_seed*.npy")
+    if poca_files:
+        print(f"[ERROR] Found files: {[os.path.basename(f) for f in poca_files]}")
+    else:
+        print(f"[ERROR] No POCA files found.")
+    sys.exit(1)
+
+# Check that all files exist before starting the merge
+missing_files = [f for f in poca_files if not os.path.exists(f)]
 
 if missing_files:
     print(f"[ERROR] Missing {len(missing_files)} POCA files. Cannot proceed with merge.")
@@ -44,8 +54,11 @@ if args.dimension == "2D":
 
     missing = []
 
-    for seed in range(1, args.n_jobs + 1):
-        filepath = os.path.join(args.path_poca_output, f"POCA_{args.namefile}_seed{seed}.npy")
+    for filepath in poca_files:
+        if not os.path.exists(filepath):
+            print(f"[ERROR] File not found: {filepath}")
+            sys.exit(1)
+            
         data = np.load(filepath, allow_pickle=True).item()
 
         # Validate shapes: all 2D arrays should be (npy, npx, 1)
@@ -59,7 +72,7 @@ if args.dimension == "2D":
         m_sum_theta_2d    += data["sum_theta_2d"]
         m_sum_theta_sq_2d += data["sum_theta_sq_2d"]
 
-    print(f"[CORRECT] All {args.n_jobs} files merged successfully.")
+    print(f"[CORRECT] All {len(poca_files)} files merged successfully.")
 
     
     # CALCULATIONS: CHANNELS FOR THE UNET
