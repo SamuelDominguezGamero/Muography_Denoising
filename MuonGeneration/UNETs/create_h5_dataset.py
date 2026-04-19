@@ -501,14 +501,14 @@ def get_poca_channels(poca_dict: dict) -> np.ndarray:
     return channels.astype(np.float32)
 
 
-def load_sample_pair(merged_path: str, gt_path: str, geom_name: str) -> Tuple[np.ndarray, np.ndarray, bool]:
+def load_sample_pair(merged_path: str, gt_file_path: str, geom_name: str) -> Tuple[np.ndarray, np.ndarray, bool]:
     """
     Load POCA image and ground truth label pair.
     
     Args:
         merged_path: Full path to MERGED_*.npy file
-        gt_path: Directory containing ground_truth_density2D.npy files
-        geom_name: Geometry name (used to construct GT filename)
+        gt_file_path: Full path to ground_truth_density2D.npy file
+        geom_name: Geometry name (for error messages)
     
     Returns:
         (image, label, success) tuple
@@ -521,14 +521,12 @@ def load_sample_pair(merged_path: str, gt_path: str, geom_name: str) -> Tuple[np
         poca_data = np.load(merged_path, allow_pickle=True).item()
         image = get_poca_channels(poca_data)
         
-        # Load ground truth
-        gt_file = Path(gt_path) / f"{geom_name}_ground_truth_density2D.npy"
-        
-        if not gt_file.exists():
-            print(f"  [SKIP] Ground truth not found: {gt_file.name}")
+        # Load ground truth (already verified to exist)
+        if not os.path.exists(gt_file_path):
+            print(f"  [SKIP] GT file missing: {os.path.basename(gt_file_path)}")
             return None, None, False
         
-        label = np.load(str(gt_file), allow_pickle=True).astype(np.float32)
+        label = np.load(str(gt_file_path), allow_pickle=True).astype(np.float32)
         
         # Ensure label is (H, W, 1)
         if label.ndim == 2:
@@ -672,25 +670,47 @@ def main():
     print("         Extracting geometry parameters from filenames...")
     print("         Matching POCA data with ground truth...\n")
     
+    # First, build a mapping of geometry bases to ground truth files
+    # (geometry base = without the _Muons_XXXXX suffix)
+    print("  [PRE-SCAN] Building ground truth file index...\n")
+    gt_files = glob.glob(os.path.join(PATH_GT_2D, "*_ground_truth_density2D.npy"))
+    gt_mapping = {}  # base_geometry -> ground_truth_file_path
+    
+    for gt_file in gt_files:
+        # Extract geometry name from GT file
+        # Format: <geom_name>_ground_truth_density2D.npy
+        gt_basename = Path(gt_file).stem  # Remove .npy
+        geom_from_gt = re.sub(r'_ground_truth_density2D$', '', gt_basename)
+        gt_mapping[geom_from_gt] = gt_file
+    
+    print(f"  Found {len(gt_mapping)} ground truth files\n")
+    
     # Dictionary: resolution_key -> { 'images': [], 'labels': [], 'hyperparams': [] }
     # Key insight: Files are grouped by resolution + muon count to ensure
     # that different noise levels (muon counts) are kept separate.
     resolution_groups = {}
+    matched_count = 0
+    missing_gt_count = 0
     
     for idx, merged_file in enumerate(merged_files, 1):
         filename = Path(merged_file).stem  # Remove extension
         
         # Extract geometry name (remove MERGED_ prefix and 2D/3D suffix)
-        geom_name = re.sub(r'^MERGED_', '', filename)
-        geom_name = re.sub(r'_(2D|3D)$', '', geom_name)
+        geom_name_with_muons = re.sub(r'^MERGED_', '', filename)
+        geom_name_with_muons = re.sub(r'_(2D|3D)$', '', geom_name_with_muons)
         
-        print(f"  [{idx}/{len(merged_files)}] {geom_name[:60]}...", end=" ", flush=True)
+        # Extract geometry WITHOUT the _Muons_XXXXX part for GT matching
+        # Pattern: everything before _Muons_
+        geom_name_base = re.sub(r'_Muons_\d+$', '', geom_name_with_muons)
         
-        # Parse hyperparameters
-        hyperparams = parse_geometric_hyperparameters(geom_name)
+        print(f"  [{idx}/{len(merged_files)}] {geom_name_base[:60]}...", end=" ", flush=True)
+        
+        # Parse hyperparameters (from full name including muons)
+        hyperparams = parse_geometric_hyperparameters(geom_name_with_muons)
         
         if 'npx' not in hyperparams or 'npy' not in hyperparams:
             print("[SKIP] Could not extract resolution")
+            missing_gt_count += 1
             continue
         
         npx = hyperparams['npx']
@@ -703,16 +723,27 @@ def main():
         n_muons = hyperparams.get('n_muons', TOTAL_MUONS_PER_SIMULATION)
         resolution_key = f"{npx}x{npy}x3"
         
+        # Look up ground truth file
+        if geom_name_base not in gt_mapping:
+            print(f"[SKIP] No GT found")
+            print(f"         Expected: {geom_name_base}_ground_truth_density2D.npy")
+            missing_gt_count += 1
+            continue
+        
+        gt_file_path = gt_mapping[geom_name_base]
+        
         # Load sample pair
-        image, label, success = load_sample_pair(merged_file, PATH_GT_2D, geom_name)
+        image, label, success = load_sample_pair(merged_file, gt_file_path, geom_name_base)
         
         if not success:
             print("[FAIL]")
+            missing_gt_count += 1
             continue
         
         # Validate resolution matches filename
         if image.shape != (npy, npx, 3):
             print(f"[SKIP] Shape mismatch: expected ({npy}, {npx}, 3), got {image.shape}")
+            missing_gt_count += 1
             continue
         
         # Add to appropriate resolution group
@@ -742,18 +773,24 @@ def main():
         resolution_groups[resolution_key]['images'].append(image)
         resolution_groups[resolution_key]['labels'].append(label)
         resolution_groups[resolution_key]['hyperparams'].append(hyperparams)
-        resolution_groups[resolution_key]['geom_names'].append(geom_name)
+        resolution_groups[resolution_key]['geom_names'].append(geom_name_base)
         
         print("[OK]")
+        matched_count += 1
     
-    print(f"\n  Total resolutions found: {len(resolution_groups)}\n")
+    print(f"\n  Summary:")
+    print(f"    ✓ Matched: {matched_count} files")
+    print(f"    ✗ Missing GT: {missing_gt_count} files")
+    print(f"  Total resolutions found: {len(resolution_groups)}\n")
     
     if not resolution_groups:
         print("[ERROR] No valid data loaded.")
         print("        Check that:")
         print("        1. MERGED files are valid numpy files")
-        print("        2. Ground truth files exist with matching names")
+        print("        2. Ground truth files exist with matching geometry names")
+        print("           (without the _Muons_XXXXX suffix)")
         print("        3. Resolution parameters are in filenames (_npx, _npy)")
+        print("        4. MERGED and GT geometry names match (after removing _Muons_XXXXX)")
         sys.exit(1)
     
     # ============================================================
