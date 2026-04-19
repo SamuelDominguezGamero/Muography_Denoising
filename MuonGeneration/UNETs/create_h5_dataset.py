@@ -140,6 +140,7 @@ def parse_geometric_hyperparameters(filename: str) -> Dict[str, any]:
         'material': r'_mat(\w+)',
         'word': r'_word(\w+)',
         'stroke': r'_stroke(\d+)',
+        'n_muons': r'_Muons_(\d+(?:_\d+)*)',
     }
     
     for key, pattern in patterns.items():
@@ -148,11 +149,15 @@ def parse_geometric_hyperparameters(filename: str) -> Dict[str, any]:
             value = match.group(1)
             # Convert numeric values to int, keep strings as-is
             try:
-                params[key] = int(value)
+                # Remove underscores from numeric strings (e.g., "1_000_000" -> "1000000")
+                clean_value = value.replace('_', '')
+                params[key] = int(clean_value)
             except ValueError:
                 params[key] = value
         else:
-            print(f"[WARNING] Could not extract '{key}' from: {filename}")
+            # Only warn for critical parameters
+            if key in ['npx', 'npy', 'n_muons']:
+                print(f"[WARNING] Could not extract '{key}' from: {filename}")
     
     return params
 

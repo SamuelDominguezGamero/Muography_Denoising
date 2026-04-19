@@ -333,14 +333,15 @@ for namefile in created_geometries:
         print(f"[WARNING] Geometry file disappeared: {geometry_file}")
         continue
     
-    # Check if merged result already exists (skip unless force_resimulate=True)
+    # Check if merged result already exists WITH THE EXACT NUMBER OF MUONS
+    # (skip unless force_resimulate=True)
     if dimension == "2D":
-        merged_output = os.path.join(PATH_merged_output, f"MERGED_{namefile}_2D.npy")
+        merged_output = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}2D.npy")
     elif dimension == "3D":
-        merged_output = os.path.join(PATH_merged_output, f"MERGED_{namefile}_3D.npy")
+        merged_output = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}3D.npy")
     
     if os.path.exists(merged_output) and not force_resimulate:
-        print(f"[SKIP] Already processed: {namefile}")
+        print(f"[SKIP] Already processed: {namefile} with {total_muons_per_geometry:,} muons")
         continue
     elif os.path.exists(merged_output) and force_resimulate:
         print(f"[RESIMULATE] Force flag enabled, re-processing: {namefile}")
