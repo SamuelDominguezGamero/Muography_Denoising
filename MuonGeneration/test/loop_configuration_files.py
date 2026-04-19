@@ -357,10 +357,10 @@ for namefile in generated_geometries:
     # Check if merged result already exists WITH THE EXACT NUMBER OF MUONS
     # Try both new format (_Muons_) and legacy format (for backwards compatibility)
     if dimension == "2D":
-        merged_output_new = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}2D.npy")
+        merged_output_new = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}_2D.npy")
         merged_output_legacy = os.path.join(PATH_merged_output, f"MERGED_{namefile}_2D.npy")
     elif dimension == "3D":
-        merged_output_new = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}3D.npy")
+        merged_output_new = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}_3D.npy")
         merged_output_legacy = os.path.join(PATH_merged_output, f"MERGED_{namefile}_3D.npy")
     
     # Check both formats
@@ -524,10 +524,10 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
     dependency_str = "afterok:" + ":".join(job_ids)
     
     if dimension == "2D":
-        out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}2D.npy")
+        out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}_2D.npy")
         png_name = f"{namefile}_2D.png"
     elif dimension == "3D":
-        out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}3D.npy")
+        out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}_3D.npy")
         png_name = f"{namefile}_3D.png"
 
     merge_log  = os.path.join(PATH_logs, f"log_merge_{namefile}.out")
