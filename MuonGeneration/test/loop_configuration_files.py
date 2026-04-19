@@ -23,8 +23,8 @@ create_geometries = True
 simulate          = True    # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
-max_geometries    = 50       # the first geometries to be tested on
-max_geometries_simulated = 50  # the first geometries to be simulated (if simulate=True)
+max_geometries    = 70       # the first geometries to be tested on
+max_geometries_simulated = 70  # the first geometries to be simulated (if simulate=True)
 
 force_resimulate  = False    # set to True to re-process geometries even if merged results exist
 # ===========================================================================
@@ -104,13 +104,17 @@ zPosDetector_bot = -54
 spacings       = [1, 2]
 ratios         = [1]
 # Strategy: Use multiple sizes with stroke variations that are actually available
-FontSizes      = [
+fontsizes      = [8, 10, 12, 14, 16]
+strokes        = [1, 2, 3]
+
+FontSizes      = [# NOW UNUSED, SHOULD BE REMOVED
     {"size": 8,  "strokes": [1, 2]},
     {"size": 10, "strokes": [1, 2]},
     {"size": 12, "strokes": [1, 2]},
     {"size": 14, "strokes": [1, 2, 3]},  # stroke 3 available
     {"size": 16, "strokes": [1, 2, 3]},  # stroke 3 available
 ]
+
 materials      = ["lead", "uranium", "iron"]
 words_geometry = ["MUON", "MUNO", "NOMU", "MOUN", "NOUM", "NMOU", "MNOU", "NMUO", "MNUO", "ONUM", "OUMN", "UONM", "UNOM", "UOMN"]
 
@@ -118,11 +122,14 @@ words_geometry = ["MUON", "MUNO", "NOMU", "MOUN", "NOUM", "NMOU", "MNOU", "NMUO"
 total_geometries = 0
 for spacing in spacings:
     for ratio in ratios:
-        for fontsize_dict in FontSizes:
+        for fontsize in fontsizes:
             for material in materials:
                 for word in words_geometry:
-                    for stroke in fontsize_dict["strokes"]:
-                        total_geometries += 1
+                    for stroke in strokes:
+                        if (stroke == 3) and (fontsize in [14, 16]): # not a valid combination (yet)
+                            continue
+                        else:
+                            total_geometries += 1
 
 print(f"[INFO] ----- Total geometries to generate: {total_geometries}")
 
@@ -154,17 +161,19 @@ for spacing in spacings:
     for ratio in ratios:
         if done_creating:
             break
-        for fontsize_dict in FontSizes:
+        for fontsize in fontsizes:
             if done_creating:
                 break
-            x = fontsize_dict["size"]
+            x = fontsize
             for material in materials:
                 if done_creating:
                     break
                 for word in words_geometry:
                     if done_creating:
                         break
-                    for stroke in fontsize_dict["strokes"]:
+                    for stroke in strokes:
+                        if (stroke == 3) and (fontsize in [14, 16]): # not a valid combination (yet)
+                            continue
                         i += 1
                         if i > max_geometries:
                             print(f"[INFO] Reached max_geometries={max_geometries}. Stopping geometry creation.")
