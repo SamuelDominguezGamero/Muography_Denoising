@@ -362,13 +362,13 @@ for namefile in created_geometries:
     if merged_exists_new and not force_resimulate:
         print(f"[SKIP] Already processed: {namefile} with {total_muons_per_geometry:,} muons")
         continue
-    elif os.path.exists(merged_output) and force_resimulate:
+    elif merged_exists_new and force_resimulate:
         print(f"[RESIMULATE] Force flag enabled, re-processing: {namefile}")
         # Clean old files before re-simulating
         old_poca = glob.glob(os.path.join(PATH_poca_output, f"POCA_{namefile}_seed*.npy"))
         for f in old_poca:
             os.remove(f)
-        os.remove(merged_output)  # Remove old merged result
+        os.remove(merged_output_new)  # Remove old merged result
         print(f"[INFO] Cleaned old files for: {namefile}")
     
     print(f"\n[INFO] Submitting {n_jobs_per_geometry} jobs for: {namefile}")
