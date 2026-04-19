@@ -418,7 +418,9 @@ for namefile in generated_geometries:
 #SBATCH --output={out_log}
 #SBATCH --error={out_err}
 #SBATCH --partition=wncompute_ifca
-
+#SBATCH --time=00:30:00
+#SBATCH --mem=16G
+#SBATCH --cpus-per-task=4
 
 source {PATH_setup}
 
@@ -539,6 +541,9 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
 #SBATCH --output={merge_log}
 #SBATCH --error={merge_err}
 #SBATCH --partition=wncompute_ifca
+#SBATCH --time=00:10:00
+#SBATCH --mem=8G
+#SBATCH --cpus-per-task=2
 
 source {PATH_setup}
 
