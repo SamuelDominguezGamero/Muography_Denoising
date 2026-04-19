@@ -365,7 +365,11 @@ def main():
         
         npx = hyperparams['npx']
         npy = hyperparams['npy']
-        resolution_key = f"{npx}x{npy}x3"  # Assuming 3 channels (POCA)
+        
+        # Create resolution key including muon count to separate different noise levels
+        # Format: "128x128x3_Muons_1000000" if different muon counts, else "128x128x3" if all same
+        n_muons = hyperparams.get('n_muons', TOTAL_MUONS_PER_SIMULATION)
+        resolution_key = f"{npx}x{npy}x3_Muons_{n_muons}"
         
         # Load sample pair
         image, label, success = load_sample_pair(merged_file, PATH_GT_2D, geom_name)
@@ -389,7 +393,11 @@ def main():
             }
         
         # Add critical metadata: total muons in simulation
-        hyperparams['n_muons_total'] = TOTAL_MUONS_PER_SIMULATION
+        # Use the muons count extracted from the filename, otherwise fallback to global constant
+        if 'n_muons' in hyperparams:
+            hyperparams['n_muons_total'] = hyperparams['n_muons']
+        else:
+            hyperparams['n_muons_total'] = TOTAL_MUONS_PER_SIMULATION
         
         resolution_groups[resolution_key]['images'].append(image)
         resolution_groups[resolution_key]['labels'].append(label)
@@ -463,7 +471,9 @@ def main():
             h5file.attrs['compression'] = COMPRESSION
             h5file.attrs['compression_opts'] = COMPRESSION_OPTS
             h5file.attrs['random_seed'] = RANDOM_SEED
-            h5file.attrs['n_muons_per_simulation'] = TOTAL_MUONS_PER_SIMULATION
+            # Store muon count from first sample (should be same for all in this H5)
+            first_sample_muons = group_data['hyperparams'][0].get('n_muons_total', TOTAL_MUONS_PER_SIMULATION)
+            h5file.attrs['n_muons_per_simulation'] = first_sample_muons
             
             # Store geometry names as dataset
             h5file.create_dataset(

@@ -359,12 +359,11 @@ for namefile in created_geometries:
     base_seed = int(time.time()) 
     ss = SeedSequence(base_seed)
     
-    # SEED ->  previously it was set as seed = job+1, but to avoid seed repetitions, we are going to use job_id and time as seed
-    # np.random choose a default seed based on real random physical processes inside the computer
+    # Generate all child seeds at once (more efficient than spawning in loop)
+    child_seeds = ss.spawn(n_jobs_per_geometry)
     
     for job in range(n_jobs_per_geometry):
-        child_seeds = ss.spawn(n_jobs_per_geometry)
-        seed = child_seeds[job_id] 
+        seed = child_seeds[job]
 
         out_raw  = os.path.join(PATH_output_raw,   f"Out_{namefile}_seed{seed}.root")
         out_pre  = os.path.join(PATH_preprocessed, f"Pre_{namefile}_seed{seed}.root")
