@@ -15,6 +15,8 @@ import os
 import sys
 import time
 import glob
+import numpy as np
+from numpy.random import Generator, PCG64, SeedSequence
 
 # ===========================================================================
 # CONTROL FLAGS
@@ -353,9 +355,15 @@ for namefile in created_geometries:
     
     # Collect job IDs for this geometry to use in the merge dependency
     job_ids = []
-
+    base_seed = int(time.time()) 
+    ss = SeedSequence(base_seed)
+    
+    # SEED ->  previously it was set as seed = job+1, but to avoid seed repetitions, we are going to use job_id and time as seed
+    # np.random choose a default seed based on real random physical processes inside the computer
+    
     for job in range(n_jobs_per_geometry):
-        seed = job+1
+        child_seeds = ss.spawn(n_jobs_per_geometry)
+        seed = child_seeds[job_id] 
 
         out_raw  = os.path.join(PATH_output_raw,   f"Out_{namefile}_seed{seed}.root")
         out_pre  = os.path.join(PATH_preprocessed, f"Pre_{namefile}_seed{seed}.root")
@@ -475,10 +483,10 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
     dependency_str = "afterok:" + ":".join(job_ids)
     
     if dimension == "2D":
-        out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_2D.npy")
+        out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}2D.npy")
         png_name = f"{namefile}_2D.png"
     elif dimension == "3D":
-        out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_3D.npy")
+        out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}3D.npy")
         png_name = f"{namefile}_3D.png"
 
     merge_log  = os.path.join(PATH_logs, f"log_merge_{namefile}.out")
