@@ -15,7 +15,9 @@ import os
 import sys
 import time
 import glob
+import shutil
 import numpy as np
+from pathlib import Path
 from numpy.random import Generator, PCG64, SeedSequence
 
 # ===========================================================================
@@ -334,13 +336,30 @@ for namefile in created_geometries:
         continue
     
     # Check if merged result already exists WITH THE EXACT NUMBER OF MUONS
-    # (skip unless force_resimulate=True)
+    # Try both new format (_Muons_) and legacy format (for backwards compatibility)
     if dimension == "2D":
-        merged_output = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}2D.npy")
+        merged_output_new = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}2D.npy")
+        merged_output_legacy = os.path.join(PATH_merged_output, f"MERGED_{namefile}_2D.npy")
     elif dimension == "3D":
-        merged_output = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}3D.npy")
+        merged_output_new = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}3D.npy")
+        merged_output_legacy = os.path.join(PATH_merged_output, f"MERGED_{namefile}_3D.npy")
     
-    if os.path.exists(merged_output) and not force_resimulate:
+    # Check both formats
+    merged_exists_new = os.path.exists(merged_output_new)
+    merged_exists_legacy = os.path.exists(merged_output_legacy)
+    
+    # If legacy format exists, rename it to new format
+    if merged_exists_legacy and not merged_exists_new:
+        try:
+            import shutil
+            shutil.move(merged_output_legacy, merged_output_new)
+            print(f"[INFO] Renamed legacy format: {Path(merged_output_legacy).name} -> {Path(merged_output_new).name}")
+            merged_exists_new = True
+        except Exception as e:
+            print(f"[WARNING] Failed to rename legacy file: {e}")
+    
+    # Skip if already processed
+    if merged_exists_new and not force_resimulate:
         print(f"[SKIP] Already processed: {namefile} with {total_muons_per_geometry:,} muons")
         continue
     elif os.path.exists(merged_output) and force_resimulate:
