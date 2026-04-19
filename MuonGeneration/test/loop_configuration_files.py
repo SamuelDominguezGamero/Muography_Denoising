@@ -23,8 +23,8 @@ create_geometries = True
 simulate          = True    # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
-max_geometries    = 25       # the first geometries to be tested on
-max_geometries_simulated = 25  # the first geometries to be simulated (if simulate=True)
+max_geometries    = 50       # the first geometries to be tested on
+max_geometries_simulated = 50  # the first geometries to be simulated (if simulate=True)
 
 force_resimulate  = False    # set to True to re-process geometries even if merged results exist
 # ===========================================================================
@@ -112,7 +112,7 @@ FontSizes      = [
     {"size": 16, "strokes": [1, 2, 3]},  # stroke 3 available
 ]
 materials      = ["lead", "uranium", "iron"]
-words_geometry = ["MUON", "MUNO", "NOMU", "MOUN", "NOUM", "NMOU", "MNOU", "NMUO", "MNUO", "ONUM", "OUMN", "UONM"]
+words_geometry = ["MUON", "MUNO", "NOMU", "MOUN", "NOUM", "NMOU", "MNOU", "NMUO", "MNUO", "ONUM", "OUMN", "UONM", "UNOM", "UOMN"]
 
 # Count total valid geometries
 total_geometries = 0
