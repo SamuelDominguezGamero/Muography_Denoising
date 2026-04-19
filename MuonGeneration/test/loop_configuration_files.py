@@ -301,30 +301,49 @@ os.makedirs(PATH_merged_output, exist_ok=True)
 jobs_submitted = 0
 jobs_failed    = 0
 merges_submitted = 0
+geometries_skipped = 0
 
 # ===========================================================================
-# SCAN FILESYSTEM FOR CREATED GEOMETRIES
+# GENERATE GEOMETRIES IN SAME DETERMINISTIC ORDER (same as creation)
+# IMPORTANT: Must use exact same order as STEP 1 to ensure correct matching
+# with MERGED files! os.listdir() order is non-deterministic.
 # ===========================================================================
-print("\n[INFO] Scanning for created geometries...")
-print(f"[DEBUG] Scanning path: {PATH_geometry_files}")
-created_geometries = []
-if os.path.exists(PATH_geometry_files):
-    geometry_files = [f for f in os.listdir(PATH_geometry_files) if f.endswith('.json')]
-    created_geometries = [f[:-5] for f in geometry_files]  # Remove .json extension
-    print(f"[INFO] Found {len(created_geometries)} geometries to process")
-    if len(created_geometries) == 0:
-        print("[WARNING] No geometry files found. Skipping STEP 2.")
-        sys.exit(0)
-else:
-    print(f"[ERROR] Geometry path does not exist: {PATH_geometry_files}")
-    sys.exit(1)
+print("\n[INFO] Generating geometries in deterministic order...")
+print(f"[DEBUG] Using same order as STEP 1 creation")
+
+generated_geometries = []
+for spacing in spacings:
+    for ratio in ratios:
+        for fontsize in fontsizes:
+            x = fontsize
+            for material in materials:
+                for word in words_geometry:
+                    for stroke in strokes:
+                        if (stroke == 3) and (fontsize in [14, 16]): # not a valid combination (yet)
+                            continue
+                        namefile = (
+                            f"_Lpx{Lpx}_Lpy{Lpy}_Lpz{Lpz}"
+                            f"_npx{npx}_npy{npy}_npz{npz}"
+                            f"_zTop{zPosDetector_top}_zBot{zPosDetector_bot}"
+                            f"_spacing{spacing}_ratio{ratio}"
+                            f"_FontX{x}_FontY{x}"
+                            f"_mat{material}_word{word}_stroke{stroke}"
+                        )
+                        geometry_file = os.path.join(PATH_geometry_files, namefile + ".json")
+                        if os.path.exists(geometry_file):
+                            generated_geometries.append(namefile)
+
+print(f"[INFO] Found {len(generated_geometries)} geometries to process")
+if len(generated_geometries) == 0:
+    print("[WARNING] No geometry files found. Skipping STEP 2.")
+    sys.exit(0)
 
 # ===========================================================================
-# ITERATE OVER CREATED GEOMETRIES (NOT ALL COMBINATIONS)
+# ITERATE OVER CREATED GEOMETRIES IN DETERMINISTIC ORDER
 # ===========================================================================
 i = 0
 
-for namefile in created_geometries:
+for namefile in generated_geometries:
     i += 1
     if i > max_geometries_simulated:
         print(f"[INFO] Reached max_geometries_simulated={max_geometries_simulated}. Stopping simulation.")
@@ -361,6 +380,7 @@ for namefile in created_geometries:
     # Skip if already processed
     if merged_exists_new and not force_resimulate:
         print(f"[SKIP] Already processed: {namefile} with {total_muons_per_geometry:,} muons")
+        geometries_skipped += 1
         continue
     elif merged_exists_new and force_resimulate:
         print(f"[RESIMULATE] Force flag enabled, re-processing: {namefile}")
@@ -565,7 +585,10 @@ echo "[CORRECT] Cleanup finished."
 
 
 print("\n" + "="*60)
-print(f"[INFO] Simulation jobs submitted: {jobs_submitted}")
-print(f"[INFO] Simulation jobs failed:    {jobs_failed}")
-print(f"[INFO] Merge jobs submitted:      {merges_submitted}")
+print("[FINAL SUMMARY]")
+print("="*60)
+print(f"[INFO] Geometries skipped (already processed): {geometries_skipped}")
+print(f"[INFO] Simulation jobs submitted:             {jobs_submitted}")
+print(f"[INFO] Simulation jobs failed:                {jobs_failed}")
+print(f"[INFO] Merge jobs submitted:                  {merges_submitted}")
 print("="*60)
