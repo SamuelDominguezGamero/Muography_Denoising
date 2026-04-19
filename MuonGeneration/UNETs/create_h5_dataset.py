@@ -34,18 +34,22 @@ STEP 3: Use the generated H5 files for training
     import h5py
     import tensorflow as tf
     
-    h5_path = "data/h5_datasets/128x128x3_Muons_1000000.h5"
+    h5_path = "data/h5_datasets/128x128x3.h5"  # One H5 per resolution
     
     with h5py.File(h5_path, 'r') as f:
         train_images = f['training/images'][:]
         train_labels = f['training/labels'][:]
         print(f"Train images shape: {train_images.shape}")
-        print(f"Muons per sim: {f.attrs['n_muons_per_simulation']}")
+        print(f"Noise variability (muons): {f.attrs['n_muons_min']:,} - {f.attrs['n_muons_max']:,}")
+        print(f"Training on mixed-noise data? {f.attrs['has_mixed_muon_counts']}")
     
-    # Build your dataset
+    # Build your dataset (will include variable-noise samples)
     train_dataset = tf.data.Dataset.from_tensor_slices(
         (train_images, train_labels)
     ).batch(32).shuffle(1000)
+    
+    # TIP: Model trains on data with different noise levels (different n_muons_total)
+    # This makes it robust to simulation variability
 
 ================================================================================
 CONFIGURATION & CUSTOMIZATION
@@ -100,12 +104,17 @@ This script expects:
 OUTPUT STRUCTURE
 ================================================================================
 
-The script creates H5 files in data/h5_datasets/ directory:
+The script creates H5 files in data/h5_datasets/ directory, **ONE PER RESOLUTION**:
 
-  128x128x3_Muons_1000000.h5     (All 128x128 POCA images with 1M muons)
-  256x256x3_Muons_1000000.h5     (All 256x256 POCA images with 1M muons)
-  128x128x3_Muons_500000.h5      (128x128 POCA images with 500k muons)
+  128x128x3.h5       (All 128x128 POCA images, variable muon counts)
+  256x256x3.h5       (All 256x256 POCA images, variable muon counts)
+  512x512x3.h5       (All 512x512 POCA images, variable muon counts)
   ...
+
+KEY DESIGN: Different noise levels (muon counts) are **mixed in same H5**.
+- Each sample has n_muons_total in its metadata
+- Model trains on variable-noise data → learns robust denoiser
+- File-level attrs show min/max/avg muons for reference
 
 Each H5 file internal structure:
 
@@ -130,7 +139,23 @@ FILE ATTRIBUTES (accessible with h5file.attrs):
   • train_ratio, val_ratio, test_ratio : Split fractions
   • compression, compression_opts : HDF5 compression settings
   • random_seed               : Seed used for train/val/test splits
-  • n_muons_per_simulation    : Critical metadata! Muon count affects noise level
+  • n_muons_min               : Minimum muon count in this H5 (dataset variability)
+  • n_muons_max               : Maximum muon count in this H5
+  • n_muons_avg               : Average muon count (good for reference)
+  • has_mixed_muon_counts     : Boolean, True if multiple muon counts present
+                               (indicates trained on variable-noise data)
+
+SAMPLE-LEVEL METADATA (per training instance):
+  Each sample in /training/metadata/sample_XXXXXX/ has attributes:
+  • n_muons_total             : **CRITICAL** - exact muon count for THIS sample (affects noise)
+  • Lpx, Lpy, Lpz             : Physical box dimensions
+  • npx, npy, npz             : Grid resolution
+  • material                  : Material type (lead, iron, uranium)
+  • word                      : Geometry type (MUON, MUNO, etc)
+  • stroke                    : Stroke width
+  • zTop, zBot                : Detector positions
+  • FontX, FontY              : Font/text size parameters
+  • spacing, ratio            : Detector spacing and scattering ratio
 
 ================================================================================
 HOW TO USE THE GENERATED H5 FILES
@@ -171,13 +196,35 @@ OPTION 2: Lazy loading with TensorFlow (recommended for large datasets)
   
   train_ds = load_from_h5('128x128x3_Muons_1000000.h5', 'training', batch_size=32)
 
-OPTION 3: Access sample metadata
+OPTION 3: Access sample metadata (IMPORTANT for understanding training data)
   
   with h5py.File(h5_path, 'r') as f:
-      sample_0_attrs = f['training/metadata/sample_000000'].attrs
-      print(f"Material: {sample_0_attrs['material']}")
-      print(f"Muon count: {sample_0_attrs['n_muons_total']}")
-      print(f"Grid: {sample_0_attrs['npx']} x {sample_0_attrs['npy']}")
+      # Get metadata for first training sample
+      sample_attrs = f['training/metadata/sample_000000'].attrs
+      
+      print(f"Sample info:")
+      print(f"  Muons: {sample_attrs['n_muons_total']}")
+      print(f"  Material: {sample_attrs['material']}")
+      print(f"  Geometry: {sample_attrs['word']}")
+      print(f"  Grid: {sample_attrs['npx']} x {sample_attrs['npy']}")
+      
+      # Iterate over multiple samples to see noise variation
+      for i in range(min(10, f['training/metadata'].attrs.get('n_samples', 0))):
+          attrs = f[f'training/metadata/sample_{i:06d}'].attrs
+          print(f"Sample {i}: {attrs['n_muons_total']:,} muons - {attrs['word']}")
+
+OPTION 3b: Analyze muon count distribution in dataset
+  
+  with h5py.File(h5_path, 'r') as f:
+      # Get file-level statistics
+      print(f"Muon count statistics for {f.attrs['resolution']}:")
+      print(f"  Min: {f.attrs['n_muons_min']:,} muons")
+      print(f"  Max: {f.attrs['n_muons_max']:,} muons")
+      print(f"  Avg: {f.attrs['n_muons_avg']:,} muons")
+      print(f"  Mixed noise levels? {f.attrs['has_mixed_muon_counts']}")
+      
+      # Why this matters: If has_mixed_muon_counts=True, the model trains
+      # on variable-noise data and becomes robust to different simulation runs
 
 OPTION 4: Append new data to existing H5 (for incremental training)
   
@@ -281,12 +328,28 @@ PERFORMANCE TIPS
 • Separate H5 files per resolution speeds up model training (load only what needed)
 
 ================================================================================
-SIMULATION METADATA (critical for noise analysis)
+SIMULATION METADATA (critical for understanding training data robustness)
 ================================================================================
 
-  n_muons_total      : Total number of muons in simulation (stored per sample + global)
-                       IMPORTANT: Higher n_muons → lower noise, better statistics
-                       Use this to understand or weight training data by noise level
+  n_muons_total      : Per-sample metadata storing exact muon count in THIS simulation
+                       IMPORTANT: Different samples in same H5 may have different values
+                       Higher n_muons → lower noise → different training difficulty
+                       
+  File-level stats:  n_muons_min, n_muons_max, n_muons_avg, has_mixed_muon_counts
+                     These show the noise VARIABILITY in your dataset
+                     Mixed counts = model trains on variable-noise data = more robust
+
+DESIGN RATIONALE:
+  By mixing different muon counts in same H5:
+  ✓ Model sees variable noise levels during training
+  ✓ Becomes robust to different simulation parameters
+  ✓ Each sample is fully traceable (knows its exact muon count)
+  ✓ Can analyze correlation between n_muons and model performance
+  
+  Example use case:
+    - Train on mixed data (500k-1M muons per sample)
+    - Test on 1M muons exclusively
+    - Evaluate if variable-noise training improves generalization
 
 ================================================================================
 """
@@ -633,10 +696,12 @@ def main():
         npx = hyperparams['npx']
         npy = hyperparams['npy']
         
-        # Create resolution key including muon count to separate different noise levels
-        # Format: "128x128x3_Muons_1000000" if different muon counts, else "128x128x3" if all same
+        # Create resolution key (resolution only, not muon count)
+        # Muon count will be stored per-sample in metadata for traceability
+        # This way: different noise levels → same H5, different n_muons_total values per sample
+        # Model trains on data with variable noise, learns robustness
         n_muons = hyperparams.get('n_muons', TOTAL_MUONS_PER_SIMULATION)
-        resolution_key = f"{npx}x{npy}x3_Muons_{n_muons}"
+        resolution_key = f"{npx}x{npy}x3"
         
         # Load sample pair
         image, label, success = load_sample_pair(merged_file, PATH_GT_2D, geom_name)
@@ -659,12 +724,20 @@ def main():
                 'geom_names': []
             }
         
-        # Add critical metadata: total muons in simulation
-        # Use the muons count extracted from the filename, otherwise fallback to global constant
+        # CRITICAL METADATA: Total muons per simulation
+        # IMPORTANT FOR TRACEABILITY: This value directly affects noise level
+        # Different samples may have different n_muons_total values in same H5!
+        # Use extracted value from filename, fallback to global constant
         if 'n_muons' in hyperparams:
             hyperparams['n_muons_total'] = hyperparams['n_muons']
         else:
             hyperparams['n_muons_total'] = TOTAL_MUONS_PER_SIMULATION
+        
+        # Ensure all critical metadata is preserved
+        # These are essential for understanding each training sample
+        hyperparams['material'] = hyperparams.get('material', 'unknown')
+        hyperparams['word'] = hyperparams.get('word', 'unknown')
+        hyperparams['stroke'] = hyperparams.get('stroke', 0)
         
         resolution_groups[resolution_key]['images'].append(image)
         resolution_groups[resolution_key]['labels'].append(label)
@@ -744,9 +817,12 @@ def main():
             h5file.attrs['compression'] = COMPRESSION
             h5file.attrs['compression_opts'] = COMPRESSION_OPTS
             h5file.attrs['random_seed'] = RANDOM_SEED
-            # Store muon count from first sample (should be same for all in this H5)
-            first_sample_muons = group_data['hyperparams'][0].get('n_muons_total', TOTAL_MUONS_PER_SIMULATION)
-            h5file.attrs['n_muons_per_simulation'] = first_sample_muons
+            # Store muon count range for this H5 (may vary across samples!)
+            muons_list = [hp.get('n_muons_total', TOTAL_MUONS_PER_SIMULATION) for hp in group_data['hyperparams']]
+            h5file.attrs['n_muons_min'] = min(muons_list)
+            h5file.attrs['n_muons_max'] = max(muons_list)
+            h5file.attrs['n_muons_avg'] = int(sum(muons_list) / len(muons_list))
+            h5file.attrs['has_mixed_muon_counts'] = len(set(muons_list)) > 1
             
             # Store geometry names as dataset
             h5file.create_dataset(
@@ -792,11 +868,24 @@ def main():
 1. VERIFY DATASET:
    python3 << 'EOF'
    import h5py
-   h5_path = "{}/128x128x3_Muons_1000000.h5"
+   h5_path = "{}/128x128x3.h5"
    with h5py.File(h5_path, 'r') as f:
        print("Training images:", f['training/images'].shape)
        print("Training labels:", f['training/labels'].shape)
-       print("Muons per simulation:", f.attrs['n_muons_per_simulation'])
+       print("Muon count range:", f.attrs['n_muons_min'], "-", f.attrs['n_muons_max'])
+       print("Has mixed noise levels?", f.attrs['has_mixed_muon_counts'])
+   EOF
+
+2. ANALYZE METADATA DISTRIBUTION:
+   python3 << 'EOF'
+   import h5py
+   h5_path = "{}/128x128x3.h5"
+   with h5py.File(h5_path, 'r') as f:
+       muons_list = []
+       for i in range(min(50, f['training'].attrs['n_samples'])):
+           n = f[f'training/metadata/sample_{i:06d}'].attrs['n_muons_total']
+           muons_list.append(n)
+       print("Sample muon counts:", set(muons_list))
    EOF
 
 2. TRAIN UNET MODEL:
