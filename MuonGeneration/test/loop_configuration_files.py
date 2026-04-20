@@ -27,8 +27,8 @@ create_geometries = True
 simulate          = True    # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
-max_geometries    = 70       # the first geometries to be tested on
-max_geometries_simulated = 70  # the first geometries to be simulated (if simulate=True)
+max_geometries    =60      # the first geometries to be tested on
+max_geometries_simulated = 60  # the first geometries to be simulated (if simulate=True)
 
 force_resimulate  = False    # set to True to re-process geometries even if merged results exist
 # ===========================================================================
@@ -142,7 +142,7 @@ print(f"[INFO] ----- Total geometries to generate: {total_geometries}")
 # SIMULATION PARAMETERS
 # ===========================================================================
 total_muons_per_geometry = 1_000_000
-n_muons_per_job          = 20_000    # Reduced to 100k to save disk space (more jobs, smaller files)
+n_muons_per_job          = 25_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
 print(f"[INFO] Muons per job:      {n_muons_per_job:,}")
