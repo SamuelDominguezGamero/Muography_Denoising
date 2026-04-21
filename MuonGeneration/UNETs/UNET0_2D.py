@@ -8,6 +8,9 @@ Salida: Densidad 2D reconstruida (128, 128, 1)
 Training con validación, checkpoints, etc.
 """
 
+
+# modificación test para ver como funciona la app de GitHub
+
 import numpy as np
 import h5py
 from pathlib import Path
