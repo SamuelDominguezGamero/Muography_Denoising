@@ -1,15 +1,29 @@
 """
 UNET0_2D.py
 
-UNET 2D para reconstrucción de densidad a partir de POCA data.
-Entrada: 3 canales POCA (128, 128, 3)
-Salida: Densidad 2D reconstruida (128, 128, 1)
+First model of 2D UNET
+``````````````````````
+Target: eliminate noise --> reconstruct perfectly the geometry (2D boolean mask)
+First idea: several channels obtained from POCA signal
+Dataset: 2D projected quantities. Different geometries, with different number of muons
 
-Training con validación, checkpoints, etc.
+Ideal objective: reproduce the geometry with few muons.
+
+Script structure
+````````````````
+- Libraries and control variables
+- Exploration of directories and data
+- Data loading (lazy) for optimum (V)RAM usage
+- Visualisation of data
+- Preprocessing
+- UNET training
 """
 
-
-# modificación test para ver como funciona la app de GitHub
+##################################################################
+##################################################################
+# 		       LIBRARIES AND CONTROL VARIABLES
+##################################################################
+##################################################################
 
 import numpy as np
 import h5py
@@ -69,13 +83,14 @@ else:
         print("No GPUs detected. Training may be slow on CPU.")
 
 
-# =======================================
-# Hyperparameters (to be optimized later)
-BATCH_SIZE = 16
-EPOCHS = 50
-LEARNING_RATE = 1e-3
-VAL_SPLIT = 0.15
 
+
+
+##################################################################
+##################################################################
+# 		       DIRECTORIES AND DATA
+##################################################################
+##################################################################
 
 # ===========================================================================
 # HDF5 EXPLORATION
@@ -85,7 +100,7 @@ def explore_hdf5(filepath):
     """Explora y muestra la estructura de un archivo HDF5"""
     
     if not os.path.exists(filepath):
-        print(f"XXXX Archivo no encontrado: {filepath}")
+        print(f"[ERROR] ----- Archivo no encontrado: {filepath}")
         return
     
     print(f"\n[DIR] Explorando: {filepath}")
@@ -226,7 +241,7 @@ def plot_images_dataset(h5_file, n_samples=10):
         X = f["training/images"][:n_samples].astype(np.float32)
         Y = f["training/labels"][:n_samples].astype(np.float32)
 
-    fig, axes = plt.subplots(nrows=n_samples, ncols=4, figsize=(10, 4 * n_samples))
+    fig, axes = plt.subplots(nrows=n_samples, ncols=4, figsize=5*n_cols, 4 * n_samples))
 
     for i in range(n_samples):
         axes[i, 0].imshow(X[i, :, :, 0], cmap='viridis')
@@ -274,8 +289,35 @@ if train_.lower() != 'y':
 else:
     print("Continuing to training...")
 
-########################################################################
-########################################################################
+
+##################################################################
+##################################################################
+# 		       DATA AUGMENTATION
+##################################################################
+##################################################################
+
+
+
+##################################################################
+##################################################################
+# 		       DIRECTORIES AND DATA
+##################################################################
+##################################################################
+
+
+# UNET architecture
+
+
+
+
+
+
+# Hyperparameters (to be optimized later)
+BATCH_SIZE        = 16
+EPOCHS            = 50
+LEARNING_RATE     = 1e-3
+VAL_SPLIT         = 0.15
+
 
 
 # ===========================================================================
@@ -284,7 +326,7 @@ else:
 
 def create_unet(input_shape=(128, 128, 3), n_filters_base=32):
     """
-    UNET 2D simétrica
+    UNET 2D
     - Encoder: 4 niveles de downsampling
     - Decoder: 4 niveles de upsampling
     - Skip connections
