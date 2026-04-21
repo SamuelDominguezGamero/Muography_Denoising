@@ -27,8 +27,8 @@ create_geometries = True
 simulate          = True    # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
-max_geometries    =60      # the first geometries to be tested on
-max_geometries_simulated = 60  # the first geometries to be simulated (if simulate=True)
+max_geometries    = 100      # the first geometries to be tested on
+max_geometries_simulated = 100  # the first geometries to be simulated (if simulate=True)
 
 force_resimulate  = False    # set to True to re-process geometries even if merged results exist
 # ===========================================================================
@@ -105,11 +105,11 @@ zPosDetector_bot = -54
 #   - Sizes 14, 16: Stroke 1, 2, 3 available
 #   - Only letters available: M, U, O, N
 
-spacings       = [1, 2]
+spacings       = [1] # readd 1
 ratios         = [1]
 # Strategy: Use multiple sizes with stroke variations that are actually available
-fontsizes      = [8, 10, 12, 14, 16]
-strokes        = [1, 2, 3]
+fontsizes      = [12] # readd 8, 10, 14, 16
+strokes        = [3] # readd 1
 
 FontSizes      = [# NOW UNUSED, SHOULD BE REMOVED
     {"size": 8,  "strokes": [1, 2]},
@@ -119,7 +119,7 @@ FontSizes      = [# NOW UNUSED, SHOULD BE REMOVED
     {"size": 16, "strokes": [1, 2, 3]},  # stroke 3 available
 ]
 
-materials      = ["lead", "uranium", "iron"]
+materials      = ["lead", "iron", "uranium"]
 words_geometry = ["MUON", "MUNO", "NOMU", "MOUN", "NOUM", "NMOU", "MNOU", "NMUO", "MNUO", "ONUM", "OUMN", "UONM", "UNOM", "UOMN"]
 
 # Count total valid geometries
@@ -136,17 +136,27 @@ for spacing in spacings:
                             total_geometries += 1
 
 print(f"[INFO] ----- Total geometries to generate: {total_geometries}")
-
+time.sleep(5)
+print(60 * "-")
+time.sleep(1)
+print(60 * "-")
+time.sleep(1)
 
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 1_000_000
-n_muons_per_job          = 25_000
+total_muons_per_geometry = 1_500_000
+n_muons_per_job          = 30_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
+time.sleep(1)
+print(60 * "-")
 print(f"[INFO] Muons per job:      {n_muons_per_job:,}")
+time.sleep(1)
+print(60 * "-")
 print(f"[INFO] Jobs per geometry:  {n_jobs_per_geometry}")
+time.sleep(1)
+print(60 * "-")
 print(f"[INFO] Total jobs:         {total_geometries * n_jobs_per_geometry:,}")
 
 
@@ -178,7 +188,7 @@ for spacing in spacings:
                     for stroke in strokes:
                         if (stroke == 3) and (fontsize in [14, 16]): # not a valid combination (yet)
                             continue
-                        i += 1
+                        i += 1 # geometries counting
                         if i > max_geometries:
                             print(f"[INFO] Reached max_geometries={max_geometries}. Stopping geometry creation.")
                             done_creating = True
@@ -193,7 +203,7 @@ for spacing in spacings:
                         )
 
                         if os.path.exists(os.path.join(PATH_geometry_files, namefile + ".json")):
-                            print(f"[INFO] Geometry {i}/{total_geometries} already exists, skipping: {namefile}")
+                            print(f"[INFO | EXISTING] ----- Geometry {i}/{total_geometries} ALREADY EXISTS, skipping: {namefile}")
                             continue
 
                         output_json    = os.path.join(PATH_geometry_files, namefile + ".json")
@@ -242,13 +252,17 @@ for spacing in spacings:
                             ]
                             
                             result = subprocess.run(sbatch_args, capture_output=True, text=True)
-                            
-                            print(f"[INFO] Geometry {i}/{total_geometries} creation started: {namefile}")
                         
+                            print(f"[INFO] Geometry {i}/{total_geometries} creation started: {namefile}")
+                            time.sleep(0.1)
                         if result.returncode != 0:
                             print(f"[ERROR] Geometry {i}/{total_geometries} failed:\n{result.stderr}")
+                            print(80 * '-')
                         else:
-                            print(f"[CORRECT] Geometry {i}/{total_geometries} created: {namefile}")
+                            print(f"[CORRECT: JOB SUBMISSION] Geometry {i}/{total_geometries}: {namefile}")
+                            print(80 * '-')
+                            time.sleep(0.1)
+
 
 # if create_geometries:
 #     command_GitAdd = f"git add {PATH_geometry_files}/*.json {PATH_density_files}/*_ground_truth_density.npy"
@@ -257,6 +271,7 @@ for spacing in spacings:
 #     subprocess.run(command_GitCommit, shell=True)
 #     command_GitPush = "git push"
 #     subprocess.run(command_GitPush, shell=True)
+print("="*60)
 print("\n[CORRECT] ALL GEOMETRIES CREATED SUCCESSFULLY")
 print("="*60 + "\n")
 
@@ -283,11 +298,14 @@ if create_geometries and environment == "cluster":
 
 
 # ===========================================================================
-# STEP 2: SLURM JOB SUBMISSION + MERGE WITH DEPENDENCY
+# STEP 2: SIMULATION == SLURM JOB SUBMISSION + MERGE WITH DEPENDENCY
 # ===========================================================================
+print("="*60)
 print("="*60)
 print("STEP 2: SLURM JOB SUBMISSION")
 print("="*60)
+print("="*60)
+time.sleep(10)
 
 if not simulate:
     sys.exit("[INFO] simulate=False. Set it to True to submit SLURM jobs.")
@@ -303,55 +321,34 @@ jobs_failed    = 0
 merges_submitted = 0
 geometries_skipped = 0
 
-# ===========================================================================
-# GENERATE GEOMETRIES IN SAME DETERMINISTIC ORDER (same as creation)
-# IMPORTANT: Must use exact same order as STEP 1 to ensure correct matching
-# with MERGED files! os.listdir() order is non-deterministic.
-# ===========================================================================
-print("\n[INFO] Generating geometries in deterministic order...")
-print(f"[DEBUG] Using same order as STEP 1 creation")
 
-generated_geometries = []
-for spacing in spacings:
-    for ratio in ratios:
-        for fontsize in fontsizes:
-            x = fontsize
-            for material in materials:
-                for word in words_geometry:
-                    for stroke in strokes:
-                        if (stroke == 3) and (fontsize in [14, 16]): # not a valid combination (yet)
-                            continue
-                        namefile = (
-                            f"_Lpx{Lpx}_Lpy{Lpy}_Lpz{Lpz}"
-                            f"_npx{npx}_npy{npy}_npz{npz}"
-                            f"_zTop{zPosDetector_top}_zBot{zPosDetector_bot}"
-                            f"_spacing{spacing}_ratio{ratio}"
-                            f"_FontX{x}_FontY{x}"
-                            f"_mat{material}_word{word}_stroke{stroke}"
-                        )
-                        geometry_file = os.path.join(PATH_geometry_files, namefile + ".json")
-                        if os.path.exists(geometry_file):
-                            generated_geometries.append(namefile)
+# Loop over all the existing files with GLOB
+all_json_files = []
+for file in glob.glob(PATH_geometry_files):
+    all_json_files.append(file)
+print(f"[INFO] ----- Total number of geometry json files available for simulation: {len(all_json_files)}")
 
-print(f"[INFO] Found {len(generated_geometries)} geometries to process")
-if len(generated_geometries) == 0:
-    print("[WARNING] No geometry files found. Skipping STEP 2.")
-    sys.exit(0)
+all_simulation_DataFiles = []
+for file in glob.glob(PATH_merged_output):
+    all_json_files.append(file)
+print(f"[INFO] ----- Total number of simulation data filess available: {len(all_simulation_DataFiles)}")
 
-# ===========================================================================
-# ITERATE OVER CREATED GEOMETRIES IN DETERMINISTIC ORDER
-# ===========================================================================
+
+
+
+
+# SIMULATION (SKIPPING ALREADY SIMULATED GEOMETRIES, FOR THE CHOSEN MUON FLUX)
 i = 0
-
-for namefile in generated_geometries:
+for file in all_json_files:
     i += 1
     if i > max_geometries_simulated:
         print(f"[INFO] Reached max_geometries_simulated={max_geometries_simulated}. Stopping simulation.")
         break
-    geometry_file = os.path.join(PATH_geometry_files, namefile + ".json")
+    namefile, ext = os.path.splitext(file) # file without the extension
+    geometry_file = file # file with the extension
     
     if not os.path.exists(geometry_file):
-        print(f"[WARNING] Geometry file disappeared: {geometry_file}")
+        print(f"[WARNING] ----- Geometry file disappeared: {geometry_file}")
         continue
     
     # Check if merged result already exists WITH THE EXACT NUMBER OF MUONS
