@@ -264,13 +264,6 @@ for spacing in spacings:
                             time.sleep(0.1)
 
 
-# if create_geometries:
-#     command_GitAdd = f"git add {PATH_geometry_files}/*.json {PATH_density_files}/*_ground_truth_density.npy"
-#     subprocess.run(command_GitAdd, shell=True)
-#     command_GitCommit = f'git commit -m "Add geometry JSON files and ground truth density tensors"'
-#     subprocess.run(command_GitCommit, shell=True)
-#     command_GitPush = "git push"
-#     subprocess.run(command_GitPush, shell=True)
 print("="*60)
 print("\n[CORRECT] ALL GEOMETRIES CREATED SUCCESSFULLY")
 print("="*60 + "\n")
@@ -332,8 +325,6 @@ all_simulation_DataFiles = []
 for file in glob.glob(PATH_merged_output):
     all_json_files.append(file)
 print(f"[INFO] ----- Total number of simulation data filess available: {len(all_simulation_DataFiles)}")
-
-
 
 
 
