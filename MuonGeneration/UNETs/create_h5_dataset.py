@@ -377,7 +377,7 @@ import re
 # Modify PATH_* variables directly if using custom directories.
 #
 
-ENVIRONMENT = "cluster"  # Options: "cluster" | "local"
+ENVIRONMENT = "local"  # Options: "cluster" | "local"
 
 if ENVIRONMENT == "cluster":
     PATH_MERGED = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data"
@@ -388,6 +388,10 @@ elif ENVIRONMENT == "local":
     PATH_MERGED = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/merged_poca_data"
     PATH_GT_2D = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions"
     PATH_OUTPUT = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/h5_datasets"
+
+
+
+
 
 # Dataset split ratios
 TRAIN_RATIO = 0.70

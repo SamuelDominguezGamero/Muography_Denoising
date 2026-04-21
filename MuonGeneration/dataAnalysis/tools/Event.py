@@ -3,29 +3,40 @@ import ROOT as r
 from array import array
 
 class Event:
+    """
+    Event: creates an empty event.
+    Stores a list of lists, one list per detector
 
+    Filters events that are not valid for muography:
+        - only muons (genID = 13) are considered
+        - only one hit per layer, if there are two hits in the same layer, the event is not valid
+
+    This code should be used always with two detectores and two layers per detector
+
+    """
     def __init__(self, nEvent, ndet, nlayer):
         self.nEvent = nEvent
-        self.ndet = ndet
-        self.nlayer = nlayer
-        self.det = []
-        self.layer = []
-        self.Energy = []
-        self.localx = []
-        self.localy = []
-        self.localz = []
-        self.x = []
-        self.y = []
-        self.z = []
-        self.localvx = []
-        self.localvy = []
-        self.localvz = []
-        self.vx = []
-        self.vy = []
-        self.vz = []
+        self.ndet = ndet       # number of detectors
+        self.nlayer = nlayer   # number of layers
+        self.det = []          # detector number
+        self.layer = []        # layer number
+        self.Energy = []       # energy deposited in the hit
+        self.localx = []       # local x coordinate of the hit (in the detector reference frame)
+        self.localy = []       # local y coordinate of the hit                || 
+        self.localz = []       # local z coordinate of the hit                ||
+        self.x = []            # global x coordinate of the hit
+        self.y = []            # global y coordinate of the hit
+        self.z = []            # global z coordinate of the hit
+        self.localvx = []      # local x velocity of the hit
+        self.localvy = []      # local y velocity of the hit
+        self.localvz = []      # local z velocity of the hit
+        self.vx = []           # global x velocity of the hit
+        self.vy = []           # global y velocity of the hit
+        self.vz = []           # global z velocity of the hit
         self.genID = []
 
         for i in range(ndet):
+            # save a list of properties per detector
             self.det.append([])
             self.layer.append([])
             self.Energy.append([])
