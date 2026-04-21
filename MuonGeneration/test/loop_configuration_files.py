@@ -31,6 +31,34 @@ max_geometries    = 100      # the first geometries to be tested on
 max_geometries_simulated = 100  # the first geometries to be simulated (if simulate=True)
 
 force_resimulate  = False    # set to True to re-process geometries even if merged results exist
+
+# ===========================================================================
+# SLURM JOB THROTTLING
+# ===========================================================================
+# Maximum number of jobs allowed in the queue at the same time for this user.
+# Run `sacctmgr show user <username> withassoc` or ask your sysadmin.
+# A safe default is to leave ~10% headroom below your real limit.
+MAX_JOBS_IN_QUEUE = 500      # adjust to your cluster's limit
+THROTTLE_SLEEP    = 30       # seconds to wait when queue is full before retrying
+
+def get_current_job_count(username="dominguezs"):
+    """Returns the number of jobs currently in the SLURM queue for the user."""
+    result = subprocess.run(
+        ["squeue", "-u", username, "-h", "--format=%i"],
+        capture_output=True, text=True
+    )
+    lines = [l for l in result.stdout.strip().split('\n') if l]
+    return len(lines)
+
+def wait_for_slot(username="dominguezs", max_jobs=MAX_JOBS_IN_QUEUE, sleep=THROTTLE_SLEEP):
+    """Blocks until there is room in the SLURM queue to submit at least one more job."""
+    while True:
+        count = get_current_job_count(username)
+        if count < max_jobs:
+            return count   # return current count so caller can log it
+        print(f"[THROTTLE] Queue full ({count}/{max_jobs} jobs). Waiting {sleep}s before retrying...")
+        time.sleep(sleep)
+
 # ===========================================================================
 # SECURITY CHECKS
 # ===========================================================================
@@ -62,6 +90,7 @@ if environment == "cluster":
     PATH_data_analysis  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/dataAnalysis"
     PATH_generator      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration-build/Generator"
     PATH_setup          = "/gpfs/users/dominguezs/Muography_Denoising/setup.sh"
+    SLURM_USER          = "dominguezs"
 
 elif environment == "local":
     PATH_geometry_files = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
@@ -76,6 +105,7 @@ elif environment == "local":
     PATH_data_analysis  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/dataAnalysis"
     PATH_generator      = None
     PATH_setup          = None
+    SLURM_USER          = None
 
 else:
     sys.exit("[ERROR] environment must be 'local' or 'cluster'.")
@@ -101,8 +131,8 @@ zPosDetector_bot = -54
 # GEOMETRY VARIATIONS
 # ===========================================================================
 # IMPORTANT: Not all combinations are valid. Check bitmaps_letters.py BITMAP_DATA:
-#   - Sizes 8, 10, 12: Only stroke 1, 2 available
-#   - Sizes 14, 16: Stroke 1, 2, 3 available
+#   - Sizes 8, 10, 12, 14, 16: Only stroke 1, 2 available
+#   - Stroke 3 is NOT available for any size yet
 #   - Only letters available: M, U, O, N
 
 spacings       = [1] # readd 1
@@ -115,14 +145,15 @@ FontSizes      = [# NOW UNUSED, SHOULD BE REMOVED
     {"size": 8,  "strokes": [1, 2]},
     {"size": 10, "strokes": [1, 2]},
     {"size": 12, "strokes": [1, 2]},
-    {"size": 14, "strokes": [1, 2, 3]},  # stroke 3 available
-    {"size": 16, "strokes": [1, 2, 3]},  # stroke 3 available
+    {"size": 14, "strokes": [1, 2]},
+    {"size": 16, "strokes": [1, 2]},
 ]
 
 materials      = ["lead", "iron", "uranium"]
 words_geometry = ["MUON", "MUNO", "NOMU", "MOUN", "NOUM", "NMOU", "MNOU", "NMUO", "MNUO", "ONUM", "OUMN", "UONM", "UNOM", "UOMN"]
 
 # Count total valid geometries
+# FIX: stroke 3 is NOT valid for any fontsize (condition was inverted before)
 total_geometries = 0
 for spacing in spacings:
     for ratio in ratios:
@@ -130,7 +161,7 @@ for spacing in spacings:
             for material in materials:
                 for word in words_geometry:
                     for stroke in strokes:
-                        if (stroke == 3) and (fontsize in [14, 16]): # not a valid combination (yet)
+                        if stroke == 3:  # stroke 3 not available for any size yet
                             continue
                         else:
                             total_geometries += 1
@@ -186,7 +217,8 @@ for spacing in spacings:
                     if done_creating:
                         break
                     for stroke in strokes:
-                        if (stroke == 3) and (fontsize in [14, 16]): # not a valid combination (yet)
+                        # FIX: stroke 3 not valid for any size yet (condition was inverted before)
+                        if stroke == 3:
                             continue
                         i += 1 # geometries counting
                         if i > max_geometries:
@@ -235,10 +267,12 @@ for spacing in spacings:
                         if environment == "local":
                             result = subprocess.run(command, capture_output=True, text=True)
                         elif environment == "cluster":
+                            # Throttle: wait if queue is full before submitting geometry job
+                            current_count = wait_for_slot(SLURM_USER, MAX_JOBS_IN_QUEUE, THROTTLE_SLEEP)
+
                             inner_command = " ".join(command)
-                            
                             full_wrap = f"source {PATH_setup} && {inner_command}"
-                            
+
                             sbatch_args = [
                                 "sbatch",
                                 f"--job-name=geom_{i}",
@@ -250,10 +284,10 @@ for spacing in spacings:
                                 f"--wrap={full_wrap}",
                                 "--partition=wncompute_ifca"
                             ]
-                            
+
                             result = subprocess.run(sbatch_args, capture_output=True, text=True)
-                        
-                            print(f"[INFO] Geometry {i}/{total_geometries} creation started: {namefile}")
+
+                            print(f"[INFO] Geometry {i}/{total_geometries} creation started: {namefile} (queue: {current_count+1}/{MAX_JOBS_IN_QUEUE})")
                             time.sleep(0.1)
                         if result.returncode != 0:
                             print(f"[ERROR] Geometry {i}/{total_geometries} failed:\n{result.stderr}")
@@ -277,7 +311,7 @@ if create_geometries and environment == "cluster":
     max_wait = 1800  # 30 minutes max
     elapsed = 0
     while elapsed < max_wait:
-        result = sp.run(["squeue", "-u", "dominguezs", "-h"], capture_output=True, text=True)
+        result = sp.run(["squeue", "-u", SLURM_USER, "-h"], capture_output=True, text=True)
         job_count = len([l for l in result.stdout.strip().split('\n') if l and 'geom_' in l])
         if job_count == 0:
             print("[INFO] All geometry jobs finished.")
@@ -315,16 +349,18 @@ merges_submitted = 0
 geometries_skipped = 0
 
 
-# Loop over all the existing files with GLOB
+# FIX: glob needs a wildcard pattern to find files inside the directory
 all_json_files = []
-for file in glob.glob(PATH_geometry_files):
+for file in glob.glob(os.path.join(PATH_geometry_files, "*.json")):
     all_json_files.append(file)
 print(f"[INFO] ----- Total number of geometry json files available for simulation: {len(all_json_files)}")
 
+# FIX: was appending to all_json_files instead of all_simulation_DataFiles,
+#      and also missing the wildcard pattern
 all_simulation_DataFiles = []
-for file in glob.glob(PATH_merged_output):
-    all_json_files.append(file)
-print(f"[INFO] ----- Total number of simulation data filess available: {len(all_simulation_DataFiles)}")
+for file in glob.glob(os.path.join(PATH_merged_output, "*.npy")):
+    all_simulation_DataFiles.append(file)
+print(f"[INFO] ----- Total number of simulation data files available: {len(all_simulation_DataFiles)}")
 
 
 
@@ -335,13 +371,15 @@ for file in all_json_files:
     if i > max_geometries_simulated:
         print(f"[INFO] Reached max_geometries_simulated={max_geometries_simulated}. Stopping simulation.")
         break
-    namefile, ext = os.path.splitext(file) # file without the extension
-    geometry_file = file # file with the extension
-    
+
+    # FIX: extract only the basename without extension, not the full path
+    namefile = os.path.splitext(os.path.basename(file))[0]
+    geometry_file = file # full path with extension
+
     if not os.path.exists(geometry_file):
         print(f"[WARNING] ----- Geometry file disappeared: {geometry_file}")
         continue
-    
+
     # Check if merged result already exists WITH THE EXACT NUMBER OF MUONS
     # Try both new format (_Muons_) and legacy format (for backwards compatibility)
     if dimension == "2D":
@@ -350,11 +388,11 @@ for file in all_json_files:
     elif dimension == "3D":
         merged_output_new = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}_3D.npy")
         merged_output_legacy = os.path.join(PATH_merged_output, f"MERGED_{namefile}_3D.npy")
-    
+
     # Check both formats
     merged_exists_new = os.path.exists(merged_output_new)
     merged_exists_legacy = os.path.exists(merged_output_legacy)
-    
+
     # If legacy format exists, rename it to new format
     if merged_exists_legacy and not merged_exists_new:
         try:
@@ -364,7 +402,7 @@ for file in all_json_files:
             merged_exists_new = True
         except Exception as e:
             print(f"[WARNING] Failed to rename legacy file: {e}")
-    
+
     # Skip if already processed
     if merged_exists_new and not force_resimulate:
         print(f"[SKIP] Already processed: {namefile} with {total_muons_per_geometry:,} muons")
@@ -378,17 +416,17 @@ for file in all_json_files:
             os.remove(f)
         os.remove(merged_output_new)  # Remove old merged result
         print(f"[INFO] Cleaned old files for: {namefile}")
-    
+
     print(f"\n[INFO] Submitting {n_jobs_per_geometry} jobs for: {namefile}")
-    
+
     # Collect job IDs for this geometry to use in the merge dependency
     job_ids = []
-    base_seed = int(time.time()) 
+    base_seed = int(time.time())
     ss = SeedSequence(base_seed)
-    
+
     # Generate all child seeds at once (more efficient than spawning in loop)
     child_seeds = ss.spawn(n_jobs_per_geometry)
-    
+
     for job in range(n_jobs_per_geometry):
         # Convert SeedSequence to integer for use in simulation
         rng = Generator(PCG64(child_seeds[job]))
@@ -480,6 +518,9 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
         with open(out_sh, "w") as f:
             f.write(job_script)
 
+        # Throttle: wait if queue is full before submitting each simulation job
+        current_count = wait_for_slot(SLURM_USER, MAX_JOBS_IN_QUEUE, THROTTLE_SLEEP)
+
         result = subprocess.run(
             ["sbatch", "--begin=now", out_sh],
             capture_output=True, text=True
@@ -492,7 +533,7 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
             # Extract job ID from "Submitted batch job 12345"
             job_id = result.stdout.strip().split()[-1]
             job_ids.append(job_id)
-            print(f"[SUBMITTED] seed={seed:04d} --> job_id={job_id}")
+            print(f"[SUBMITTED] seed={seed:04d} --> job_id={job_id} (queue: {current_count+1}/{MAX_JOBS_IN_QUEUE})")
             jobs_submitted += 1
 
     # --------------------------------------------------
@@ -502,17 +543,17 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
     # If any job fails, the merge is cancelled automatically.
     # SLURM handles the waiting automatically, no explicit sleep needed.
     # --------------------------------------------------
-    
+
     if not job_ids:
         print(f"[WARNING] No jobs submitted for {namefile}, skipping merge.")
         continue
     elif len(job_ids) < n_jobs_per_geometry:
         print(f"[WARNING] Only {len(job_ids)}/{n_jobs_per_geometry} jobs submitted for {namefile}.")
         print(f"[WARNING] Merge job will be submitted with dependency on available jobs.")
-    
+
     print(f"[INFO] Submitting merge job for: {namefile} with dependency on {len(job_ids)} jobs.")
     dependency_str = "afterok:" + ":".join(job_ids)
-    
+
     if dimension == "2D":
         out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}_2D.npy")
         png_name = f"{namefile}_2D.png"
@@ -563,6 +604,9 @@ echo "[CORRECT] Cleanup finished."
 """
     with open(merge_sh, "w") as f:
         f.write(merge_script)
+
+    # Throttle before submitting the merge job too
+    current_count = wait_for_slot(SLURM_USER, MAX_JOBS_IN_QUEUE, THROTTLE_SLEEP)
 
     result = subprocess.run(
         ["sbatch", "--begin=now", f"--dependency={dependency_str}", merge_sh],
