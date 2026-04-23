@@ -1,4 +1,34 @@
 """
+Comentarios post entrenamiento: rendimiento de esta UNET
+- entrenado con: 37 imágenes de simulación (aun muy pocas)
+- 1 solo canal (log_counts)
+- 100 epochs
+- Tenemos un dataset más grande preparado, pero con este ha sido suficiente para hacer la prueba de concepto
+
+ya, en sí mismo, ha dado un resultado decente.
+próximo paso UNET1_2D: 
+- entrenar con más imágenes: tamaños, posiciones, materiales
+- entrenar con 3 canales: log_counts, 20 valores máximos de theta² por celda XY, 
+- predecir: no solo máscara booleana (segmentación), sino proxy de la densidad de la geometría
+*todo esto manteniéndonos todavía en UNETs 2D, que no son demasiado pesadas.
+
+Canales a utilizar:
+- Canal 0: log_counts (información clara para reconstruir geometría)
+- Canal 1: promedio Z pesado por theta²
+- Canal 2: desviación estándar de Z -> proxy de la thickness
+- Canal 3: máximos N valores de theta² por celda XY -> información de scattering más allá del promedio y la varianza, que pueden ser útiles para diferenciar materiales o detectar bordes
+
+
+
+
+
+
+
+
+
+
+
+
 ================================================================================
                         UNET0_2D.py - 2D U-NET Training Pipeline
 ================================================================================

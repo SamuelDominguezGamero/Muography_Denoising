@@ -2,6 +2,10 @@
 merge_results.py
 Merges all POCA output files for a single geometry (one per seed) into a
 single accumulated result. Launched automatically by SLURM via --dependency=afterok.
+MADE FOR THE NEXT UNET, CALLED UNET1_2D
+- Mainly the same logic and inputs
+- Difference: output channels are different
+    - channel 1: max values of 
 """
 
 import numpy as np
