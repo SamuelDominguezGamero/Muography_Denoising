@@ -1,0 +1,14 @@
+{
+  "batch_size": 16,
+  "epochs": 100,
+  "learning_rate": 0.001,
+  "n_filters": 32,
+  "filter_size": 3,
+  "n_levels": 4,
+  "input_shape": [
+    128,
+    128,
+    1
+  ],
+  "timestamp": "2026-04-23 09:55:07"
+}

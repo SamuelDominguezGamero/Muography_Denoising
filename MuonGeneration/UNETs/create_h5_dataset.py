@@ -829,8 +829,8 @@ def main():
             'test': test_idx
         }
         
-        # Create HDF5 file
-        h5_filename = f"{resolution_key}.h5"
+        # Create HDF5 file (include total instance count in filename)
+        h5_filename = f"{resolution_key}_{n_total}instances.h5"
         h5_filepath = os.path.join(PATH_OUTPUT, h5_filename)
         
         print(f"    Output: {h5_filename}")
