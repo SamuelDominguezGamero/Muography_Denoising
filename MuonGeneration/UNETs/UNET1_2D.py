@@ -302,7 +302,7 @@ def explore_dataset_from_h5_file(h5_file):
             )
 
         info = {
-            'img_shape':  tuple(f["training/images"].shape[1:]),   # (H, W, 3)
+            'img_shape':  tuple(f["training/images"].shape[1:]),   # (H, W, 4)
             'label_shape':  tuple(f["training/labels"].shape[1:]),   # (H, W, 1)
             'n_train':    f["training/images"].shape[0],
             'n_val':      f["validation/images"].shape[0],
@@ -310,8 +310,8 @@ def explore_dataset_from_h5_file(h5_file):
         }
 
     # Validaciones mínimas de consistencia
-    assert len(info['img_shape']) == 3 and info['img_shape'][-1] == 3, \
-        f"Se esperan imágenes (H,W,3), shape encontrado: {info['img_shape']}"
+    assert len(info['img_shape']) == 3 and info['img_shape'][-1] == 4, \
+        f"Se esperan imágenes (H,W,4), shape encontrado: {info['img_shape']}"
     assert len(info['label_shape']) == 3 and info['label_shape'][-1] == 1, \
         f"Se esperan labels (H,W,1), shape encontrado: {info['label_shape']}"
 

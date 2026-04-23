@@ -740,7 +740,7 @@ def main():
         # This way: different noise levels → same H5, different n_muons_total values per sample
         # Model trains on data with variable noise, learns robustness
         n_muons = hyperparams.get('n_muons', TOTAL_MUONS_PER_SIMULATION)
-        resolution_key = f"{npx}x{npy}x3"
+        resolution_key = f"{npx}x{npy}x4"
         
         # Look up ground truth file
         if geom_name_base not in gt_mapping:
