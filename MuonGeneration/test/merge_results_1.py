@@ -1,11 +1,19 @@
 """
-merge_results.py
-Merges all POCA output files for a single geometry (one per seed) into a
-single accumulated result. Launched automatically by SLURM via --dependency=afterok.
-MADE FOR THE NEXT UNET, CALLED UNET1_2D
-- Mainly the same logic and inputs
-- Difference: output channels are different
-    - channel 1: max values of 
+merge_results_1.py
+Merges all POCA1 output files for a single geometry (one per seed) into a
+single accumulated result with 4 training channels for UNET1_2D.
+
+INPUT FROM POCA1:
+  - counts_2d, sum_theta_2d, sum_theta_sq_2d (scattering stats)
+  - sum_poca_z_2d, sum_poca_z_sq_2d (position stats along Z)
+
+OUTPUT: 4 Training Channels
+  - Channel 0: log_counts (event counts per XY cell)
+  - Channel 1: mean_theta_sq_z (scattering angle statistics)
+  - Channel 2: var_poca_z (Z-coordinate variance -> thickness proxy)
+  - Channel 3: std_theta_sq_z (scattering variance -> material discrimination)
+
+Shape: (128, 128, 4) suitable for UNET1_2D.py input
 """
 
 import numpy as np
@@ -52,79 +60,150 @@ if missing_files:
 
 if args.dimension == "2D":
 
-    m_counts_2d      = np.zeros((args.npy, args.npx, 1))
+    # Initialize accumulators for all raw statistics from POCA1
+    m_counts_2d       = np.zeros((args.npy, args.npx, 1))
     m_sum_theta_2d    = np.zeros((args.npy, args.npx, 1))
     m_sum_theta_sq_2d = np.zeros((args.npy, args.npx, 1))
+    m_sum_poca_z_2d   = np.zeros((args.npy, args.npx, 1))
+    m_sum_poca_z_sq_2d = np.zeros((args.npy, args.npx, 1))
 
-    missing = []
-
-    for filepath in poca_files:
+    print(f"[INFO] Processing {len(poca_files)} POCA1 files...")
+    for idx, filepath in enumerate(poca_files):
         if not os.path.exists(filepath):
             print(f"[ERROR] File not found: {filepath}")
             sys.exit(1)
             
         data = np.load(filepath, allow_pickle=True).item()
 
-        # Validate shapes: all 2D arrays should be (npy, npx, 1)
+        # Validate required fields from POCA1
         expected_shape = (args.npy, args.npx, 1)
-        for key in ["counts_2d", "sum_theta_2d", "sum_theta_sq_2d"]:
+        required_keys = ["counts_2d", "sum_theta_2d", "sum_theta_sq_2d", "sum_poca_z_2d", "sum_poca_z_sq_2d"]
+        
+        for key in required_keys:
+            if key not in data:
+                print(f"[ERROR] Missing key '{key}' in {filepath}")
+                sys.exit(1)
             if data[key].shape != expected_shape:
-                print(f"[ERROR] Shape mismatch at seed={seed}, key '{key}': {data[key].shape} != {expected_shape}")
+                print(f"[ERROR] Shape mismatch in '{key}': {data[key].shape} != {expected_shape}")
                 sys.exit(1)
 
-        m_counts_2d      += data["counts_2d"]
+        # Accumulate statistics across all seeds
+        m_counts_2d       += data["counts_2d"]
         m_sum_theta_2d    += data["sum_theta_2d"]
         m_sum_theta_sq_2d += data["sum_theta_sq_2d"]
+        m_sum_poca_z_2d   += data["sum_poca_z_2d"]
+        m_sum_poca_z_sq_2d += data["sum_poca_z_sq_2d"]
+        
+        if (idx + 1) % max(1, len(poca_files) // 10) == 0 or idx == 0:
+            print(f"  [{idx + 1}/{len(poca_files)}] processed")
 
-    print(f"[CORRECT] All {len(poca_files)} files merged successfully.")
+    print(f"[CORRECT] All {len(poca_files)} files merged successfully.\n")
 
     
-    # CALCULATIONS: CHANNELS FOR THE UNET
+    # ===========================================================================
+    # CHANNEL CALCULATION: Derive 4 input channels for UNET1_2D
+    # ===========================================================================
 
-    ### Statistics regarding the scattering angle per XY cell
+    # Masks for safe division
     mask_exists = m_counts_2d > 0
-    mask_stat = m_counts_2d > 1  # Para varianza muestral, necesitamos al menos 2 eventos
+    mask_stat = m_counts_2d > 1  # At least 2 events for sample variance
 
-    # <theta>_z per XY cell, using the formula mean = sum / N, careful with DIVISION BY ZERO
-    matrix_mean_theta_z = np.zeros_like(m_counts_2d)
-    matrix_mean_theta_z[mask_exists] = m_sum_theta_2d[mask_exists] / m_counts_2d[mask_exists]
+    print("[CHANNELS] Computing 4-channel input for UNET1_2D...\n")
 
-    # <theta^2>_z per XY cell, using the formula mean = sum / N, careful with DIVISION BY ZERO
-    matrix_mean_theta_sq_z = np.zeros_like(m_counts_2d)
-    matrix_mean_theta_sq_z[mask_exists] = m_sum_theta_sq_2d[mask_exists] / m_counts_2d[mask_exists]       
+    # ========== CHANNEL 0: Log counts (event statistics) ==========
+    channel_0 = np.log1p(m_counts_2d)
+    print(f"[CH0] log_counts")
+    print(f"      Shape: {channel_0.shape}, min={channel_0.min():.4f}, max={channel_0.max():.4f}")
+    print(f"      Non-zero cells: {mask_exists.sum()}/{channel_0.size}\n")
+
+    # ========== CHANNEL 1: Mean of theta² per XY cell ==========
+    channel_1 = np.zeros_like(m_counts_2d, dtype=np.float32)
+    channel_1[mask_exists] = m_sum_theta_sq_2d[mask_exists] / m_counts_2d[mask_exists]
+    print(f"[CH1] mean_theta_sq_z (scattering angle info)")
+    print(f"      Shape: {channel_1.shape}, min={channel_1.min():.8f}, max={channel_1.max():.8f}")
+    print(f"      Mean (where events exist): {channel_1[mask_exists].mean():.8f}\n")
+
+    # ========== CHANNEL 2: Variance of Z per XY cell ==========
+    channel_2 = np.zeros_like(m_counts_2d, dtype=np.float32)
     
-    # variance of theta per XY cell, using the formula Var(X) = (N-1)^(-1) * sum ((x_i - mean)^2)
-    matrix_var_theta_z = np.zeros_like(m_counts_2d)
-    # poblational var: E[X^2] - (E[X])^2
-    var_poblacional = matrix_mean_theta_sq_z - matrix_mean_theta_z**2
+    # E[Z] per cell
+    mean_poca_z = np.zeros_like(m_counts_2d)
+    mean_poca_z[mask_exists] = m_sum_poca_z_2d[mask_exists] / m_counts_2d[mask_exists]
     
-    matrix_var_theta_z[mask_stat] = var_poblacional[mask_stat] * (m_counts_2d[mask_stat] / (m_counts_2d[mask_stat] - 1)) # Bessel correctio for sample variance
+    # E[Z²] per cell
+    mean_poca_z_sq = np.zeros_like(m_counts_2d)
+    mean_poca_z_sq[mask_exists] = m_sum_poca_z_sq_2d[mask_exists] / m_counts_2d[mask_exists]
     
-    # Limpieza de posibles negativos ínfimos por precisión
-    matrix_var_theta_z = np.maximum(0, matrix_var_theta_z)       
+    # Var(Z) = E[Z²] - (E[Z])² [population variance]
+    var_poca_z_pop = mean_poca_z_sq - mean_poca_z**2
+    var_poca_z_pop = np.maximum(0, var_poca_z_pop)
+    
+    # Apply Bessel correction for sample variance where N > 1
+    channel_2[mask_stat] = var_poca_z_pop[mask_stat] * (m_counts_2d[mask_stat] / (m_counts_2d[mask_stat] - 1))
+    
+    print(f"[CH2] var_poca_z (Z-coordinate variance, thickness proxy)")
+    print(f"      Shape: {channel_2.shape}, min={channel_2.min():.8f}, max={channel_2.max():.8f}")
+    print(f"      Mean (where events exist): {channel_2[mask_exists].mean():.8f}\n")
+
+    # ========== CHANNEL 3: Standard deviation of theta per XY cell ==========
+    channel_3 = np.zeros_like(m_counts_2d, dtype=np.float32)
+    
+    # E[theta] per cell
+    mean_theta = np.zeros_like(m_counts_2d)
+    mean_theta[mask_exists] = m_sum_theta_2d[mask_exists] / m_counts_2d[mask_exists]
+    
+    # Var(theta) = E[theta²] - (E[theta])²
+    var_theta = channel_1 - mean_theta**2
+    var_theta = np.maximum(0, var_theta)
+    
+    # Std(theta) as scattering characterization
+    channel_3 = np.sqrt(var_theta)
+    
+    print(f"[CH3] std_theta (scattering variance, material discrimination)")
+    print(f"      Shape: {channel_3.shape}, min={channel_3.min():.8f}, max={channel_3.max():.8f}")
+    print(f"      Mean (where events exist): {channel_3[mask_exists].mean():.8f}\n")
 
 
-    ### Variance of Z per XY cell
-    ###################################################
-    # completar -> tendremos que sacar los poca points 
-    ###################################################
 
+    # ===========================================================================
+    # SAVE 4-CHANNEL OUTPUT (npy, npx, 4)
+    # ===========================================================================
+    
+    # Stack 4 channels: (npy, npx, 1) x 4 -> (npy, npx, 4)
+    training_channels = np.concatenate([
+        channel_0,  # Channel 0: log_counts
+        channel_1,  # Channel 1: mean_theta_sq_z
+        channel_2,  # Channel 2: var_poca_z (thickness proxy)
+        channel_3   # Channel 3: std_theta (scattering info)
+    ], axis=2)
+    
+    print(f"[OUTPUT] Stacking 4 channels...")
+    print(f"         Final shape: {training_channels.shape}")
+    assert training_channels.shape == (args.npy, args.npx, 4), \
+        f"Shape mismatch: expected ({args.npy}, {args.npx}, 4) but got {training_channels.shape}"
 
-    # Log(N+1) per XY cell -> statistical liability of the cell, we add 1 to avoid log(0)
-    matrix_log_counts = np.log1p(m_counts_2d)
-
-
-
-    # this form of saving then recquires allow_pickle=True when loading, but it's more compact and faster
-    # then load as: data = np.load("merged_result.npy", allow_pickle=True).item() and access data["n_events"], etc.
+    # Save in dict format (allows pickle loading with allow_pickle=True)
+    # Load as: data = np.load("file.npy", allow_pickle=True).item()
+    #          training = data["training_channels"]
     output_dict = {
-        "mean_theta_sq_z": matrix_mean_theta_sq_z, # <theta^2>_z per XY cell
-        "var_theta_z": matrix_var_theta_z, # Var(theta)_z per XY cell
-        "log_counts": matrix_log_counts # log(N+1) per XY cell
+        "training_channels": training_channels,  # Shape (npy, npx, 4) ready for UNET1_2D
+        "channel_names": ["log_counts", "mean_theta_sq_z", "var_poca_z", "std_theta"],
+        "channel_0_log_counts": channel_0,
+        "channel_1_mean_theta_sq_z": channel_1,
+        "channel_2_var_poca_z": channel_2,
+        "channel_3_std_theta": channel_3,
+        "metadata": {
+            "total_events": m_counts_2d.sum(),
+            "n_geometries": len(poca_files),
+            "geometry_name": args.namefile
+        }
     }
     np.save(args.output, output_dict)
-    print(f"[CORRECT] Merged result saved to: {args.output}")
-    # Remember to load with: data = np.load('XXXX.npy', allow_pickle=True).item() and access data['n_events'], data['sum_theta'], data['sum_theta_sq'], data['theta_rms']
+    
+    print(f"\n[CORRECT] Merged result saved to: {args.output}")
+    print(f"[INFO] Total accumulated events: {m_counts_2d.sum():.0f}")
+    print(f"[INFO] Load with: data = np.load('{args.output}', allow_pickle=True).item()")
+    print(f"[INFO] Access training data: training = data['training_channels']")
 
 
 else:   

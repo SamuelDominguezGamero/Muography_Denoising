@@ -1,16 +1,10 @@
 """
-Comentarios post entrenamiento: rendimiento de esta UNET
-- entrenado con: 37 imágenes de simulación (aun muy pocas)
-- 1 solo canal (log_counts)
-- 100 epochs
-- Tenemos un dataset más grande preparado, pero con este ha sido suficiente para hacer la prueba de concepto
-
-ya, en sí mismo, ha dado un resultado decente.
-próximo paso UNET1_2D: 
+Esta es la UNET1_2D: 
 - entrenar con más imágenes: tamaños, posiciones, materiales
-- entrenar con 3 canales: log_counts, 20 valores máximos de theta² por celda XY, 
-- predecir: no solo máscara booleana (segmentación), sino proxy de la densidad de la geometría
+- entrenar con 4 canales
+- predecir: no solo máscara booleana de la geometría real (segmentación), sino proxy de la densidad de la geometría
 *todo esto manteniéndonos todavía en UNETs 2D, que no son demasiado pesadas.
+
 
 Canales a utilizar:
 - Canal 0: log_counts (información clara para reconstruir geometría)
@@ -20,6 +14,8 @@ Canales a utilizar:
 Al final cada instancia de entrenamiento tendrá shape (128, 128, 4) con estos 4 canales, y el modelo aprenderá a usar la información de cada canal según su utilidad durante el entrenamiento.
 
 
+Ground truth a predecir:
+máscara booleana de la geometría 2D (proyección sobre el plano XY)
 
 
 
@@ -31,7 +27,7 @@ Al final cada instancia de entrenamiento tendrá shape (128, 128, 4) con estos 4
 
 
 ================================================================================
-                        UNET0_2D.py - 2D U-NET Training Pipeline
+                        UNET1_2D.py - 2D U-NET Training Pipeline
 ================================================================================
 
 ¿QUÉ HACE ESTE SCRIPT?
@@ -40,7 +36,7 @@ Este script entrena un modelo 2D U-NET para reconstruir geometría a partir de
 datos de muografía con ruido. El objetivo es eliminar el ruido y recuperar la 
 máscara booleana 2D de la geometría original usando pocos muones.
 
-El modelo procesa 3 canales de entrada (log_counts, mean_theta_sq_z, var_theta_z)
+El modelo procesa 4 canales de entrada (log_counts, mean_theta_sq_z, var_theta_z, max_theta_sq)
 y produce una máscara de probabilidad de geometría como salida.
 
 
@@ -55,7 +51,7 @@ INSTRUCCIONES DE USO
    - BATCH_SIZE, EPOCHS, LEARNING_RATE: hiperparámetros de entrenamiento
 
 2. Ejecución:
-   $ python UNET0_2D.py
+   $ python UNET1_2D.py
    
    - Si training=True: entrena modelo nuevo y lo guarda
    - Si training=False: carga modelo existente e infiere
@@ -64,20 +60,20 @@ INSTRUCCIONES DE USO
 
 ARCHIVOS DE INPUT (¿Desde dónde se toman?)
 ```````````````````````````````````````````
-1. HDF5 Original: 128x128x3.h5
-   Ubicación LOCAL:   /home/samuel/Work/Muography_Denoising/MuonGeneration/data/h5_datasets/128x128x3.h5
-   Ubicación CLUSTER: /gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/h5_datasets/128x128x3.h5
+1. HDF5 Original: 128x128x4.h5
+   Ubicación LOCAL:   /home/samuel/Work/Muography_Denoising/MuonGeneration/data/h5_datasets/128x128x4.h5
+   Ubicación CLUSTER: /gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/h5_datasets/128x128x4.h5
    
    Estructura:
-   - training/images (N, 128, 128, 3)   [Datos de entrenamiento]
+   - training/images (N, 128, 128, 4)   [Datos de entrenamiento]
    - training/labels (N, 128, 128, 1)   [Etiquetas ground truth]
-   - validation/images (M, 128, 128, 3) [Datos de validación]
+   - validation/images (M, 128, 128, 4) [Datos de validación]
    - validation/labels (M, 128, 128, 1)
-   - test/images (K, 128, 128, 3)       [Datos de test]
+   - test/images (K, 128, 128, 4)       [Datos de test]
    - test/labels (K, 128, 128, 1)
 
-2. HDF5 Aumentado: 128x128x3_augmented.h5 (GENERADO AUTOMÁTICAMENTE si no existe)
-   Se crea en la MISMA carpeta que 128x128x3.h5
+2. HDF5 Aumentado: 128x128x4_augmented.h5 (GENERADO AUTOMÁTICAMENTE si no existe)
+   Se crea en la MISMA carpeta que 128x128x4.h5
    Contiene: 16x más samples (4 rotaciones × 4 flip modes) + metadatos de transformación
 
 
@@ -86,8 +82,8 @@ ARCHIVOS DE OUTPUT (¿Hacia dónde se guardan?)
 1. Modelo Entrenado:
    Ubicación: ./models/UNET2D_{channels}_bs{batch}_ep{epochs}_lr{lr}/
    
-   Ejemplo con defaults (16 batch, 100 epochs, 0.001 lr, 3 channels):
-   ./models/UNET2D_3ch_bs16_ep100_lr0.001/
+   Ejemplo con defaults (16 batch, 100 epochs, 0.001 lr, 4 channels):
+   ./models/UNET2D_4ch_bs16_ep100_lr0.001/
    
    Ejemplo con only_use_channel_0=True:
    ./models/UNET2D_1ch_channel0_bs16_ep100_lr0.001/
@@ -106,19 +102,20 @@ ARCHIVOS DE OUTPUT (¿Hacia dónde se guardan?)
 NOTA SOBRE LOS CANALES
 ``````````````````````
 - Canal 0 (log_counts): Información clara para reconstruir geometría (PRIMARIO)
-- Canal 1 (mean_theta_sq_z): Alto ruido, bajo SNR (AUXILIAR)
-- Canal 2 (var_theta_z): Alto ruido, bajo SNR (AUXILIAR)
+- Canal 1 (mean_theta_sq_z): Promedio Z pesado por theta² (AUXILIAR)
+- Canal 2 (var_theta_z): Desviación estándar Z → proxy de thickness (AUXILIAR)
+- Canal 3 (max_theta_sq): Máximos N valores de theta² → información de scattering (AUXILIAR)
 
-Solución: Normalización por canal (z-score independiente) + opción only_use_channel_0
-para usar solo el canal más informativo si es necesario.
+Solución: Normalización por canal (z-score independiente) para escalar cada canal
+independientemente y permitir que el modelo aprenda la importancia relativa de cada uno.
 
 
 FLUJO TÍPICO DE EJECUCIÓN
 `````````````````````````
 1. Script inicia y carga configuración
 2. Si create_augmented_data=True:
-   - Lee 128x128x3.h5
-   - Genera versión aumentada (128x128x3_augmented.h5)
+   - Lee 128x128x4.h5
+   - Genera versión aumentada (128x128x4_augmented.h5)
    - Guarda en mismo directorio que original
 3. Si training=True:
    - Lee datos aumentados (o original si no existe aumentado)
@@ -180,9 +177,9 @@ create_augmented_data = True  # Si True, crea/verifica H5 augmentado automática
 force_augmentation_rewrite = True  # Si True, reescribe H5 augmentado aunque exista
 
 # Channel selection
-# Note: "the only useful channel here is channel 0, related with the number of counts, 
-#        provided the channels 1 and 2 have to low signal to noise ratio"
-only_use_channel_0 = True  # If True, use only channel 0 for faster training
+# Note: UNET1_2D usa los 4 canales por defecto. Si necesitas usar solo canal 0,
+#       cambia esta variable a True
+only_use_channel_0 = False  # If True, use only channel 0 for faster training (default: False for 4 channels)
 
 # Unet hyperparameters
 # Hyperparameters (to be optimized)
@@ -192,7 +189,7 @@ LEARNING_RATE     = 1e-3
 VAL_SPLIT         = 0.15
 
 # Dynamic image size based on channel selection
-SIZE_IMAGES       = (128, 128, 1) if only_use_channel_0 else (128, 128, 3)
+SIZE_IMAGES       = (128, 128, 1) if only_use_channel_0 else (128, 128, 4)
 
 N_FILTERS         = 32
 FILTER_SIZE       = 3
@@ -211,10 +208,10 @@ CHECK_GPU = True if device == "GPU" else False
 
 
 if environment == "local":
-    H5_FILE = Path("/home/samuel/Work/Muography_Denoising/MuonGeneration/data/h5_datasets/128x128x3.h5")
+    H5_FILE = Path("/home/samuel/Work/Muography_Denoising/MuonGeneration/data/h5_datasets/128x128x4.h5")
     OUTPUT_DIR = Path("/home/samuel/Work/Muography_Denoising/MuonGeneration/UNETs/results")
 elif environment == "cluster":
-    H5_FILE = Path("/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/h5_datasets/128x128x3.h5")
+    H5_FILE = Path("/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/h5_datasets/128x128x4.h5")
     OUTPUT_DIR = Path("/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/UNETs/results")
 
 # Construct augmented HDF5 path: same location as original, with _augmented suffix
@@ -411,9 +408,11 @@ def normalize_channels(image):
     return normalized
 
 
-# NOTA SOBRE CANALES RUIDOSOS:
+# NOTA SOBRE CANALES:
 # Canal 0 (log_counts): información clara para reconstruir geometría
-# Canal 1 y 2 (mean_theta_sq_z, var_theta_z): ruidosos pero potencialmente útiles
+# Canal 1 (mean_theta_sq_z): promedio Z pesado por theta²
+# Canal 2 (var_theta_z): desviación estándar Z
+# Canal 3 (max_theta_sq): información de scattering
 #
 # Solución implementada: normalización por canal
 # - Esto escala cada canal independientemente
@@ -534,18 +533,18 @@ def visualize_normalized_channels(h5_file, n_samples=2):
             axes[i, 1].set_title(f"Sample {i} - Ch0 (normalized)")
             axes[i, 1].axis('off')
     else:
-        # Mostrar todos los 3 canales
-        fig, axes = plt.subplots(nrows=n_samples, ncols=6, figsize=(18, 4*n_samples))
+        # Mostrar todos los 4 canales
+        fig, axes = plt.subplots(nrows=n_samples, ncols=8, figsize=(24, 4*n_samples))
         if n_samples == 1: axes = axes.reshape(1, -1)
         for i in range(n_samples):
             X_norm = normalize_channels(X[i])
-            for ch in range(3):
+            for ch in range(4):
                 axes[i, ch].imshow(X[i, :, :, ch], cmap='viridis')
                 axes[i, ch].set_title(f"Sample {i} - Ch{ch} (original)")
                 axes[i, ch].axis('off')
-                axes[i, 3+ch].imshow(X_norm[:, :, ch], cmap='RdBu_r', vmin=-2, vmax=2)
-                axes[i, 3+ch].set_title(f"Sample {i} - Ch{ch} (normalized)")
-                axes[i, 3+ch].axis('off')
+                axes[i, 4+ch].imshow(X_norm[:, :, ch], cmap='RdBu_r', vmin=-2, vmax=2)
+                axes[i, 4+ch].set_title(f"Sample {i} - Ch{ch} (normalized)")
+                axes[i, 4+ch].axis('off')
     
     plt.tight_layout()
     plt.show()
@@ -771,7 +770,7 @@ def get_model_folder(batch_size, epochs, learning_rate):
     """Retorna la carpeta donde guardar el modelo con nombre descriptivo"""
     script_dir = Path(__file__).parent
     # Nombre descriptivo: incluir "channel_0" si está activado
-    channels_str = "1ch_channel0" if only_use_channel_0 else "3ch"
+    channels_str = "1ch_channel0" if only_use_channel_0 else "4ch"
     model_name = f"UNET2D_{channels_str}_bs{batch_size}_ep{epochs}_lr{learning_rate}"
     return script_dir / "models" / model_name
 
