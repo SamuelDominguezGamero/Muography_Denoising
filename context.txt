@@ -1,0 +1,302 @@
+=================================================================================
+                    MUOGRAPHY DENOISING - CONVERSATION CONTEXT
+                          AI Assistant Memory Log
+=================================================================================
+
+Project: 2D U-NET Training Pipeline for Muography Noise Reduction
+Environment: Python 3.x, TensorFlow/Keras, h5py, NumPy, Matplotlib
+Main Script: /home/samuel/Work/Muography_Denoising/MuonGeneration/UNETs/UNET0_2D.py
+
+=================================================================================
+                            SESSION SUMMARY
+=================================================================================
+
+CONVERSATION OBJECTIVE:
+- Build a complete, efficient training pipeline for 2D U-NET geometry reconstruction
+- Implement efficient batch loading from HDF5 with automatic memory management
+- Add data augmentation with transformation metadata tracking
+- Create visualizations for preprocessed channels and augmented data
+- Maintain code simplicity and readability: "Código legible, simple, efectivo"
+
+USER PREFERENCES:
+- Prefer readable, simple, effective code over complex/advanced solutions
+- Code comments should be brief and strategic in English
+- Avoid fancy functions or overly sophisticated code
+- Track synthetic data transformations for reproducibility
+- Support dual environments: local (/home/samuel/Work/...) and cluster (/gpfs/users/...)
+
+=================================================================================
+                        ARCHITECTURE & COMPONENTS
+=================================================================================
+
+1. DATA LOADING & PREPROCESSING
+   - normalize_channels(): Z-score normalization per channel independently
+     * Prevents noisy channels (1, 2) from dominating training
+     * Applied on-the-fly during training, keeps original HDF5 intact
+     * NEW: Supports only_use_channel_0 mode for faster training
+
+   - create_augmented_h5(): 16x data expansion with transformation metadata
+     * 4 rotations (0°, 90°, 180°, 270°) × 4 flip modes (none, vertical, horizontal, both)
+     * Stores metadata in HDF5 as strings: "orig_idx={i}, rotation={rot*90}°, flip={flip_mode}"
+     * Separate augmentation per split (training/validation/test) to avoid data leakage
+     * Auto-generated filename with _augmented suffix in same directory as original
+
+2. MODEL ARCHITECTURE
+   - conv_block(): Conv2D → BatchNorm → ReLU, repeated
+   - unet_dynamic(): Dynamic U-NET builder with skip connections
+   - Configurable levels (N_LEVELS=4) and filters (N_FILTERS=32)
+
+3. TRAINING & MODEL PERSISTENCE
+   - train_unet(): Lazy batch loading strategy
+     * Loads one batch → applies normalization in RAM → trains → deletes batch
+     * apply_normalization=True enables per-channel z-score normalization
+     * Reports loss and MSE for training and validation
+   
+   - save_model(): Saves model as .keras format with hyperparameters
+     * Path: models/UNET2D_{channels_str}_bs{batch}_ep{epochs}_lr{lr}/
+     * Hyperparameters stored as JSON (batch_size, epochs, lr, filters, levels, timestamp)
+   
+   - load_trained_model(): Loads pre-trained model from disk if exists
+
+4. VISUALIZATIONS
+   - visualize_predictions(): Input | Prediction | Ground Truth (3 columns)
+   
+   - visualize_normalized_channels(): Shows normalization effect before/after
+     * If only_use_channel_0: shows 1 channel original + 1 normalized (2 cols)
+     * Otherwise: shows all 3 channels original + 3 normalized (6 cols)
+   
+   - visualize_augmented_samples_with_metadata(): Shows augmented samples + transformations
+     * Displays metadata for each sample (rotation, flip info)
+   
+   - visualize_augmented_data(): Shows rotations applied to samples
+
+=================================================================================
+                        CONTROL VARIABLES
+=================================================================================
+
+Environment & Visualization:
+  - device = "CPU" or "GPU"
+  - environment = "local" or "cluster"  [controls file paths]
+  - visualization = True/False          [enable/disable plots]
+  - training = True/False               [train new or load existing]
+  - see_dataset_images = True/False
+  - explore_hdf5 = True/False
+
+Data Augmentation:
+  - create_augmented_data = True/False  [auto-create augmented HDF5]
+  - force_augmentation_rewrite = False  [rewrite if exists]
+
+Channel Selection:
+  - only_use_channel_0 = False/True     [use only channel 0 for faster training]
+    * If True: SIZE_IMAGES = (128, 128, 1), model name includes "channel_0"
+    * If False: SIZE_IMAGES = (128, 128, 3), original behavior
+
+Hyperparameters:
+  - BATCH_SIZE = 16
+  - EPOCHS = 100
+  - LEARNING_RATE = 1e-3
+  - VAL_SPLIT = 0.15
+  - SIZE_IMAGES = (128, 128, 3) or (128, 128, 1)
+  - N_FILTERS = 32
+  - FILTER_SIZE = 3
+  - N_LEVELS = 4
+
+=================================================================================
+                        KEY FEATURES & DECISIONS
+=================================================================================
+
+1. EFFICIENT BATCH LOADING
+   - Loads one batch at a time from HDF5
+   - Applies preprocessing (normalization) only in RAM
+   - Deletes processed batch after training step
+   - Advantage: Works with large datasets without memory overflow
+
+2. DATA AUGMENTATION WITH METADATA
+   - Creates 16x expanded dataset automatically
+   - Each augmented sample has metadata tracking original index + transformations
+   - Stored in HDF5 as string dataset: {split}/augmentation_metadata
+   - Enables reproducible tracking of synthetic data
+
+3. CHANNEL NOISE MITIGATION
+   - Channel 0 (log_counts): Clean, useful for geometry reconstruction
+   - Channels 1, 2: High noise, low signal-to-noise ratio
+   - Per-channel normalization prevents noisy channels from dominating
+   - NEW: only_use_channel_0 option for faster training with primary channel only
+
+4. ENVIRONMENT AGNOSTIC
+   - Automatically detects "local" or "cluster" environment
+   - Adjusts file paths accordingly
+   - Same code works in both environments
+
+5. MODEL NAMING CONVENTION
+   - Format: UNET2D_{channels}_{batch_size}_{epochs}_{learning_rate}
+   - With channel_0 mode: UNET2D_1ch_channel0_bs{batch}_ep{epochs}_lr{lr}
+   - With all channels: UNET2D_3ch_bs{batch}_ep{epochs}_lr{lr}
+   - Hyperparameters saved alongside model for reproducibility
+
+=================================================================================
+                    RECENT CHANGES & ENHANCEMENTS
+=================================================================================
+
+Latest Session (April 2026):
+  ✓ Added only_use_channel_0 control variable
+    - Enables training on channel 0 only for faster training
+    - SIZE_IMAGES dynamically adjusts to (128, 128, 1) when enabled
+    - Model path includes "channel_0" in naming
+  
+  ✓ Updated normalize_channels() for channel_0 support
+    - Returns (H, W, 1) when only_use_channel_0=True
+    - Returns (H, W, 3) when only_use_channel_0=False
+  
+  ✓ Updated visualize_normalized_channels()
+    - Shows only 2 columns (original + normalized) when only_use_channel_0=True
+    - Shows 6 columns (3 original + 3 normalized) when only_use_channel_0=False
+  
+  ✓ Updated get_model_folder()
+    - Includes channel info in model folder name
+    - "1ch_channel0" when only_use_channel_0=True
+    - "3ch" when only_use_channel_0=False
+
+Previous Sessions:
+  ✓ Implemented efficient batch loading from HDF5
+  ✓ Added 16x data augmentation with 4 rotations × 4 flip modes
+  ✓ Implemented transformation metadata tracking
+  ✓ Created visualizations for predictions and augmented data
+  ✓ Added model persistence (save/load with hyperparameters)
+  ✓ Implemented per-channel z-score normalization
+  ✓ Set up automatic augmented file naming and location
+  ✓ English documentation comments for key functions
+
+=================================================================================
+                        FILE STRUCTURE
+=================================================================================
+
+/home/samuel/Work/Muography_Denoising/
+├── MuonGeneration/
+│   ├── UNETs/
+│   │   ├── UNET0_2D.py              [MAIN TRAINING SCRIPT]
+│   │   ├── models/                  [Saved model folders]
+│   │   │   └── UNET2D_3ch_bs16_ep100_lr0.001/
+│   │   │       ├── model.keras
+│   │   │       └── hyperparameters.json
+│   │   │   (or UNET2D_1ch_channel0_bs16_... if only_use_channel_0=True)
+│   │   └── (other UNET models)
+│   ├── data/
+│   │   └── h5_datasets/
+│   │       ├── 128x128x3.h5         [Original HDF5]
+│   │       └── 128x128x3_augmented.h5  [Augmented HDF5 with metadata]
+│   ├── dataAnalysis/
+│   ├── MuonGeneration-build/
+│   └── (other data/analysis folders)
+└── context.txt                       [THIS FILE - AI MEMORY LOG]
+
+=================================================================================
+                        WORKFLOW EXECUTION
+=================================================================================
+
+Typical Execution Flow:
+1. Set control variables at top of UNET0_2D.py
+2. If create_augmented_data=True: automatically creates/verifies 128x128x3_augmented.h5
+3. If training=True: trains model on augmented data with normalization
+4. If training=False: loads pre-trained model from disk
+5. If visualization=True: generates visualizations
+   - Predictions (input + model prediction + ground truth)
+   - Normalized channels (before/after effect)
+   - Augmented samples with transformation metadata
+
+To Use only_use_channel_0 Mode:
+  1. Set: only_use_channel_0 = True
+  2. SIZE_IMAGES automatically becomes (128, 128, 1)
+  3. Model saves with "1ch_channel0" in folder name
+  4. normalize_channels() returns only channel 0
+  5. Visualizations adapt to show only 1 channel
+  6. Training is faster with reduced input dimensions
+
+=================================================================================
+                        DEBUGGING & TROUBLESHOOTING
+=================================================================================
+
+Common Issues & Solutions:
+
+1. HDF5 File Not Found
+   - Check: environment variable set correctly (local/cluster)
+   - Check: H5_FILE path exists
+   - Solution: Verify file path matches your data location
+
+2. Model Not Saving
+   - Check: models/ directory exists
+   - Check: write permissions in UNET0_2D.py location
+   - Solution: Create models/ folder manually if needed
+
+3. Channel Mismatch
+   - Check: only_use_channel_0 setting matches data dimensions
+   - Check: Augmented HDF5 has correct channel count
+   - Solution: If switching modes, regenerate augmented HDF5 with force_augmentation_rewrite=True
+
+4. Memory Issues
+   - Solution: Reduce BATCH_SIZE
+   - Solution: Set only_use_channel_0=True for faster training
+   - Note: Batch loading already manages memory efficiently
+
+5. Visualization Not Showing
+   - Check: visualization=True
+   - Check: environment != "cluster" (plots not available on headless systems)
+   - Solution: Set environment="local" if testing locally
+
+=================================================================================
+                        NEXT IMPROVEMENT IDEAS
+=================================================================================
+
+Potential Future Enhancements:
+- Implement learning rate scheduling (current: fixed 1e-3)
+- Add early stopping based on validation loss
+- Expand augmentation with brightness/contrast adjustments
+- Create quantitative metrics report (MSE, MAE, SSIM)
+- Add ensemble predictions from multiple models
+- Implement data loading callbacks for streaming large datasets
+- Add uncertainty quantification to predictions
+- Create automated model selection based on validation metrics
+
+=================================================================================
+                        NOTES FOR FUTURE REFERENCE
+=================================================================================
+
+1. Channel 0 (log_counts) is the primary source of geometric information
+   - Channels 1 & 2 have very low signal-to-noise ratio
+   - only_use_channel_0 mode significantly reduces training time
+   - Consider channel_0 for production deployments
+
+2. Per-channel normalization is crucial
+   - Without it, channels 1 & 2 noise dominates optimization
+   - Z-score normalization (mean=0, std=1) prevents channel scale bias
+   - Applied on-the-fly during training to keep original data intact
+
+3. Metadata tracking enables reproducibility
+   - Every augmented sample has transformation history
+   - Can reconstruct original samples from metadata if needed
+   - Important for scientific reproducibility
+
+4. Model folder naming includes all hyperparameters
+   - Easy to identify which model uses which settings
+   - Can quickly compare different configurations
+   - Hyperparameters stored as JSON in same folder
+
+5. Environment switching works automatically
+   - Same code runs on local machine or cluster
+   - File paths adjust based on environment variable
+   - No code changes needed between systems
+
+=================================================================================
+                        CONTACT & VERSION INFO
+=================================================================================
+
+Created: April 23, 2026
+Last Updated: April 23, 2026
+AI Assistant: GitHub Copilot (Claude Haiku 4.5)
+Status: Active Development
+
+This context file is maintained as a persistent memory log to preserve
+conversation history and key decisions. Update this file after each major
+session to maintain continuity and context across AI interactions.
+
+=================================================================================
