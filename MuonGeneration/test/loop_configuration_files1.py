@@ -8,6 +8,7 @@ This file automates the full simulation pipeline:
   3. Submits a merge job per geometry with --dependency=afterok,
      so it only runs when ALL jobs for that geometry finish successfully.
 
+FOR UNET1_2D ---> Predict 2D density maps from 2D XY muon data
 """
 
 import subprocess
@@ -74,17 +75,17 @@ if not create_geometries:
 # ===========================================================================
 SCRIPT_DIR             = os.path.dirname(os.path.abspath(__file__))
 CREATE_GEOMETRY_SCRIPT = os.path.join(SCRIPT_DIR, "create_geometry.py")
-MERGE_SCRIPT           = os.path.join(SCRIPT_DIR, "merge_results.py")
+MERGE_SCRIPT           = os.path.join(SCRIPT_DIR, "merge_results_1.py")
 PLOT_SCRIPT            = os.path.join(SCRIPT_DIR, "plot_central_slice_comparison.py")
 
 if environment == "cluster":
     PATH_geometry_files = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
     PATH_density_files3D  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/ground_truth_data/3Dimensions"
-    PATH_density_files2D  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions"
+    PATH_density_files2D  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions/UNET1"
     PATH_output_raw     = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_raw"
     PATH_preprocessed   = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_preprocessed"
     PATH_poca_output    = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/post_POCA_data"
-    PATH_merged_output  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data"
+    PATH_merged_output  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data/UNET1"
     PATH_png_comparisons = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/png_comparisons"
     PATH_logs           = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/logs"
     PATH_data_analysis  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/dataAnalysis"
@@ -95,11 +96,11 @@ if environment == "cluster":
 elif environment == "local":
     PATH_geometry_files = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
     PATH_density_files3D  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/3Dimensions"
-    PATH_density_files2D  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions"
+    PATH_density_files2D  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions/UNET1"
     PATH_output_raw     = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_raw"
     PATH_preprocessed   = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_preprocessed"
     PATH_poca_output    = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/post_POCA_data"
-    PATH_merged_output  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/merged_poca_data"
+    PATH_merged_output  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/merged_poca_data/UNET1"
     PATH_png_comparisons = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/png_comparisons"
     PATH_logs           = "/home/samuel/Work/Muography_Denoising/MuonGeneration/logs"
     PATH_data_analysis  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/dataAnalysis"
@@ -149,7 +150,7 @@ FontSizes      = [# NOW UNUSED, SHOULD BE REMOVED
     {"size": 16, "strokes": [1, 2]},
 ]
 
-materials      = ["lead", "iron", "uranium"]
+materials      = ["lead", "iron", "uranium", "aluminium", "silicon", "steel"]
 words_geometry = ["MUON", "MUNO", "NOMU", "MOUN", "NOUM", "NMOU", "MNOU", "NMUO", "MNUO", "ONUM", "OUMN", "UONM", "UNOM", "UOMN"]
 
 # Count total valid geometries
@@ -176,7 +177,7 @@ time.sleep(1)
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 1_500_000
+total_muons_per_geometry = 900_000 
 n_muons_per_job          = 30_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
@@ -477,12 +478,13 @@ rm {out_raw}
 echo "[INFO] Raw file removed to save space: {out_raw}"
 
 # --- 3rd: POCA reconstruction ---
-echo "[INFO] Running POCA..."
-python3 -u {PATH_data_analysis}/POCA.py \\
+echo "[INFO] Running POCA1..."
+python3 -u {PATH_data_analysis}/POCA1.py \\
     --input  {out_pre} \\
     --output {out_poca} \\
     --Lpx {Lpx} --Lpy {Lpy} --Lpz {Lpz} \\
-    --npx {npx} --npy {npy} --npz {npz}
+    --npx {npx} --npy {npy} --npz {npz} \\
+    --dimension {dimension}
 if [ $? -ne 0 ]; then echo "[ERROR] POCA failed. Aborting."; exit 1; fi
 echo "[CORRECT] POCA done."
 
@@ -584,6 +586,7 @@ python3 -u {MERGE_SCRIPT} \\
     --npx              {npx} \\
     --npy              {npy} \\
     --npz              {npz} \\
+    --dimension        {dimension} \\
     --path_poca_output {PATH_poca_output} \\
     --output           {out_merged}
 if [ $? -ne 0 ]; then echo "[ERROR] Merge failed. Aborting."; exit 1; fi

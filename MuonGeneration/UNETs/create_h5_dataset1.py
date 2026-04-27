@@ -389,13 +389,13 @@ import re
 ENVIRONMENT = "local"  # Options: "cluster" | "local"
 
 if ENVIRONMENT == "cluster":
-    PATH_MERGED = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data"
-    PATH_GT_2D = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions"
+    PATH_MERGED = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data/UNET1"
+    PATH_GT_2D = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions/UNET1"
     PATH_OUTPUT = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/h5_datasets"
 
 elif ENVIRONMENT == "local":
-    PATH_MERGED = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/merged_poca_data"
-    PATH_GT_2D = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions"
+    PATH_MERGED = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/merged_poca_data/UNET1"
+    PATH_GT_2D = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions/UNET1"
     PATH_OUTPUT = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/h5_datasets"
 
 
@@ -418,7 +418,8 @@ RANDOM_SEED = 42
 # Total number of muons used in ALL simulations
 # This is a critical metadata: directly affects noise level (more muons → less noise)
 # IMPORTANT: Update this value when running simulations with different muon counts!
-TOTAL_MUONS_PER_SIMULATION = 1_000_000  # 1 million muons per geometry
+# MUST MATCH loop_configuration_files1.py: total_muons_per_geometry = 900_000
+TOTAL_MUONS_PER_SIMULATION = 900_000  # Must match loop_configuration_files1.py
 
 
 # ==============================================================================

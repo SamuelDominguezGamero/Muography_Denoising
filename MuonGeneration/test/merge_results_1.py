@@ -4,14 +4,14 @@ Merges all POCA1 output files for a single geometry (one per seed) into a
 single accumulated result with 4 training channels for UNET1_2D.
 
 INPUT FROM POCA1:
-  - counts_2d, sum_theta_2d, sum_theta_sq_2d (scattering stats)
-  - sum_poca_z_2d, sum_poca_z_sq_2d (position stats along Z)
+  Per seed: counts, sum_theta², sum(z), sum(z²), sum(z*theta²), top-3 theta² values
+
 
 OUTPUT: 4 Training Channels
-  - Channel 0: log_counts (event counts per XY cell)
-  - Channel 1: mean_theta_sq_z (scattering angle statistics)
-  - Channel 2: var_poca_z (Z-coordinate variance -> thickness proxy)
-  - Channel 3: std_theta_sq_z (scattering variance -> material discrimination)
+  - Channel 0: log(1+N(xy)) - log of event counts per XY cell
+  - Channel 1: weighted_mean(z, weights=θ²) - z position weighted by scattering strength
+  - Channel 2: std(z) - Z-coordinate std dev, thickness proxy per XY cell
+  - Channel 3: top-20 theta² statistic - maximum scattering power indicator
 
 Shape: (128, 128, 4) suitable for UNET1_2D.py input
 """
@@ -66,6 +66,11 @@ if args.dimension == "2D":
     m_sum_theta_sq_2d = np.zeros((args.npy, args.npx, 1))
     m_sum_poca_z_2d   = np.zeros((args.npy, args.npx, 1))
     m_sum_poca_z_sq_2d = np.zeros((args.npy, args.npx, 1))
+    m_sum_z_theta_sq_2d = np.zeros((args.npy, args.npx, 1))
+    
+    # Accumulator for top-20 theta² values per cell (will be filled from top-3 per seed)
+    # Store as list of arrays to dynamically accumulate, then extract top-20
+    m_theta_sq_pool_2d = [[[] for _ in range(args.npx)] for _ in range(args.npy)]
 
     print(f"[INFO] Processing {len(poca_files)} POCA1 files...")
     for idx, filepath in enumerate(poca_files):
@@ -77,14 +82,17 @@ if args.dimension == "2D":
 
         # Validate required fields from POCA1
         expected_shape = (args.npy, args.npx, 1)
-        required_keys = ["counts_2d", "sum_theta_2d", "sum_theta_sq_2d", "sum_poca_z_2d", "sum_poca_z_sq_2d"]
+        required_keys = ["counts_2d", "sum_theta_2d", "sum_theta_sq_2d", "sum_poca_z_2d", "sum_poca_z_sq_2d", "sum_z_theta_sq_2d", "top3_theta_sq_2d"]
         
         for key in required_keys:
             if key not in data:
                 print(f"[ERROR] Missing key '{key}' in {filepath}")
                 sys.exit(1)
-            if data[key].shape != expected_shape:
+            if key != "top3_theta_sq_2d" and data[key].shape != expected_shape:
                 print(f"[ERROR] Shape mismatch in '{key}': {data[key].shape} != {expected_shape}")
+                sys.exit(1)
+            if key == "top3_theta_sq_2d" and data[key].shape != (args.npy, args.npx, 3):
+                print(f"[ERROR] Shape mismatch in 'top3_theta_sq_2d': {data[key].shape} != ({args.npy}, {args.npx}, 3)")
                 sys.exit(1)
 
         # Accumulate statistics across all seeds
@@ -93,6 +101,15 @@ if args.dimension == "2D":
         m_sum_theta_sq_2d += data["sum_theta_sq_2d"]
         m_sum_poca_z_2d   += data["sum_poca_z_2d"]
         m_sum_poca_z_sq_2d += data["sum_poca_z_sq_2d"]
+        m_sum_z_theta_sq_2d += data["sum_z_theta_sq_2d"]
+        
+        # Accumulate top-3 theta² values for later extraction of top-20
+        top3 = data["top3_theta_sq_2d"]
+        for iy in range(args.npy):
+            for ix in range(args.npx):
+                for val in top3[iy, ix]:
+                    if val > 0:  # Only add non-zero values
+                        m_theta_sq_pool_2d[iy][ix].append(val)
         
         if (idx + 1) % max(1, len(poca_files) // 10) == 0 or idx == 0:
             print(f"  [{idx + 1}/{len(poca_files)}] processed")
@@ -110,20 +127,24 @@ if args.dimension == "2D":
 
     print("[CHANNELS] Computing 4-channel input for UNET1_2D...\n")
 
-    # ========== CHANNEL 0: Log counts (event statistics) ==========
+    # ========== CHANNEL 0: Log(1 + counts) ==========
     channel_0 = np.log1p(m_counts_2d)
-    print(f"[CH0] log_counts")
+    print(f"[CH0] log(1 + N) - event counts per XY cell")
     print(f"      Shape: {channel_0.shape}, min={channel_0.min():.4f}, max={channel_0.max():.4f}")
     print(f"      Non-zero cells: {mask_exists.sum()}/{channel_0.size}\n")
 
-    # ========== CHANNEL 1: Mean of theta² per XY cell ==========
+    # ========== CHANNEL 1: Weighted mean of Z (weighted by theta²) per XY cell ==========
+    # This is a weighted average: mean_weighted(z, weights=θ²) = sum(z*θ²) / sum(θ²)
+    # High theta² events pull the Z average toward them, identifying strong scattering regions
     channel_1 = np.zeros_like(m_counts_2d, dtype=np.float32)
-    channel_1[mask_exists] = m_sum_theta_sq_2d[mask_exists] / m_counts_2d[mask_exists]
-    print(f"[CH1] mean_theta_sq_z (scattering angle info)")
+    mask_has_theta_sq = m_sum_theta_sq_2d > 0
+    channel_1[mask_has_theta_sq] = m_sum_z_theta_sq_2d[mask_has_theta_sq] / m_sum_theta_sq_2d[mask_has_theta_sq]
+    print(f"[CH1] weighted_mean(z, weights=θ²) - z position weighted by scattering strength")
     print(f"      Shape: {channel_1.shape}, min={channel_1.min():.8f}, max={channel_1.max():.8f}")
     print(f"      Mean (where events exist): {channel_1[mask_exists].mean():.8f}\n")
 
-    # ========== CHANNEL 2: Variance of Z per XY cell ==========
+    # ========== CHANNEL 2: Standard deviation of Z per XY cell ==========
+    # This is a proxy for material thickness: larger std = thicker material
     channel_2 = np.zeros_like(m_counts_2d, dtype=np.float32)
     
     # E[Z] per cell
@@ -141,25 +162,28 @@ if args.dimension == "2D":
     # Apply Bessel correction for sample variance where N > 1
     channel_2[mask_stat] = var_poca_z_pop[mask_stat] * (m_counts_2d[mask_stat] / (m_counts_2d[mask_stat] - 1))
     
-    print(f"[CH2] var_poca_z (Z-coordinate variance, thickness proxy)")
+    # Take square root to get standard deviation (not variance)
+    channel_2 = np.sqrt(channel_2)
+    
+    print(f"[CH2] std(Z) - Z-coordinate std dev, thickness proxy")
     print(f"      Shape: {channel_2.shape}, min={channel_2.min():.8f}, max={channel_2.max():.8f}")
     print(f"      Mean (where events exist): {channel_2[mask_exists].mean():.8f}\n")
 
-    # ========== CHANNEL 3: Standard deviation of theta per XY cell ==========
+    # ========== CHANNEL 3: Top-20 theta² statistic per XY cell ==========
+    # Extract the 20th largest theta² value (or mean of top-20 if not enough values)
+    # This identifies regions with high scattering power
     channel_3 = np.zeros_like(m_counts_2d, dtype=np.float32)
     
-    # E[theta] per cell
-    mean_theta = np.zeros_like(m_counts_2d)
-    mean_theta[mask_exists] = m_sum_theta_2d[mask_exists] / m_counts_2d[mask_exists]
+    for iy in range(args.npy):
+        for ix in range(args.npx):
+            theta_sq_list = m_theta_sq_pool_2d[iy][ix]
+            if len(theta_sq_list) > 0:
+                # Sort and take top-20 (or all if fewer than 20)
+                top_vals = np.sort(theta_sq_list)[-20:]  # Top 20 values
+                # Use the 20th percentile of these top values as channel (or mean if < 20 values)
+                channel_3[iy, ix, 0] = np.mean(top_vals)
     
-    # Var(theta) = E[theta²] - (E[theta])²
-    var_theta = channel_1 - mean_theta**2
-    var_theta = np.maximum(0, var_theta)
-    
-    # Std(theta) as scattering characterization
-    channel_3 = np.sqrt(var_theta)
-    
-    print(f"[CH3] std_theta (scattering variance, material discrimination)")
+    print(f"[CH3] mean(top-20 θ²) - maximum scattering power indicator")
     print(f"      Shape: {channel_3.shape}, min={channel_3.min():.8f}, max={channel_3.max():.8f}")
     print(f"      Mean (where events exist): {channel_3[mask_exists].mean():.8f}\n")
 
@@ -171,10 +195,10 @@ if args.dimension == "2D":
     
     # Stack 4 channels: (npy, npx, 1) x 4 -> (npy, npx, 4)
     training_channels = np.concatenate([
-        channel_0,  # Channel 0: log_counts
-        channel_1,  # Channel 1: mean_theta_sq_z
-        channel_2,  # Channel 2: var_poca_z (thickness proxy)
-        channel_3   # Channel 3: std_theta (scattering info)
+        channel_0,  # Channel 0: log(1+N)
+        channel_1,  # Channel 1: mean(z * θ²)
+        channel_2,  # Channel 2: std(Z) - thickness proxy
+        channel_3   # Channel 3: mean(top-20 θ²) - scattering power
     ], axis=2)
     
     print(f"[OUTPUT] Stacking 4 channels...")
@@ -187,11 +211,11 @@ if args.dimension == "2D":
     #          training = data["training_channels"]
     output_dict = {
         "training_channels": training_channels,  # Shape (npy, npx, 4) ready for UNET1_2D
-        "channel_names": ["log_counts", "mean_theta_sq_z", "var_poca_z", "std_theta"],
+        "channel_names": ["log(1+N)", "weighted_mean(z, θ²)", "std(Z)", "mean(top-20 θ²)"],
         "channel_0_log_counts": channel_0,
-        "channel_1_mean_theta_sq_z": channel_1,
-        "channel_2_var_poca_z": channel_2,
-        "channel_3_std_theta": channel_3,
+        "channel_1_weighted_mean_z": channel_1,
+        "channel_2_std_z": channel_2,
+        "channel_3_top20_theta_sq": channel_3,
         "metadata": {
             "total_events": m_counts_2d.sum(),
             "n_geometries": len(poca_files),

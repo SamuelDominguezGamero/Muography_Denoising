@@ -154,10 +154,11 @@ def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
     v_z = res['voxel_z'].astype(int)
     theta = res['theta']
     poca_z = res['poca_z']
+    theta_sq = theta**2
 
     np.add.at(matrix_counts, (v_y, v_x, v_z), 1)
     np.add.at(matrix_sum_theta, (v_y, v_x, v_z), theta)
-    np.add.at(matrix_sum_theta_sq, (v_y, v_x, v_z), theta**2)
+    np.add.at(matrix_sum_theta_sq, (v_y, v_x, v_z), theta_sq)
     np.add.at(matrix_sum_poca_z, (v_y, v_x, v_z), poca_z)
     np.add.at(matrix_sum_poca_z_sq, (v_y, v_x, v_z), poca_z**2)
 
@@ -186,7 +187,39 @@ if args.dimension == "2D":
        m_sum_poca_z_2d = np.sum(matrix_sum_poca_z, axis=2)[:, :, np.newaxis]
        m_sum_poca_z_sq_2d = np.sum(matrix_sum_poca_z_sq, axis=2)[:, :, np.newaxis]
 
+       # NEW: Calculate sum(z * theta²) for weighted scattering info
+       # This requires recalculating from the raw data per event
+       matrix_sum_z_theta_sq = np.zeros((args.npy, args.npx, args.npz))
+       np.add.at(matrix_sum_z_theta_sq, (v_y, v_x, v_z), poca_z * theta_sq)
+       m_sum_z_theta_sq_2d = np.sum(matrix_sum_z_theta_sq, axis=2)[:, :, np.newaxis]
+
+       # NEW: Store top-3 theta² values per XY cell (for later merging into top-20)
+       # Initialize storage for top-3 theta² per cell: (npy, npx, 3)
+       m_top3_theta_sq_2d = np.zeros((args.npy, args.npx, 3))
        
+       # For each XY cell, find the top-3 theta² values across all Z
+       for iy in range(args.npy):
+           for ix in range(args.npx):
+               theta_sq_col = matrix_sum_theta_sq[iy, ix, :]  # This is sum, not individual values
+               # Actually, we need the individual theta² values per event, not sums
+               # We'll store indicators to extract later from the raw data
+               pass
+       
+       # Better approach: directly store top-3 from the raw event data
+       # Create a dictionary to store theta² values for each (iy, ix) cell
+       theta_sq_by_cell = {}
+       for idx in range(len(v_y)):
+           key = (v_y[idx], v_x[idx])
+           if key not in theta_sq_by_cell:
+               theta_sq_by_cell[key] = []
+           theta_sq_by_cell[key].append(theta_sq[idx])
+       
+       # Extract top-3 from each cell
+       for (iy, ix), theta_sq_list in theta_sq_by_cell.items():
+           if len(theta_sq_list) > 0:
+               top_vals = np.sort(theta_sq_list)[-3:]  # Top 3 values
+               m_top3_theta_sq_2d[iy, ix, :len(top_vals)] = top_vals
+
        # Save in format expected by merge_results_1.py
        # Each seed will save its own contribution. merge_results_1.py will accumulate across seeds.
 
@@ -195,7 +228,9 @@ if args.dimension == "2D":
            "sum_theta_2d": m_sum_theta_2d,
            "sum_theta_sq_2d": m_sum_theta_sq_2d,
            "sum_poca_z_2d": m_sum_poca_z_2d,
-           "sum_poca_z_sq_2d": m_sum_poca_z_sq_2d
+           "sum_poca_z_sq_2d": m_sum_poca_z_sq_2d,
+           "sum_z_theta_sq_2d": m_sum_z_theta_sq_2d,
+           "top3_theta_sq_2d": m_top3_theta_sq_2d
        }
 
        np.save(args.output, output_dict)

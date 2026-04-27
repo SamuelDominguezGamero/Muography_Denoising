@@ -6,12 +6,14 @@ Esta es la UNET1_2D:
 *todo esto manteniéndonos todavía en UNETs 2D, que no son demasiado pesadas.
 
 
-Canales a utilizar:
-- Canal 0: log_counts (información clara para reconstruir geometría)
-- Canal 1: promedio Z pesado por theta²,
-- Canal 2: desviación estándar de Z -> proxy de la thickness
-- Canal 3: máximos N valores de theta² por celda XY -> información de scattering más allá del promedio y la varianza, que pueden ser útiles para diferenciar materiales o detectar bordes
-Al final cada instancia de entrenamiento tendrá shape (128, 128, 4) con estos 4 canales, y el modelo aprenderá a usar la información de cada canal según su utilidad durante el entrenamiento.
+Canales a utilizar (salida de merge_results_1.py):
+- Canal 0: log(1 + N(xy)) - logaritmo de cuentas por celda XY
+- Canal 1: weighted_mean(z, weights=θ²) - promedio de Z ponderado por θ² (dónde ocurre scattering fuerte)
+- Canal 2: std(z) - desviación estándar de Z → proxy de espesor del material
+- Canal 3: mean(top-20 θ²) - promedio de los 20 máximos θ² por celda → poder dispersor
+
+Al final cada instancia de entrenamiento tendrá shape (128, 128, 4) con estos 4 canales, y el modelo 
+aprenderá a usar la información de cada canal según su utilidad durante el entrenamiento.
 
 
 Ground truth a predecir:
@@ -61,8 +63,8 @@ INSTRUCCIONES DE USO
 ARCHIVOS DE INPUT (¿Desde dónde se toman?)
 ```````````````````````````````````````````
 1. HDF5 Original: 128x128x4.h5
-   Ubicación LOCAL:   /home/samuel/Work/Muography_Denoising/MuonGeneration/data/h5_datasets/128x128x4.h5
-   Ubicación CLUSTER: /gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/h5_datasets/128x128x4.h5
+   Ubicación LOCAL:   /home/samuel/Work/Muography_Denoising/MuonGeneration/data/h5_datasets/128x128x4_UNET0.h5
+   Ubicación CLUSTER: /gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/h5_datasets/128x128x4_UNET0.h5
    
    Estructura:
    - training/images (N, 128, 128, 4)   [Datos de entrenamiento]
@@ -72,8 +74,8 @@ ARCHIVOS DE INPUT (¿Desde dónde se toman?)
    - test/images (K, 128, 128, 4)       [Datos de test]
    - test/labels (K, 128, 128, 1)
 
-2. HDF5 Aumentado: 128x128x4_augmented.h5 (GENERADO AUTOMÁTICAMENTE si no existe)
-   Se crea en la MISMA carpeta que 128x128x4.h5
+2. HDF5 Aumentado: 128x128x4_UNET0_augmented.h5 (GENERADO AUTOMÁTICAMENTE si no existe)
+   Se crea en la MISMA carpeta que 128x128x4_UNET0.h5
    Contiene: 16x más samples (4 rotaciones × 4 flip modes) + metadatos de transformación
 
 
@@ -101,13 +103,11 @@ ARCHIVOS DE OUTPUT (¿Hacia dónde se guardan?)
 
 NOTA SOBRE LOS CANALES
 ``````````````````````
-- Canal 0 (log_counts): Información clara para reconstruir geometría (PRIMARIO)
-- Canal 1 (mean_theta_sq_z): Promedio Z pesado por theta² (AUXILIAR)
-- Canal 2 (var_theta_z): Desviación estándar Z → proxy de thickness (AUXILIAR)
-- Canal 3 (max_theta_sq): Máximos N valores de theta² → información de scattering (AUXILIAR)
+- Canal 0 (log(1+N)): Logaritmo de cuentas por celda (PRIMARIO - información clara de geometría)
+- Canal 1 (weighted_mean(z, θ²)): Promedio de Z ponderado por θ² (AUXILIAR - dónde ocurre scattering fuerte)
+- Canal 2 (std(Z)): Desviación estándar de Z → proxy de thickness (AUXILIAR - material density)
+- Canal 3 (mean(top-20 θ²)): Promedio de los 20 máximos θ² → poder dispersor (AUXILIAR - scattering power)
 
-Solución: Normalización por canal (z-score independiente) para escalar cada canal
-independientemente y permitir que el modelo aprenda la importancia relativa de cada uno.
 
 
 FLUJO TÍPICO DE EJECUCIÓN
@@ -173,8 +173,8 @@ visualization = True
 training = True
 
 # Data augmentation
-create_augmented_data = True  # Si True, crea/verifica H5 augmentado automáticamente
-force_augmentation_rewrite = True  # Si True, reescribe H5 augmentado aunque exista
+create_augmented_data = False  # Si True, crea/verifica H5 augmentado automáticamente
+force_augmentation_rewrite = False  # Si True, reescribe H5 augmentado aunque exista
 
 # Channel selection
 # Note: UNET1_2D usa los 4 canales por defecto. Si necesitas usar solo canal 0,
