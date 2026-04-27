@@ -632,8 +632,4 @@ print(f"[INFO] Geometries skipped (already processed): {geometries_skipped}")
 print(f"[INFO] Simulation jobs submitted:             {jobs_submitted}")
 print(f"[INFO] Simulation jobs failed:                {jobs_failed}")
 print(f"[INFO] Merge jobs submitted:                  {merges_submitted}")
-<<<<<<< HEAD
 print("="*60)
-=======
-print("="*60)z
->>>>>>> a85a374f229d4a7b79e3a609368f3606c7cd35ad

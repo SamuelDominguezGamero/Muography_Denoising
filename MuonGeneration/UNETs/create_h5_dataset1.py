@@ -76,11 +76,6 @@ Modify these variables at the top of the script to control behavior:
                            # 4 = good balance between compression & speed
   
   RANDOM_SEED = 42         # Seed for reproducible train/val/test splits
-  
-  TOTAL_MUONS_PER_SIMULATION = 1_000_000
-                           # Muon count used in simulations
-                           # CRITICAL: Update if you run simulations with different counts
-                           # Higher muon count → lower noise → better training data
 
 ================================================================================
 INPUT DATA REQUIREMENTS
