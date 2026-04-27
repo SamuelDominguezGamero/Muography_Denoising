@@ -28,10 +28,10 @@ create_geometries = True
 simulate          = True    # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
-max_geometries    = 100      # the first geometries to be tested on
-max_geometries_simulated = 100  # the first geometries to be simulated (if simulate=True)
+max_geometries    = 1      # the first geometries to be tested on
+max_geometries_simulated = 1  # the first geometries to be simulated (if simulate=True)
 
-force_resimulate  = False    # set to True to re-process geometries even if merged results exist
+force_resimulate  = True    # set to True to re-process geometries even if merged results exist
 
 # ===========================================================================
 # SLURM JOB THROTTLING
@@ -137,7 +137,7 @@ zPosDetector_bot = -54
 #   - Only letters available: M, U, O, N
 
 spacings       = [1] # readd 1
-ratios         = [1]
+ratios         = [1, 2]
 # Strategy: Use multiple sizes with stroke variations that are actually available
 fontsizes      = [12] # readd 8, 10, 14, 16
 strokes        = [3] # readd 1
@@ -177,8 +177,8 @@ time.sleep(1)
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 900_000 
-n_muons_per_job          = 30_000
+total_muons_per_geometry = 50_000_000 
+n_muons_per_job          = 50_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
 time.sleep(1)

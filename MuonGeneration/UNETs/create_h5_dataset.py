@@ -377,7 +377,7 @@ import re
 # Modify PATH_* variables directly if using custom directories.
 #
 
-ENVIRONMENT = "local"  # Options: "cluster" | "local"
+ENVIRONMENT = "cluster"  # Options: "cluster" | "local"
 
 if ENVIRONMENT == "cluster":
     PATH_MERGED = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data"
@@ -409,7 +409,7 @@ RANDOM_SEED = 42
 # Total number of muons used in ALL simulations
 # This is a critical metadata: directly affects noise level (more muons → less noise)
 # IMPORTANT: Update this value when running simulations with different muon counts!
-TOTAL_MUONS_PER_SIMULATION = 1_000_000  # 1 million muons per geometry
+TOTAL_MUONS_PER_SIMULATION = 1_000_000  # 1 million muons per geometry (default if not indicated in instance name)
 
 
 # ==============================================================================
