@@ -698,12 +698,9 @@ print(f"[INFO] Simulation jobs submitted:             {jobs_submitted}")
 print(f"[INFO] Simulation jobs failed:                {jobs_failed}")
 print(f"[INFO] Merge jobs submitted:                  {merges_submitted}")
 print("="*60)
-<<<<<<< HEAD
-=======
 
 if error_log:
     print(f"\n[WARNING] ERROR LOG: {len(error_log)} geometries marked as FAILED")
     print(f"[INFO] Error log file: {ERROR_LOG_FILE}")
     print("[INFO] To clear errors and retry failed geometries, delete this file:")
     print(f"      rm {ERROR_LOG_FILE}\n")
->>>>>>> 5c0b8114021b132fb1ba3292f48e277ed4eb86a3
