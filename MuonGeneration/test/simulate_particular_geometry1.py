@@ -208,12 +208,47 @@ if not os.path.exists(geometry_json):
         "--output3D_density", output_density3D,
     ]
     
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"[ERROR] Geometry creation failed:\n{result.stderr}")
-        sys.exit(1)
-    
-    print(f"[CORRECT] Geometry created successfully!")
+    if args.environment == "local":
+        # Local execution
+        result = subprocess.run(command, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"[ERROR] Geometry creation failed:\n{result.stderr}")
+            sys.exit(1)
+        print(f"[CORRECT] Geometry created successfully!")
+    else:
+        # Cluster: submit as SLURM job
+        print(f"[INFO] Submitting geometry creation job to SLURM...")
+        current_count = wait_for_slot(paths["user"], args.max_jobs, 30, args.environment)
+        
+        inner_command = " ".join(command)
+        full_wrap = f"source {paths['setup']} && {inner_command}"
+        
+        geom_log = os.path.join(paths["logs"], f"log_geom_{namefile}.out")
+        
+        sbatch_args = [
+            "sbatch",
+            f"--job-name=geom",
+            "--time=01:00:00",
+            "--mem=8G",
+            "--cpus-per-task=2",
+            f"--output={geom_log}",
+            f"--wrap={full_wrap}",
+            "--partition=wncompute_ifca"
+        ]
+        
+        result = subprocess.run(sbatch_args, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"[ERROR] Geometry job submission failed:\n{result.stderr}")
+            sys.exit(1)
+        
+        geom_job_id = result.stdout.strip().split()[-1]
+        print(f"[CORRECT] Geometry job submitted with ID: {geom_job_id}")
+        print(f"[INFO] Waiting for geometry creation to complete...")
+        print(f"[INFO] Log: {geom_log}")
+        print(f"[INFO] (You can check status with: sacct -j {geom_job_id})")
+        
+        # Note: We don't wait for it to complete - user can check with sacct
+        time.sleep(2)
 else:
     print(f"[CORRECT] Geometry exists!")
 

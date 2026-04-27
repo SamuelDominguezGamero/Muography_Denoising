@@ -178,6 +178,7 @@ if not os.path.exists(geometry_json):
     print(f"\n[INFO] Creating geometry: {namefile}")
     
     output_density2D = os.path.join(PATH_density_files2D, namefile + "_ground_truth_density2D.npy")
+    output_density3D = os.path.join(PATH_density_files2D, namefile + "_ground_truth_density3D.npy")
     
     command = [
         "python3", CREATE_GEOMETRY_SCRIPT,
@@ -199,14 +200,50 @@ if not os.path.exists(geometry_json):
         "--output_json", geometry_json,
         "--dimensions", DIMENSION,
         "--output2D_density", output_density2D,
+        "--output3D_density", output_density3D,
     ]
     
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"[ERROR] Geometry creation failed:\n{result.stderr}")
-        sys.exit(1)
-    
-    print(f"[CORRECT] Geometry created successfully!")
+    if ENVIRONMENT == "local":
+        # Local execution
+        result = subprocess.run(command, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"[ERROR] Geometry creation failed:\n{result.stderr}")
+            sys.exit(1)
+        print(f"[CORRECT] Geometry created successfully!")
+    else:
+        # Cluster: submit as SLURM job
+        print(f"[INFO] Submitting geometry creation job to SLURM...")
+        current_count = wait_for_slot(SLURM_USER, MAX_JOBS_IN_QUEUE, THROTTLE_SLEEP)
+        
+        inner_command = " ".join(command)
+        full_wrap = f"source {PATH_setup} && {inner_command}"
+        
+        geom_log = os.path.join(PATH_logs, f"log_geom_{namefile}.out")
+        
+        sbatch_args = [
+            "sbatch",
+            f"--job-name=geom",
+            "--time=01:00:00",
+            "--mem=8G",
+            "--cpus-per-task=2",
+            f"--output={geom_log}",
+            f"--wrap={full_wrap}",
+            "--partition=wncompute_ifca"
+        ]
+        
+        result = subprocess.run(sbatch_args, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"[ERROR] Geometry job submission failed:\n{result.stderr}")
+            sys.exit(1)
+        
+        geom_job_id = result.stdout.strip().split()[-1]
+        print(f"[CORRECT] Geometry job submitted with ID: {geom_job_id}")
+        print(f"[INFO] Waiting for geometry creation to complete...")
+        print(f"[INFO] Log: {geom_log}")
+        print(f"[INFO] (You can check status with: sacct -j {geom_job_id})")
+        
+        # Note: We don't wait for it to complete - user can check with sacct
+        time.sleep(2)
 else:
     print(f"[CORRECT] Geometry exists!")
 
