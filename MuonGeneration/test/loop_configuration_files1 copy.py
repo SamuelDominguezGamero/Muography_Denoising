@@ -1,13 +1,6 @@
 """
-This file automates the full simulation pipeline:
-  1. Creates all geometry files (JSON) for the neural network training dataset.
-  2. Submits SLURM jobs for each geometry x seed combination. Each job:
-       - Runs the Geant4 Monte Carlo simulation
-       - Correlates muon tracks (makeHLTuple.py)
-       - Runs the POCA reconstruction (POCA.py)
-  3. Submits a merge job per geometry with --dependency=afterok,
-     so it only runs when ALL jobs for that geometry finish successfully.
 
+"""
 FOR UNET1_2D ---> Predict 2D density maps from 2D XY muon data
 """
 
