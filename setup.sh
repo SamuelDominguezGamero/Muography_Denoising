@@ -36,18 +36,18 @@ fi
 if [ $HOSTNAME == "login2.ifca.es" ] && [ $USER == "dominguezs" ]; then
     # instrucciones de Pablo
     
-    echo "                                 ,,,,,,,,,,   "
-    echo "Setting up environment in login2_dominguezs..."
-    echo "                                 ''''''''''   "
+    # echo "                                 ,,,,,,,,,,   "
+    # echo "Setting up environment in login2_dominguezs..."
+    # echo "                                 ''''''''''   "
     export G4INSTALLDIR=/gpfs/users/dominguezs/geant4-v11.1.2-install
     export G4WORKDIR=/gpfs/users/dominguezs/Muography_Denoising/
     export JSONCPPDIR=/gpfs/users/dominguezs/jsoncpp/
     source $G4INSTALLDIR/bin/geant4.sh
     export PYTHONPATH=$G4WORKDIR/MuonGeneration/dataAnalysis/
     source /gpfs/users/parbol/root_v6.28.04-install/bin/thisroot.sh	
-    echo "Pablo's configuration for root successfully set up [CORRECT]"
+    # echo "Pablo's configuration for root successfully set up [CORRECT]"
     alias micro='/gpfs/users/dominguezs/software/micro'
-    echo 'Micro software (text editor) successfully set up ----- [CORRECT]' 
+    # echo 'Micro software (text editor) successfully set up ----- [CORRECT]' 
     #source /home/pablo/Documentos/software/root_v6.36.00-install/bin/thisroot.sh
 	# custom variables:
     path_data_Analysis="/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/dataAnalysis"
@@ -56,7 +56,7 @@ if [ $HOSTNAME == "login2.ifca.es" ] && [ $USER == "dominguezs" ]; then
     path_conf_geom="/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
     path_generator="/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration-build/Generator"
     path_poca_output="/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/post_POCA_data"
-	echo "Custom path variables successfully set up ----- [CORRECT]"    
+	# echo "Custom path variables successfully set up ----- [CORRECT]"    
 fi
 
 
