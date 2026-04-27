@@ -114,11 +114,11 @@ args = parser.parse_args()
 # VALIDATE FONTSIZE & STROKE COMBINATION
 # ===========================================================================
 VALID_COMBINATIONS = {
-    8: [1, 2],
-    10: [1, 2],
-    12: [1, 2],
-    14: [1, 2, 3],
-    16: [1, 2, 3]
+    8: [1, 2, 3],      # stroke 3 fits in small fonts
+    10: [1, 2, 3],
+    12: [1, 2, 3],
+    14: [1, 2],        # stroke 3 doesn't fit in large fonts
+    16: [1, 2]
 }
 
 if args.fontsize not in VALID_COMBINATIONS:
