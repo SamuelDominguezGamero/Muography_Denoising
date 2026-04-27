@@ -114,6 +114,30 @@ parser.add_argument("--force-resimulate", action="store_true", help="Re-simulate
 args = parser.parse_args()
 
 # ===========================================================================
+# VALIDATE FONTSIZE & STROKE COMBINATION
+# ===========================================================================
+VALID_COMBINATIONS = {
+    8: [1, 2],
+    10: [1, 2],
+    12: [1, 2],
+    14: [1, 2, 3],
+    16: [1, 2, 3]
+}
+
+if args.fontsize not in VALID_COMBINATIONS:
+    print(f"[ERROR] fontsize {args.fontsize} not supported. Valid sizes: {list(VALID_COMBINATIONS.keys())}")
+    sys.exit(1)
+
+if args.stroke not in VALID_COMBINATIONS[args.fontsize]:
+    valid_strokes = VALID_COMBINATIONS[args.fontsize]
+    print(f"[ERROR] stroke {args.stroke} not valid for fontsize {args.fontsize}")
+    print(f"[INFO] Valid strokes for fontsize {args.fontsize}: {valid_strokes}")
+    print(f"\nValid combinations:")
+    for size, strokes in VALID_COMBINATIONS.items():
+        print(f"  fontsize {size}: strokes {strokes}")
+    sys.exit(1)
+
+# ===========================================================================
 # BUILD GEOMETRY NAME
 # ===========================================================================
 namefile = (
