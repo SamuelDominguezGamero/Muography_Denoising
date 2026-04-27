@@ -17,6 +17,7 @@ import sys
 import time
 import glob
 import shutil
+import json
 import numpy as np
 from pathlib import Path
 from numpy.random import Generator, PCG64, SeedSequence
@@ -59,6 +60,43 @@ def wait_for_slot(username="dominguezs", max_jobs=MAX_JOBS_IN_QUEUE, sleep=THROT
             return count   # return current count so caller can log it
         print(f"[THROTTLE] Queue full ({count}/{max_jobs} jobs). Waiting {sleep}s before retrying...")
         time.sleep(sleep)
+
+# ===========================================================================
+# ERROR TRACKING SYSTEM
+# ===========================================================================
+# Track which geometries failed during creation, so we can skip them in STEP 2
+# Data structure: { "geometry_name": {"error": "error message", "timestamp": "..."} }
+ERROR_LOG_FILE = os.path.join(os.path.dirname(__file__), ".geometry_errors.json")
+
+def load_error_log():
+    """Load the error log from disk."""
+    if os.path.exists(ERROR_LOG_FILE):
+        try:
+            with open(ERROR_LOG_FILE, "r") as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def save_error_log(error_dict):
+    """Save the error log to disk."""
+    with open(ERROR_LOG_FILE, "w") as f:
+        json.dump(error_dict, f, indent=2)
+
+def record_geometry_error(namefile, error_message):
+    """Record that a geometry failed during creation."""
+    error_log = load_error_log()
+    error_log[namefile] = {
+        "error": error_message.strip(),
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+    }
+    save_error_log(error_log)
+    print(f"[ERROR RECORDED] {namefile} marked as FAILED (logged in {ERROR_LOG_FILE})")
+
+def is_geometry_failed(namefile):
+    """Check if a geometry is marked as failed."""
+    error_log = load_error_log()
+    return namefile in error_log
 
 # ===========================================================================
 # SECURITY CHECKS
@@ -290,11 +328,19 @@ for spacing in spacings:
 
                             print(f"[INFO] Geometry {i}/{total_geometries} creation started: {namefile} (queue: {current_count+1}/{MAX_JOBS_IN_QUEUE})")
                             time.sleep(0.1)
+                        
+                        # Check for errors
                         if result.returncode != 0:
-                            print(f"[ERROR] Geometry {i}/{total_geometries} failed:\n{result.stderr}")
+                            error_msg = result.stderr if result.stderr else result.stdout
+                            print(f"[ERROR] Geometry {i}/{total_geometries} FAILED: {namefile}")
+                            print(f"        Error: {error_msg[:150]}")
+                            record_geometry_error(namefile, error_msg)
                             print(80 * '-')
                         else:
-                            print(f"[CORRECT: JOB SUBMISSION] Geometry {i}/{total_geometries}: {namefile}")
+                            if environment == "local":
+                                print(f"[CORRECT] Geometry {i}/{total_geometries} created: {namefile}")
+                            else:
+                                print(f"[INFO] Geometry {i}/{total_geometries} job submitted: {namefile}")
                             print(80 * '-')
                             time.sleep(0.1)
 
@@ -348,6 +394,7 @@ jobs_submitted = 0
 jobs_failed    = 0
 merges_submitted = 0
 geometries_skipped = 0
+geometries_failed_during_creation = 0
 
 
 # FIX: glob needs a wildcard pattern to find files inside the directory
@@ -363,6 +410,15 @@ for file in glob.glob(os.path.join(PATH_merged_output, "*.npy")):
     all_simulation_DataFiles.append(file)
 print(f"[INFO] ----- Total number of simulation data files available: {len(all_simulation_DataFiles)}")
 
+# Load error log to track failed geometries
+error_log = load_error_log()
+if error_log:
+    print(f"[WARNING] Found {len(error_log)} geometries marked as FAILED from previous runs:")
+    for geom_name, info in list(error_log.items())[:5]:  # Show first 5
+        print(f"          - {geom_name}")
+    if len(error_log) > 5:
+        print(f"          ... and {len(error_log) - 5} more")
+
 
 
 # SIMULATION (SKIPPING ALREADY SIMULATED GEOMETRIES, FOR THE CHOSEN MUON FLUX)
@@ -377,8 +433,17 @@ for file in all_json_files:
     namefile = os.path.splitext(os.path.basename(file))[0]
     geometry_file = file # full path with extension
 
+    # Check if this geometry is marked as failed from previous runs
+    if is_geometry_failed(namefile):
+        print(f"[SKIP] Geometry marked as FAILED (creation error): {namefile}")
+        geometries_failed_during_creation += 1
+        continue
+
     if not os.path.exists(geometry_file):
-        print(f"[WARNING] ----- Geometry file disappeared: {geometry_file}")
+        print(f"[WARNING] Geometry file disappeared: {geometry_file}")
+        print(f"[INFO] Marking as failed and skipping...")
+        record_geometry_error(namefile, "Geometry file not found on disk")
+        geometries_failed_during_creation += 1
         continue
 
     # Check if merged result already exists WITH THE EXACT NUMBER OF MUONS
@@ -627,8 +692,15 @@ echo "[CORRECT] Cleanup finished."
 print("\n" + "="*60)
 print("[FINAL SUMMARY]")
 print("="*60)
-print(f"[INFO] Geometries skipped (already processed): {geometries_skipped}")
+print(f"[INFO] Geometries failed during creation:    {geometries_failed_during_creation}")
+print(f"[INFO] Geometries skipped (already simulated): {geometries_skipped}")
 print(f"[INFO] Simulation jobs submitted:             {jobs_submitted}")
 print(f"[INFO] Simulation jobs failed:                {jobs_failed}")
 print(f"[INFO] Merge jobs submitted:                  {merges_submitted}")
 print("="*60)
+
+if error_log:
+    print(f"\n[WARNING] ERROR LOG: {len(error_log)} geometries marked as FAILED")
+    print(f"[INFO] Error log file: {ERROR_LOG_FILE}")
+    print("[INFO] To clear errors and retry failed geometries, delete this file:")
+    print(f"      rm {ERROR_LOG_FILE}\n")
