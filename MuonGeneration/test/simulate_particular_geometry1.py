@@ -1,5 +1,6 @@
 """
-FOR UNET1_2D ---> Simulate a particular geometry with custom muon count
+Simulate ONE PARTICULAR GEOMETRY - replica of loop_configuration_files1.py logic
+FOR UNET1_2D ---> Predict 2D density maps from 2D XY muon data
 """
 
 import subprocess
@@ -7,298 +8,156 @@ import os
 import sys
 import time
 import glob
-import shutil
 import argparse
-from pathlib import Path
 from numpy.random import Generator, PCG64, SeedSequence
 
 # ===========================================================================
-# ENVIRONMENT & PATHS
+# PARSE ARGUMENTS
 # ===========================================================================
-def setup_environment(env="cluster"):
-    """Configure paths based on environment."""
-    if env == "cluster":
-        paths = {
-            "geometry_files": "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json",
-            "density_files2D": "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions/UNET1",
-            "output_raw": "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_raw",
-            "preprocessed": "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_preprocessed",
-            "poca_output": "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/post_POCA_data",
-            "merged_output": "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data/UNET1",
-            "logs": "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/logs",
-            "data_analysis": "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/dataAnalysis",
-            "generator": "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration-build/Generator",
-            "setup": "/gpfs/users/dominguezs/Muography_Denoising/setup.sh",
-            "user": "dominguezs",
-        }
-    else:  # local
-        paths = {
-            "geometry_files": "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_json",
-            "density_files2D": "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions/UNET1",
-            "output_raw": "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_raw",
-            "preprocessed": "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_preprocessed",
-            "poca_output": "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/post_POCA_data",
-            "merged_output": "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/merged_poca_data/UNET1",
-            "logs": "/home/samuel/Work/Muography_Denoising/MuonGeneration/logs",
-            "data_analysis": "/home/samuel/Work/Muography_Denoising/MuonGeneration/dataAnalysis",
-            "generator": None,
-            "setup": None,
-            "user": None,
-        }
-    return paths
-
-# ===========================================================================
-# UTILITY FUNCTIONS
-# ===========================================================================
-def get_current_job_count(username, env="cluster"):
-    """Returns the number of jobs currently in the SLURM queue for the user."""
-    if env != "cluster":
-        return 0
-    result = subprocess.run(
-        ["squeue", "-u", username, "-h", "--format=%i"],
-        capture_output=True, text=True
-    )
-    lines = [l for l in result.stdout.strip().split('\n') if l]
-    return len(lines)
-
-def wait_for_slot(username, max_jobs=500, sleep_time=30, env="cluster"):
-    """Blocks until there is room in the SLURM queue."""
-    if env != "cluster":
-        return 0
-    while True:
-        count = get_current_job_count(username, env)
-        if count < max_jobs:
-            return count
-        print(f"[THROTTLE] Queue full ({count}/{max_jobs} jobs). Waiting {sleep_time}s...")
-        time.sleep(sleep_time)
-
-# ===========================================================================
-# ARGUMENT PARSING
-# ===========================================================================
-parser = argparse.ArgumentParser(
-    description="Simulate a particular geometry with custom parameters.",
-    formatter_class=argparse.RawDescriptionHelpFormatter,
-    epilog="""
-Examples:
-  python3 simulate_particular_geometry1.py --material uranium --word MUON --stroke 2 --total-muons 900000 --muons-per-job 30000
-  python3 simulate_particular_geometry1.py --material steel --word OUMN --fontsize 10 --stroke 2 --total-muons 500000 --muons-per-job 50000
-    """
-)
-
-# Geometry parameters
-parser.add_argument("--Lpx", type=int, default=128, help="Physical length X [cm]")
-parser.add_argument("--Lpy", type=int, default=128, help="Physical length Y [cm]")
-parser.add_argument("--Lpz", type=int, default=128, help="Physical length Z [cm]")
-parser.add_argument("--npx", type=int, default=128, help="Voxels in X")
-parser.add_argument("--npy", type=int, default=128, help="Voxels in Y")
-parser.add_argument("--npz", type=int, default=128, help="Voxels in Z")
-parser.add_argument("--spacing", type=int, default=5, help="Spacing parameter")
-parser.add_argument("--ratio", type=int, default=1, help="Ratio parameter")
-parser.add_argument("--fontsize", type=int, default=12, help="Font size (8, 10, 12, 14, 16)")
-parser.add_argument("--material", type=str, required=True, help="Material (steel, uranium, aluminium, iron, lead)")
-parser.add_argument("--word", type=str, required=True, help="Word geometry (MUON, MUNO, etc.)")
-parser.add_argument("--stroke", type=int, default=2, help="Stroke width (1, 2)")
-
-# Simulation parameters
-parser.add_argument("--total-muons", type=int, default=900000, help="Total muons per geometry")
-parser.add_argument("--muons-per-job", type=int, default=30000, help="Muons per SLURM job")
-parser.add_argument("--dimension", type=str, default="2D", choices=["2D", "3D"], help="Dimension (2D or 3D)")
-parser.add_argument("--environment", type=str, default="cluster", choices=["cluster", "local"], help="Environment")
-parser.add_argument("--no-create", action="store_true", help="Don't ask to create if geometry doesn't exist")
-parser.add_argument("--force-resimulate", action="store_true", help="Re-simulate even if merged results exist")
-parser.add_argument("--max-jobs", type=int, default=500, help="Max jobs in SLURM queue")
+parser = argparse.ArgumentParser(description="Simulate a particular geometry")
+parser.add_argument("--Lpx", type=int, default=128)
+parser.add_argument("--Lpy", type=int, default=128)
+parser.add_argument("--Lpz", type=int, default=128)
+parser.add_argument("--npx", type=int, default=128)
+parser.add_argument("--npy", type=int, default=128)
+parser.add_argument("--npz", type=int, default=128)
+parser.add_argument("--spacing", type=int, default=5)
+parser.add_argument("--ratio", type=int, default=1)
+parser.add_argument("--fontsize", type=int, default=12)
+parser.add_argument("--material", type=str, required=True)
+parser.add_argument("--word", type=str, required=True)
+parser.add_argument("--stroke", type=int, default=2)
+parser.add_argument("--total-muons", type=int, default=900000)
+parser.add_argument("--muons-per-job", type=int, default=30000)
+parser.add_argument("--dimension", type=str, default="2D", choices=["2D", "3D"])
+parser.add_argument("--environment", type=str, default="cluster", choices=["cluster", "local"])
 
 args = parser.parse_args()
 
 # ===========================================================================
-# VALIDATE FONTSIZE & STROKE COMBINATION
+# CONFIGURATION
 # ===========================================================================
-VALID_COMBINATIONS = {
-    8: [1, 2, 3],      # stroke 3 fits in small fonts
-    10: [1, 2, 3],
-    12: [1, 2, 3],
-    14: [1, 2],        # stroke 3 doesn't fit in large fonts
-    16: [1, 2]
-}
+Lpx, Lpy, Lpz = args.Lpx, args.Lpy, args.Lpz
+npx, npy, npz = args.npx, args.npy, args.npz
+spacing, ratio = args.spacing, args.ratio
+fontsize, material, word, stroke = args.fontsize, args.material, args.word, args.stroke
+dimension = args.dimension
+environment = args.environment
 
-if args.fontsize not in VALID_COMBINATIONS:
-    print(f"[ERROR] fontsize {args.fontsize} not supported. Valid sizes: {list(VALID_COMBINATIONS.keys())}")
-    sys.exit(1)
+total_muons_per_geometry = args.total_muons
+n_muons_per_job = args.muons_per_job
+n_jobs_per_geometry = total_muons_per_geometry // n_muons_per_job
 
-if args.stroke not in VALID_COMBINATIONS[args.fontsize]:
-    valid_strokes = VALID_COMBINATIONS[args.fontsize]
-    print(f"[ERROR] stroke {args.stroke} not valid for fontsize {args.fontsize}")
-    print(f"[INFO] Valid strokes for fontsize {args.fontsize}: {valid_strokes}")
-    print(f"\nValid combinations:")
-    for size, strokes in VALID_COMBINATIONS.items():
-        print(f"  fontsize {size}: strokes {strokes}")
-    sys.exit(1)
+MAX_JOBS_IN_QUEUE = 500
+THROTTLE_SLEEP = 30
 
-# Setup paths
-paths = setup_environment(args.environment)
+# ===========================================================================
+# PATHS
+# ===========================================================================
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CREATE_GEOMETRY_SCRIPT = os.path.join(SCRIPT_DIR, "create_geometry.py")
 MERGE_SCRIPT = os.path.join(SCRIPT_DIR, "merge_results_1.py")
+
+if environment == "cluster":
+    PATH_geometry_files = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
+    PATH_density_files2D = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions/UNET1"
+    PATH_output_raw = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_raw"
+    PATH_preprocessed = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_preprocessed"
+    PATH_poca_output = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/post_POCA_data"
+    PATH_merged_output = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data/UNET1"
+    PATH_logs = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/logs"
+    PATH_data_analysis = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/dataAnalysis"
+    PATH_generator = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration-build/Generator"
+    PATH_setup = "/gpfs/users/dominguezs/Muography_Denoising/setup.sh"
+    SLURM_USER = "dominguezs"
+else:
+    PATH_geometry_files = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
+    PATH_density_files2D = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions/UNET1"
+    PATH_output_raw = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_raw"
+    PATH_preprocessed = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_preprocessed"
+    PATH_poca_output = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/post_POCA_data"
+    PATH_merged_output = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/merged_poca_data/UNET1"
+    PATH_logs = "/home/samuel/Work/Muography_Denoising/MuonGeneration/logs"
+    PATH_data_analysis = "/home/samuel/Work/Muography_Denoising/MuonGeneration/dataAnalysis"
+    PATH_generator = None
+    PATH_setup = None
+    SLURM_USER = None
+
+# ===========================================================================
+# UTILITY FUNCTIONS
+# ===========================================================================
+def get_current_job_count(username):
+    if environment != "cluster":
+        return 0
+    result = subprocess.run(["squeue", "-u", username, "-h", "--format=%i"],
+                          capture_output=True, text=True)
+    lines = [l for l in result.stdout.strip().split('\n') if l]
+    return len(lines)
+
+def wait_for_slot(username, max_jobs=MAX_JOBS_IN_QUEUE, sleep=THROTTLE_SLEEP):
+    if environment != "cluster":
+        return 0
+    while True:
+        count = get_current_job_count(username)
+        if count < max_jobs:
+            return count
+        print(f"[THROTTLE] Queue full ({count}/{max_jobs}). Waiting {sleep}s...")
+        time.sleep(sleep)
 
 # ===========================================================================
 # BUILD GEOMETRY NAME
 # ===========================================================================
 namefile = (
-    f"_Lpx{args.Lpx}_Lpy{args.Lpy}_Lpz{args.Lpz}"
-    f"_npx{args.npx}_npy{args.npy}_npz{args.npz}"
+    f"_Lpx{Lpx}_Lpy{Lpy}_Lpz{Lpz}"
+    f"_npx{npx}_npy{npy}_npz{npz}"
     f"_zTop54_zBot-54"
-    f"_spacing{args.spacing}_ratio{args.ratio}"
-    f"_FontX{args.fontsize}_FontY{args.fontsize}"
-    f"_mat{args.material}_word{args.word}_stroke{args.stroke}"
+    f"_spacing{spacing}_ratio{ratio}"
+    f"_FontX{fontsize}_FontY{fontsize}"
+    f"_mat{material}_word{word}_stroke{stroke}"
 )
 
-geometry_json = os.path.join(paths["geometry_files"], namefile + ".json")
+geometry_file = os.path.join(PATH_geometry_files, namefile + ".json")
 
 print("\n" + "="*70)
 print("SIMULATE PARTICULAR GEOMETRY")
 print("="*70)
-print(f"\n[INFO] Geometry: {namefile}")
-print(f"[INFO] Environment: {args.environment}")
-print(f"[INFO] Dimension: {args.dimension}")
-print(f"[INFO] Looking for: {geometry_json}")
-
-# ===========================================================================
-# CHECK IF GEOMETRY EXISTS
-# ===========================================================================
-if not os.path.exists(geometry_json):
-    print(f"\n[ERROR] Geometry file NOT FOUND: {geometry_json}")
-    
-    if args.no_create:
-        print("[ERROR] --no-create flag set. Exiting.")
-        sys.exit(1)
-    
-    # Ask user if they want to create it
-    response = input("\nWould you like to CREATE this geometry? (yes/no): ").strip().lower()
-    
-    if response != "yes":
-        print("[INFO] Exiting without creating.")
-        sys.exit(0)
-    
-    # Create the geometry
-    print(f"\n[INFO] Creating geometry: {namefile}")
-    
-    output_density2D = os.path.join(paths["density_files2D"], namefile + "_ground_truth_density2D.npy")
-    output_density3D = os.path.join(paths["density_files2D"], namefile + "_ground_truth_density3D.npy")
-    
-    command = [
-        "python3", CREATE_GEOMETRY_SCRIPT,
-        "--Lpx", str(args.Lpx),
-        "--Lpy", str(args.Lpy),
-        "--Lpz", str(args.Lpz),
-        "--npx", str(args.npx),
-        "--npy", str(args.npy),
-        "--npz", str(args.npz),
-        "--zPosDetector_top", "54",
-        "--zPosDetector_bot", "-54",
-        "--spacing", str(args.spacing),
-        "--ratio", str(args.ratio),
-        "--FontSizeX", str(args.fontsize),
-        "--FontSizeY", str(args.fontsize),
-        "--material", args.material,
-        "--word_geometry", args.word,
-        "--StrokeWidth", str(args.stroke),
-        "--output_json", geometry_json,
-        "--dimensions", args.dimension,
-        "--output2D_density", output_density2D,
-        "--output3D_density", output_density3D,
-    ]
-    
-    if args.environment == "local":
-        # Local execution
-        result = subprocess.run(command, capture_output=True, text=True)
-        if result.returncode != 0:
-            print(f"[ERROR] Geometry creation failed:\n{result.stderr}")
-            sys.exit(1)
-        print(f"[CORRECT] Geometry created successfully!")
-    else:
-        # Cluster: submit as SLURM job
-        print(f"[INFO] Submitting geometry creation job to SLURM...")
-        current_count = wait_for_slot(paths["user"], args.max_jobs, 30, args.environment)
-        
-        inner_command = " ".join(command)
-        full_wrap = f"source {paths['setup']} && {inner_command}"
-        
-        geom_log = os.path.join(paths["logs"], f"log_geom_{namefile}.out")
-        
-        sbatch_args = [
-            "sbatch",
-            f"--job-name=geom",
-            "--time=01:00:00",
-            "--mem=8G",
-            "--cpus-per-task=2",
-            f"--output={geom_log}",
-            f"--wrap={full_wrap}",
-            "--partition=wncompute_ifca"
-        ]
-        
-        result = subprocess.run(sbatch_args, capture_output=True, text=True)
-        if result.returncode != 0:
-            print(f"[ERROR] Geometry job submission failed:\n{result.stderr}")
-            sys.exit(1)
-        
-        geom_job_id = result.stdout.strip().split()[-1]
-        print(f"[CORRECT] Geometry job submitted with ID: {geom_job_id}")
-        print(f"[INFO] Waiting for geometry creation to complete...")
-        print(f"[INFO] Log: {geom_log}")
-        print(f"[INFO] (You can check status with: sacct -j {geom_job_id})")
-        
-        # Note: We don't wait for it to complete - user can check with sacct
-        time.sleep(2)
-else:
-    print(f"[CORRECT] Geometry exists!")
-
-# ===========================================================================
-# SIMULATION PARAMETERS
-# ===========================================================================
-total_muons_per_geometry = args.total_muons
-n_muons_per_job = args.muons_per_job
-n_jobs_per_geometry = total_muons_per_geometry // n_muons_per_job
-
-print(f"\n[INFO] Simulation Parameters:")
-print(f"  Total muons per geometry: {total_muons_per_geometry:,}")
-print(f"  Muons per job: {n_muons_per_job:,}")
-print(f"  Number of jobs: {n_jobs_per_geometry}")
+print(f"[INFO] Geometry: {namefile}")
+print(f"[INFO] Total muons: {total_muons_per_geometry:,}")
+print(f"[INFO] Jobs: {n_jobs_per_geometry}")
 print()
 
 # ===========================================================================
 # CHECK IF ALREADY SIMULATED
 # ===========================================================================
-if args.dimension == "2D":
-    merged_output = os.path.join(paths["merged_output"], f"MERGED_{namefile}_Muons_{total_muons_per_geometry}_2D.npy")
-elif args.dimension == "3D":
-    merged_output = os.path.join(paths["merged_output"], f"MERGED_{namefile}_Muons_{total_muons_per_geometry}_3D.npy")
+if dimension == "2D":
+    out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}_2D.npy")
+else:
+    out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}_3D.npy")
 
-if os.path.exists(merged_output) and not args.force_resimulate:
-    print(f"[SKIP] Already simulated with {total_muons_per_geometry:,} muons")
-    print(f"[INFO] Output: {merged_output}")
+if os.path.exists(out_merged):
+    print(f"[SKIP] Already simulated: {namefile}")
     sys.exit(0)
-elif os.path.exists(merged_output) and args.force_resimulate:
-    print(f"[RESIMULATE] Force flag enabled. Cleaning old files...")
-    # Clean old files
-    old_poca = glob.glob(os.path.join(paths["poca_output"], f"POCA_{namefile}_seed*.npy"))
-    for f in old_poca:
-        os.remove(f)
-    os.remove(merged_output)
-    print(f"[CORRECT] Cleaned old files.")
+
+# Create directories
+for path in [PATH_logs, PATH_output_raw, PATH_preprocessed, PATH_poca_output, PATH_merged_output]:
+    os.makedirs(path, exist_ok=True)
 
 # ===========================================================================
-# CREATE OUTPUT DIRECTORIES
+# CHECK IF GEOMETRY EXISTS
 # ===========================================================================
-for key in ["logs", "output_raw", "preprocessed", "poca_output", "merged_output"]:
-    os.makedirs(paths[key], exist_ok=True)
+if not os.path.exists(geometry_file):
+    print(f"[ERROR] Geometry NOT FOUND: {geometry_file}")
+    sys.exit(1)
+
+print(f"[CORRECT] Geometry exists!")
 
 # ===========================================================================
-# SUBMIT SLURM JOBS
+# SUBMIT SIMULATION JOBS
 # ===========================================================================
+print("\n" + "="*70)
+print("SUBMITTING SIMULATION JOBS")
 print("="*70)
-print("SUBMITTING SLURM JOBS")
-print("="*70)
-print(f"\n[INFO] Submitting {n_jobs_per_geometry} simulation jobs for: {namefile}\n")
+print(f"[INFO] Submitting {n_jobs_per_geometry} jobs for: {namefile}\n")
 
 job_ids = []
 base_seed = int(time.time())
@@ -309,15 +168,15 @@ for job in range(n_jobs_per_geometry):
     rng = Generator(PCG64(child_seeds[job]))
     seed = rng.integers(0, 2**31 - 1)
 
-    out_raw = os.path.join(paths["output_raw"], f"Out_{namefile}_seed{seed}.root")
-    out_pre = os.path.join(paths["preprocessed"], f"Pre_{namefile}_seed{seed}.root")
-    out_poca = os.path.join(paths["poca_output"], f"POCA_{namefile}_seed{seed}.npy")
-    out_log = os.path.join(paths["logs"], f"log_{namefile}_seed{seed}.out")
-    out_err = os.path.join(paths["logs"], f"log_{namefile}_seed{seed}.err")
-    out_sh = os.path.join(paths["logs"], f"job_{namefile}_seed{seed}.sh")
+    out_raw = os.path.join(PATH_output_raw, f"Out_{namefile}_seed{seed}.root")
+    out_pre = os.path.join(PATH_preprocessed, f"Pre_{namefile}_seed{seed}.root")
+    out_poca = os.path.join(PATH_poca_output, f"POCA_{namefile}_seed{seed}.npy")
+    out_log = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.out")
+    out_err = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.err")
+    out_sh = os.path.join(PATH_logs, f"job_{namefile}_seed{seed}.sh")
 
     job_script = f"""#!/bin/bash
-#SBATCH --job-name=sim_{job:02d}
+#SBATCH --job-name=muon_seed{seed}
 #SBATCH --output={out_log}
 #SBATCH --error={out_err}
 #SBATCH --partition=wncompute_ifca
@@ -325,15 +184,15 @@ for job in range(n_jobs_per_geometry):
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
 
-source {paths["setup"]}
+source {PATH_setup}
 
 echo "[INFO] Job started: {namefile} | seed={seed}"
 
 # --- 1st: Geant4 Monte Carlo simulation ---
 echo "[INFO] Running Geant4 simulation..."
 cd /gpfs/users/dominguezs/Muography_Denoising/MuonGeneration-build/
-{paths["generator"]} \\
-    --input  {geometry_json} \\
+{PATH_generator} \\
+    --input  {geometry_file} \\
     --output {out_raw} \\
     --number {n_muons_per_job} \\
     --seed   {seed}
@@ -342,29 +201,27 @@ echo "[CORRECT] Geant4 done."
 
 # --- 2nd: Track correlation ---
 echo "[INFO] Running makeHLTuple..."
-python3 -u {paths["data_analysis"]}/makeHLTuple.py \\
+python3 -u {PATH_data_analysis}/makeHLTuple.py \\
     --input  {out_raw} \\
-    --conf   {geometry_json} \\
+    --conf   {geometry_file} \\
     --output {out_pre}
 if [ $? -ne 0 ]; then echo "[ERROR] makeHLTuple failed. Aborting."; exit 1; fi
 echo "[CORRECT] makeHLTuple done."
 
-# Clean raw file
 rm {out_raw}
 echo "[INFO] Raw file removed: {out_raw}"
 
 # --- 3rd: POCA reconstruction ---
 echo "[INFO] Running POCA1..."
-python3 -u {paths["data_analysis"]}/POCA1.py \\
+python3 -u {PATH_data_analysis}/POCA1.py \\
     --input  {out_pre} \\
     --output {out_poca} \\
-    --Lpx {args.Lpx} --Lpy {args.Lpy} --Lpz {args.Lpz} \\
-    --npx {args.npx} --npy {args.npy} --npz {args.npz} \\
-    --dimension {args.dimension}
+    --Lpx {Lpx} --Lpy {Lpy} --Lpz {Lpz} \\
+    --npx {npx} --npy {npy} --npz {npz} \\
+    --dimension {dimension}
 if [ $? -ne 0 ]; then echo "[ERROR] POCA failed. Aborting."; exit 1; fi
 echo "[CORRECT] POCA done."
 
-# Cleanup preprocessed file
 if [ -f "{out_pre}" ]; then
     rm -f "{out_pre}"
     echo "[✓] Preprocessed file removed: {out_pre}"
@@ -375,24 +232,16 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
     with open(out_sh, "w") as f:
         f.write(job_script)
 
-    # Throttle
-    if args.environment == "cluster":
-        current_count = wait_for_slot(paths["user"], args.max_jobs, 30, args.environment)
-    else:
-        current_count = 0
+    current_count = wait_for_slot(SLURM_USER, MAX_JOBS_IN_QUEUE, THROTTLE_SLEEP)
 
-    result = subprocess.run(
-        ["sbatch", "--begin=now", out_sh],
-        capture_output=True, text=True
-    )
+    result = subprocess.run(["sbatch", "--begin=now", out_sh], capture_output=True, text=True)
 
     if result.returncode != 0:
         print(f"[ERROR] sbatch failed: seed={seed} | {result.stderr.strip()}")
     else:
         job_id = result.stdout.strip().split()[-1]
         job_ids.append(job_id)
-        queue_str = f"(queue: {current_count+1}/{args.max_jobs})" if args.environment == "cluster" else ""
-        print(f"[SUBMITTED] job {job+1:02d}/{n_jobs_per_geometry} --> seed={seed} --> job_id={job_id} {queue_str}")
+        print(f"[SUBMITTED] seed={seed:10d} --> job_id={job_id} (queue: {current_count+1}/{MAX_JOBS_IN_QUEUE})")
 
 if not job_ids:
     print("[ERROR] No jobs were submitted!")
@@ -409,12 +258,12 @@ print("="*70)
 
 dependency_str = "afterok:" + ":".join(job_ids)
 
-merge_log = os.path.join(paths["logs"], f"log_merge_{namefile}.out")
-merge_err = os.path.join(paths["logs"], f"log_merge_{namefile}.err")
-merge_sh = os.path.join(paths["logs"], f"job_merge_{namefile}.sh")
+merge_log = os.path.join(PATH_logs, f"log_merge_{namefile}.out")
+merge_err = os.path.join(PATH_logs, f"log_merge_{namefile}.err")
+merge_sh = os.path.join(PATH_logs, f"job_merge_{namefile}.sh")
 
 merge_script = f"""#!/bin/bash
-#SBATCH --job-name=merge
+#SBATCH --job-name=merge_{namefile}
 #SBATCH --output={merge_log}
 #SBATCH --error={merge_err}
 #SBATCH --partition=wncompute_ifca
@@ -422,31 +271,32 @@ merge_script = f"""#!/bin/bash
 #SBATCH --mem=8G
 #SBATCH --cpus-per-task=2
 
-source {paths["setup"]}
+source {PATH_setup}
 
 echo "[INFO] Starting merge for: {namefile}"
 
 python3 -u {MERGE_SCRIPT} \\
     --namefile         {namefile} \\
     --n_jobs           {n_jobs_per_geometry} \\
-    --npx              {args.npx} \\
-    --npy              {args.npy} \\
-    --npz              {args.npz} \\
-    --dimension        {args.dimension} \\
-    --path_poca_output {paths["poca_output"]} \\
-    --output           {merged_output}
-if [ $? -ne 0 ]; then echo "[ERROR] Merge failed."; exit 1; fi
+    --npx              {npx} \\
+    --npy              {npy} \\
+    --npz              {npz} \\
+    --dimension        {dimension} \\
+    --path_poca_output {PATH_poca_output} \\
+    --output           {out_merged}
+if [ $? -ne 0 ]; then echo "[ERROR] Merge failed. Aborting."; exit 1; fi
 
 echo "[CORRECT] Merge finished for: {namefile}"
 
-echo "[INFO] Removing split POCA files..."
-rm {paths["poca_output"]}/POCA_{namefile}_seed*.npy
+echo "[INFO] Removing splitted POCA files for: {namefile}"
+rm {PATH_poca_output}/POCA_{namefile}_seed*.npy
+echo "[CORRECT] Split POCA files removed for: {namefile}"
 
-echo "[INFO] Cleaning up logs..."
+echo "[INFO] Cleaning up intermediate logs..."
 sleep 5
-rm {paths["logs"]}/log_{namefile}_seed*.out
-rm {paths["logs"]}/log_{namefile}_seed*.err
-rm {paths["logs"]}/job_{namefile}_seed*.sh
+rm {PATH_logs}/log_{namefile}_seed*.out
+rm {PATH_logs}/log_{namefile}_seed*.err
+rm {PATH_logs}/job_{namefile}_seed*.sh
 
 echo "[CORRECT] Cleanup finished."
 """
@@ -454,11 +304,7 @@ echo "[CORRECT] Cleanup finished."
 with open(merge_sh, "w") as f:
     f.write(merge_script)
 
-# Throttle before merge
-if args.environment == "cluster":
-    current_count = wait_for_slot(paths["user"], args.max_jobs, 30, args.environment)
-else:
-    current_count = 0
+current_count = wait_for_slot(SLURM_USER, MAX_JOBS_IN_QUEUE, THROTTLE_SLEEP)
 
 result = subprocess.run(
     ["sbatch", "--begin=now", f"--dependency={dependency_str}", merge_sh],
@@ -469,7 +315,7 @@ if result.returncode != 0:
     print(f"[ERROR] Merge submission failed: {result.stderr.strip()}")
 else:
     merge_id = result.stdout.strip().split()[-1]
-    print(f"\n[SUBMITTED] Merge job --> job_id={merge_id}")
+    print(f"[SUBMITTED] Merge job --> job_id={merge_id}")
     print(f"[INFO] Will execute after {len(job_ids)} simulation jobs complete")
 
 # ===========================================================================
@@ -479,8 +325,8 @@ print("\n" + "="*70)
 print("SUMMARY")
 print("="*70)
 print(f"[INFO] Geometry: {namefile}")
-print(f"[INFO] Simulation jobs submitted: {len(job_ids)}")
-print(f"[INFO] Merge job submitted: 1")
-print(f"[INFO] Output will be: {merged_output}")
-print(f"[INFO] Logs available in: {paths['logs']}")
+print(f"[INFO] Simulation jobs: {len(job_ids)}")
+print(f"[INFO] Merge job: 1")
+print(f"[INFO] Output: {out_merged}")
+print(f"[INFO] Logs: {PATH_logs}")
 print("="*70 + "\n")
