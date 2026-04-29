@@ -25,14 +25,14 @@ from numpy.random import Generator, PCG64, SeedSequence
 # ===========================================================================
 # CONTROL FLAGS
 # ===========================================================================
-create_geometries = True
+create_geometries = False
 simulate          = True    # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
-max_geometries    = 1      # the first geometries to be tested on
+max_geometries    = 1     # the first geometries to be tested on
 max_geometries_simulated = 1  # the first geometries to be simulated (if simulate=True)
 
-force_resimulate  = True    # set to True to re-process geometries even if merged results exist
+force_resimulate  = False   # set to True to re-process geometries even if merged results exist
 
 # ===========================================================================
 # SLURM JOB THROTTLING
@@ -40,8 +40,8 @@ force_resimulate  = True    # set to True to re-process geometries even if merge
 # Maximum number of jobs allowed in the queue at the same time for this user.
 # Run `sacctmgr show user <username> withassoc` or ask your sysadmin.
 # A safe default is to leave ~10% headroom below your real limit.
-MAX_JOBS_IN_QUEUE = 500      # adjust to your cluster's limit
-THROTTLE_SLEEP    = 30       # seconds to wait when queue is full before retrying
+MAX_JOBS_IN_QUEUE = 2000      # adjust to your cluster's limit
+THROTTLE_SLEEP    = 10     # seconds to wait when queue is full before retrying
 
 def get_current_job_count(username="dominguezs"):
     """Returns the number of jobs currently in the SLURM queue for the user."""
@@ -117,13 +117,15 @@ MERGE_SCRIPT           = os.path.join(SCRIPT_DIR, "merge_results_1.py")
 PLOT_SCRIPT            = os.path.join(SCRIPT_DIR, "plot_central_slice_comparison.py")
 
 if environment == "cluster":
-    PATH_geometry_files = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
+    # PATH_geometry_files = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
+    PATH_geometry_files = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/empty_configurations"
     PATH_density_files3D  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/ground_truth_data/3Dimensions"
     PATH_density_files2D  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions/UNET1"
     PATH_output_raw     = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_raw"
     PATH_preprocessed   = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_preprocessed"
     PATH_poca_output    = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/post_POCA_data"
-    PATH_merged_output  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data/UNET1"
+    PATH_merged_output  = "/gpfs/projects/cms/dominguezs/data/merged_poca_data/UNET1"
+#    PATH_merged_output  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data/UNET1"
     PATH_png_comparisons = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/png_comparisons"
     PATH_logs           = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/logs"
     PATH_data_analysis  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/dataAnalysis"
@@ -174,10 +176,10 @@ zPosDetector_bot = -54
 #   - Stroke 3 is NOT available for any size yet
 #   - Only letters available: M, U, O, N
 
-spacings       = [1] # readd 1
+spacings       = [1, 2, 3, 4, 5, 6] 
 ratios         = [1, 2]
 # Strategy: Use multiple sizes with stroke variations that are actually available
-fontsizes      = [12] # readd 8, 10, 14, 16
+fontsizes      = [8, 10, 12, 14, 16] # readd 8, 10, 14, 16
 strokes        = [3] # readd 1
 
 FontSizes      = [# NOW UNUSED, SHOULD BE REMOVED
@@ -194,15 +196,12 @@ words_geometry = ["MUON", "MUNO", "NOMU", "MOUN", "NOUM", "NMOU", "MNOU", "NMUO"
 # Count total valid geometries
 # FIX: stroke 3 is NOT valid for any fontsize (condition was inverted before)
 total_geometries = 0
-for spacing in spacings:
-    for ratio in ratios:
-        for fontsize in fontsizes:
-            for material in materials:
+for material in materials:
+    for spacing in spacings:
+        for ratio in ratios:
+            for fontsize in fontsizes:
                 for word in words_geometry:
                     for stroke in strokes:
-                        if stroke == 3:  # stroke 3 not available for any size yet
-                            continue
-                        else:
                             total_geometries += 1
 
 print(f"[INFO] ----- Total geometries to generate: {total_geometries}")
@@ -215,7 +214,7 @@ time.sleep(1)
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 50_000_000 
+total_muons_per_geometry = 1_000_000 
 n_muons_per_job          = 50_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
