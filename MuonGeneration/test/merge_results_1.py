@@ -1,234 +1,213 @@
+# -*- coding: utf-8 -*-
 """
-merge_results_1.py
-Merges all POCA1 output files for a single geometry (one per seed) into a
-single accumulated result with 4 training channels for UNET1_2D.
+merge_script.py — Merges POCA output .root files and computes 2D channel maps.
 
-INPUT FROM POCA1:
-  Per seed: counts, sum_theta², sum(z), sum(z²), sum(z*theta²), top-3 theta² values
+INPUT:  one or more .root files produced by POCA1.py, each containing a TTree
+        "events" with branches: theta, poca_x, poca_y, poca_z, is_parallel
 
+OUTPUT: .npy file with a dict containing 2D channel maps (shape: npy, npx, 1):
 
-OUTPUT: 4 Training Channels
-  - Channel 0: log(1+N(xy)) - log of event counts per XY cell
-  - Channel 1: weighted_mean(z, weights=θ²) - z position weighted by scattering strength
-  - Channel 2: std(z) - Z-coordinate std dev, thickness proxy per XY cell
-  - Channel 3: top-20 theta² statistic - maximum scattering power indicator
+    CHANNEL 1 — N_counts_all     : number of ALL events per XY cell (MTR proxy — body shape)
+    CHANNEL 2 — N_counts_scat    : number of SCATTERED events per XY cell
+    CHANNEL 3 — mean_theta_sq    : mean(theta²) of scattered events per XY cell (scattering density)
+    CHANNEL 4 — top3_theta_sq    : mean of top-3 theta² per XY cell (radiation length proxy, robust vs outliers)
+    CHANNEL 5 — std_z            : std(poca_z) of scattered events per XY cell (material thickness proxy)
 
-Shape: (128, 128, 4) suitable for UNET1_2D.py input
 """
 
-import numpy as np
-import argparse
+print("[INFO] Iniciando merge_script...")
 import os
 import sys
+import argparse
+import numpy as np
 import glob
 
-parser = argparse.ArgumentParser(description="Merge POCA results from all seeds for a given geometry.")
-parser.add_argument("--namefile",         required=True,  help="Geometry name (without extension).")
-parser.add_argument("--n_jobs",           required=True,  type=int, help="Number of seeds to merge.")
-parser.add_argument("--npx",              required=True,  type=int)
-parser.add_argument("--npy",              required=True,  type=int)
-parser.add_argument("--npz",              required=True,  type=int)
-parser.add_argument("--path_poca_output", required=True,  help="Directory with per-seed POCA .npy files.")
-parser.add_argument("--output",           required=True,  help="Output .npy file for the merged result.")
-parser.add_argument("--dimension",        required=False, default="2D", choices=["2D", "3D"], help="Whether the POCA results are 2D (XY) or 3D (XYZ).")
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
+import ROOT
+ROOT.gROOT.SetBatch(True)
+print("[CORRECT] Libraries imported.")
+
+# ---------------------------------------------------------------------------
+# Argument parsing
+# ---------------------------------------------------------------------------
+parser = argparse.ArgumentParser(description="Merge POCA .root files and compute 2D channel maps.")
+parser.add_argument("--input",   required=True, help="Input .root file(s). Accepts wildcards, e.g. 'poca_*.root'.")
+parser.add_argument("--output",  default="merged_channels", help="Output .npy file (without extension).")
+parser.add_argument("--Lpx", type=float, default=128.0, help="Physical length in X [cm].")
+parser.add_argument("--Lpy", type=float, default=128.0, help="Physical length in Y [cm].")
+parser.add_argument("--Lpz", type=float, default=128.0, help="Physical length in Z [cm].")
+parser.add_argument("--npx", type=int, default=128, help="Number of voxels in X.")
+parser.add_argument("--npy", type=int, default=128, help="Number of voxels in Y.")
+parser.add_argument("--visualization", action="store_true", default=False, help="If set, plot all 2D channel maps.")
 args = parser.parse_args()
 
+X_LIM = args.Lpx / 2.0
+Y_LIM = args.Lpy / 2.0
+Z_LIM = args.Lpz / 2.0
+NX, NY = args.npx, args.npy
 
-print(f"[INFO] Merging POCA files for: {args.namefile}")
+print(f"[INFO] Grid: {NX} x {NY} | Volume XY: [{-X_LIM},{X_LIM}] x [{-Y_LIM},{Y_LIM}] cm")
 
-# Find all matching POCA files dynamically (handles random seeds)
-poca_files = sorted(glob.glob(os.path.join(args.path_poca_output, f"POCA_{args.namefile}_seed*.npy")))
-
-if len(poca_files) != args.n_jobs:
-    print(f"[ERROR] Expected {args.n_jobs} POCA files but found {len(poca_files)}")
-    print(f"[ERROR] Search directory: {args.path_poca_output}")
-    print(f"[ERROR] Pattern: POCA_{args.namefile}_seed*.npy")
-    if poca_files:
-        print(f"[ERROR] Found files: {[os.path.basename(f) for f in poca_files]}")
-    else:
-        print(f"[ERROR] No POCA files found.")
+# ---------------------------------------------------------------------------
+# Load all input files
+# ---------------------------------------------------------------------------
+input_files = sorted(glob.glob(args.input))
+if len(input_files) == 0:
+    print(f"[ERROR] No files found matching: {args.input}")
     sys.exit(1)
+print(f"[INFO] Found {len(input_files)} input file(s).")
 
-# Check that all files exist before starting the merge
-missing_files = [f for f in poca_files if not os.path.exists(f)]
+df = ROOT.RDataFrame("events", input_files)
+total_events = df.Count().GetValue()
+print(f"[INFO] Total events loaded: {total_events}")
 
-if missing_files:
-    print(f"[ERROR] Missing {len(missing_files)} POCA files. Cannot proceed with merge.")
-    for f in missing_files:
-        print(f"         {f}")
-    sys.exit(1)
+# ---------------------------------------------------------------------------
+# Compute voxel indices in XY (no Z — we project everything onto XY)
+# ---------------------------------------------------------------------------
+df = df.Define("voxel_x", f"int(fmin({NX}-1, fmax(0, (poca_x + {X_LIM}) / (2*{X_LIM} / {NX}))))") \
+       .Define("voxel_y", f"int(fmin({NY}-1, fmax(0, (poca_y + {Y_LIM}) / (2*{Y_LIM} / {NY}))))")
 
-if args.dimension == "2D":
+# ---------------------------------------------------------------------------
+# Export to numpy
+# ---------------------------------------------------------------------------
+print("[INFO] Extracting arrays from RDataFrame...")
+res = df.AsNumpy(columns=["theta", "poca_z", "voxel_x", "voxel_y", "is_parallel"])
 
-    # Initialize accumulators for all raw statistics from POCA1
-    m_counts_2d       = np.zeros((args.npy, args.npx, 1))
-    m_sum_theta_2d    = np.zeros((args.npy, args.npx, 1))
-    m_sum_theta_sq_2d = np.zeros((args.npy, args.npx, 1))
-    m_sum_poca_z_2d   = np.zeros((args.npy, args.npx, 1))
-    m_sum_poca_z_sq_2d = np.zeros((args.npy, args.npx, 1))
-    m_sum_z_theta_sq_2d = np.zeros((args.npy, args.npx, 1))
-    
-    # Accumulator for top-20 theta² values per cell (will be filled from top-3 per seed)
-    # Store as list of arrays to dynamically accumulate, then extract top-20
-    m_theta_sq_pool_2d = [[[] for _ in range(args.npx)] for _ in range(args.npy)]
+v_x       = res["voxel_x"].astype(int)
+v_y       = res["voxel_y"].astype(int)
+theta     = res["theta"].astype(float)
+poca_z    = res["poca_z"].astype(float)
+is_par    = res["is_parallel"].astype(bool)
+theta_sq  = theta ** 2
 
-    print(f"[INFO] Processing {len(poca_files)} POCA1 files...")
-    for idx, filepath in enumerate(poca_files):
-        if not os.path.exists(filepath):
-            print(f"[ERROR] File not found: {filepath}")
-            sys.exit(1)
-            
-        data = np.load(filepath, allow_pickle=True).item()
+mask_scat = ~is_par   # scattered muons (denom != 0, real POCA)
+mask_par  =  is_par   # parallel muons  (denom ~ 0, fallback t=0)
 
-        # Validate required fields from POCA1
-        expected_shape = (args.npy, args.npx, 1)
-        required_keys = ["counts_2d", "sum_theta_2d", "sum_theta_sq_2d", "sum_poca_z_2d", "sum_poca_z_sq_2d", "sum_z_theta_sq_2d", "top3_theta_sq_2d"]
-        
-        for key in required_keys:
-            if key not in data:
-                print(f"[ERROR] Missing key '{key}' in {filepath}")
-                sys.exit(1)
-            if key != "top3_theta_sq_2d" and data[key].shape != expected_shape:
-                print(f"[ERROR] Shape mismatch in '{key}': {data[key].shape} != {expected_shape}")
-                sys.exit(1)
-            if key == "top3_theta_sq_2d" and data[key].shape != (args.npy, args.npx, 3):
-                print(f"[ERROR] Shape mismatch in 'top3_theta_sq_2d': {data[key].shape} != ({args.npy}, {args.npx}, 3)")
-                sys.exit(1)
+print(f"[INFO] Scattered events : {mask_scat.sum()} ({100*mask_scat.mean():.1f}%)")
+print(f"[INFO] Parallel events  : {mask_par.sum()}  ({100*mask_par.mean():.1f}%)")
 
-        # Accumulate statistics across all seeds
-        m_counts_2d       += data["counts_2d"]
-        m_sum_theta_2d    += data["sum_theta_2d"]
-        m_sum_theta_sq_2d += data["sum_theta_sq_2d"]
-        m_sum_poca_z_2d   += data["sum_poca_z_2d"]
-        m_sum_poca_z_sq_2d += data["sum_poca_z_sq_2d"]
-        m_sum_z_theta_sq_2d += data["sum_z_theta_sq_2d"]
-        
-        # Accumulate top-3 theta² values for later extraction of top-20
-        top3 = data["top3_theta_sq_2d"]
-        for iy in range(args.npy):
-            for ix in range(args.npx):
-                for val in top3[iy, ix]:
-                    if val > 0:  # Only add non-zero values
-                        m_theta_sq_pool_2d[iy][ix].append(val)
-        
-        if (idx + 1) % max(1, len(poca_files) // 10) == 0 or idx == 0:
-            print(f"  [{idx + 1}/{len(poca_files)}] processed")
+# ---------------------------------------------------------------------------
+# Initialize 2D matrices  (shape: NY, NX)
+# ---------------------------------------------------------------------------
+m_counts_all   = np.zeros((NY, NX), dtype=np.float32)  # CH1: all events
+m_counts_scat  = np.zeros((NY, NX), dtype=np.float32)  # CH2: scattered only
+m_sum_theta_sq = np.zeros((NY, NX), dtype=np.float32)  # for CH3
+m_sum_z        = np.zeros((NY, NX), dtype=np.float32)  # for CH5 (mean z)
+m_sum_z_sq     = np.zeros((NY, NX), dtype=np.float32)  # for CH5 (std z)
 
-    print(f"[CORRECT] All {len(poca_files)} files merged successfully.\n")
+# CH1 — all events
+np.add.at(m_counts_all,  (v_y, v_x), 1)
 
-    
-    # ===========================================================================
-    # CHANNEL CALCULATION: Derive 4 input channels for UNET1_2D
-    # ===========================================================================
+# CH2, CH3, CH5 — scattered only
+np.add.at(m_counts_scat,  (v_y[mask_scat], v_x[mask_scat]), 1)
+np.add.at(m_sum_theta_sq, (v_y[mask_scat], v_x[mask_scat]), theta_sq[mask_scat])
+np.add.at(m_sum_z,        (v_y[mask_scat], v_x[mask_scat]), poca_z[mask_scat])
+np.add.at(m_sum_z_sq,     (v_y[mask_scat], v_x[mask_scat]), poca_z[mask_scat]**2)
 
-    # Masks for safe division
-    mask_exists = m_counts_2d > 0
-    mask_stat = m_counts_2d > 1  # At least 2 events for sample variance
+# ---------------------------------------------------------------------------
+# Derived channels
+# ---------------------------------------------------------------------------
 
-    print("[CHANNELS] Computing 4-channel input for UNET1_2D...\n")
+# CH3 — mean(theta²) per XY cell, scattered only
+with np.errstate(invalid="ignore"):
+    m_mean_theta_sq = np.where(m_counts_scat > 0, m_sum_theta_sq / m_counts_scat, 0.0)
 
-    # ========== CHANNEL 0: Log(1 + counts) ==========
-    channel_0 = np.log1p(m_counts_2d)
-    print(f"[CH0] log(1 + N) - event counts per XY cell")
-    print(f"      Shape: {channel_0.shape}, min={channel_0.min():.4f}, max={channel_0.max():.4f}")
-    print(f"      Non-zero cells: {mask_exists.sum()}/{channel_0.size}\n")
+# CH4 — mean of top-3 theta² per XY cell (robust radiation length proxy)
+# Build per-cell list of theta² values, extract top-3
+print("[INFO] Computing top-3 theta² per XY cell...")
+m_top3_theta_sq = np.zeros((NY, NX), dtype=np.float32)
 
-    # ========== CHANNEL 1: Weighted mean of Z (weighted by theta²) per XY cell ==========
-    # This is a weighted average: mean_weighted(z, weights=θ²) = sum(z*θ²) / sum(θ²)
-    # High theta² events pull the Z average toward them, identifying strong scattering regions
-    channel_1 = np.zeros_like(m_counts_2d, dtype=np.float32)
-    mask_has_theta_sq = m_sum_theta_sq_2d > 0
-    channel_1[mask_has_theta_sq] = m_sum_z_theta_sq_2d[mask_has_theta_sq] / m_sum_theta_sq_2d[mask_has_theta_sq]
-    print(f"[CH1] weighted_mean(z, weights=θ²) - z position weighted by scattering strength")
-    print(f"      Shape: {channel_1.shape}, min={channel_1.min():.8f}, max={channel_1.max():.8f}")
-    print(f"      Mean (where events exist): {channel_1[mask_exists].mean():.8f}\n")
+# Group theta² by (iy, ix) cell efficiently
+cell_idx = v_y[mask_scat] * NX + v_x[mask_scat]  # flatten 2D index
+order    = np.argsort(cell_idx)                    # sort by cell
+cell_idx_sorted  = cell_idx[order]
+theta_sq_sorted  = theta_sq[mask_scat][order]
 
-    # ========== CHANNEL 2: Standard deviation of Z per XY cell ==========
-    # This is a proxy for material thickness: larger std = thicker material
-    channel_2 = np.zeros_like(m_counts_2d, dtype=np.float32)
-    
-    # E[Z] per cell
-    mean_poca_z = np.zeros_like(m_counts_2d)
-    mean_poca_z[mask_exists] = m_sum_poca_z_2d[mask_exists] / m_counts_2d[mask_exists]
-    
-    # E[Z²] per cell
-    mean_poca_z_sq = np.zeros_like(m_counts_2d)
-    mean_poca_z_sq[mask_exists] = m_sum_poca_z_sq_2d[mask_exists] / m_counts_2d[mask_exists]
-    
-    # Var(Z) = E[Z²] - (E[Z])² [population variance]
-    var_poca_z_pop = mean_poca_z_sq - mean_poca_z**2
-    var_poca_z_pop = np.maximum(0, var_poca_z_pop)
-    
-    # Apply Bessel correction for sample variance where N > 1
-    channel_2[mask_stat] = var_poca_z_pop[mask_stat] * (m_counts_2d[mask_stat] / (m_counts_2d[mask_stat] - 1))
-    
-    # Take square root to get standard deviation (not variance)
-    channel_2 = np.sqrt(channel_2)
-    
-    print(f"[CH2] std(Z) - Z-coordinate std dev, thickness proxy")
-    print(f"      Shape: {channel_2.shape}, min={channel_2.min():.8f}, max={channel_2.max():.8f}")
-    print(f"      Mean (where events exist): {channel_2[mask_exists].mean():.8f}\n")
+# Iterate over unique cells
+unique_cells, cell_starts = np.unique(cell_idx_sorted, return_index=True)
+cell_ends = np.append(cell_starts[1:], len(cell_idx_sorted))
 
-    # ========== CHANNEL 3: Top-20 theta² statistic per XY cell ==========
-    # Extract the 20th largest theta² value (or mean of top-20 if not enough values)
-    # This identifies regions with high scattering power
-    channel_3 = np.zeros_like(m_counts_2d, dtype=np.float32)
-    
-    for iy in range(args.npy):
-        for ix in range(args.npx):
-            theta_sq_list = m_theta_sq_pool_2d[iy][ix]
-            if len(theta_sq_list) > 0:
-                # Sort and take top-20 (or all if fewer than 20)
-                top_vals = np.sort(theta_sq_list)[-20:]  # Top 20 values
-                # Use the 20th percentile of these top values as channel (or mean if < 20 values)
-                channel_3[iy, ix, 0] = np.mean(top_vals)
-    
-    print(f"[CH3] mean(top-20 θ²) - maximum scattering power indicator")
-    print(f"      Shape: {channel_3.shape}, min={channel_3.min():.8f}, max={channel_3.max():.8f}")
-    print(f"      Mean (where events exist): {channel_3[mask_exists].mean():.8f}\n")
+for uid, start, end in zip(unique_cells, cell_starts, cell_ends):
+    vals   = theta_sq_sorted[start:end]
+    top3   = np.sort(vals)[-3:]          # up to 3 largest
+    iy, ix = divmod(int(uid), NX)
+    m_top3_theta_sq[iy, ix] = top3.mean()
 
+# CH5 — std(poca_z) per XY cell, scattered only
+with np.errstate(invalid="ignore"):
+    mean_z = np.where(m_counts_scat > 0, m_sum_z / m_counts_scat, 0.0)
+    var_z  = np.where(m_counts_scat > 0, m_sum_z_sq / m_counts_scat - mean_z**2, 0.0)
+    var_z  = np.maximum(var_z, 0.0)   # numerical safety
+    m_std_z = np.sqrt(var_z)
 
+# ---------------------------------------------------------------------------
+# Add channel axis → shape (NY, NX, 1) for consistency with UNet input
+# ---------------------------------------------------------------------------
+def to_channel(m):
+    return m[:, :, np.newaxis].astype(np.float32)
 
-    # ===========================================================================
-    # SAVE 4-CHANNEL OUTPUT (npy, npx, 4)
-    # ===========================================================================
-    
-    # Stack 4 channels: (npy, npx, 1) x 4 -> (npy, npx, 4)
-    training_channels = np.concatenate([
-        channel_0,  # Channel 0: log(1+N)
-        channel_1,  # Channel 1: mean(z * θ²)
-        channel_2,  # Channel 2: std(Z) - thickness proxy
-        channel_3   # Channel 3: mean(top-20 θ²) - scattering power
-    ], axis=2)
-    
-    print(f"[OUTPUT] Stacking 4 channels...")
-    print(f"         Final shape: {training_channels.shape}")
-    assert training_channels.shape == (args.npy, args.npx, 4), \
-        f"Shape mismatch: expected ({args.npy}, {args.npx}, 4) but got {training_channels.shape}"
+output_dict = {
+    "counts_all_2d"    : to_channel(m_counts_all),    # CH1 — body shape (MTR)
+    "counts_scat_2d"   : to_channel(m_counts_scat),   # CH2 — scattered muon density
+    "mean_theta_sq_2d" : to_channel(m_mean_theta_sq), # CH3 — scattering density
+    "top3_theta_sq_2d" : to_channel(m_top3_theta_sq), # CH4 — radiation length proxy
+    "std_z_2d"         : to_channel(m_std_z),          # CH5 — material thickness proxy
+}
 
-    # Save in dict format (allows pickle loading with allow_pickle=True)
-    # Load as: data = np.load("file.npy", allow_pickle=True).item()
-    #          training = data["training_channels"]
-    output_dict = {
-        "training_channels": training_channels,  # Shape (npy, npx, 4) ready for UNET1_2D
-        "channel_names": ["log(1+N)", "weighted_mean(z, θ²)", "std(Z)", "mean(top-20 θ²)"],
-        "channel_0_log_counts": channel_0,
-        "channel_1_weighted_mean_z": channel_1,
-        "channel_2_std_z": channel_2,
-        "channel_3_top20_theta_sq": channel_3,
-        "metadata": {
-            "total_events": m_counts_2d.sum(),
-            "n_geometries": len(poca_files),
-            "geometry_name": args.namefile
-        }
+# ---------------------------------------------------------------------------
+# Save
+# ---------------------------------------------------------------------------
+out_path = f"{args.output}.npy"
+np.save(out_path, output_dict)
+print(f"[CORRECT] Channels saved to: {out_path}")
+
+# Summary
+for key, val in output_dict.items():
+    print(f"  {key:25s} shape={val.shape}  max={val.max():.4f}  nonzero={np.count_nonzero(val)}")
+
+# ---------------------------------------------------------------------------
+# Visualization (optional)
+# ---------------------------------------------------------------------------
+if args.visualization:
+    import matplotlib
+    matplotlib.use("Agg")  # sin interfaz gráfica, para cluster
+    import matplotlib.pyplot as plt
+
+    channel_labels = {
+        "counts_all_2d"    : "CH1 — N counts all (MTR, body shape)",
+        "counts_scat_2d"   : "CH2 — N counts scattered",
+        "mean_theta_sq_2d" : "CH3 — mean(θ²) scattered",
+        "top3_theta_sq_2d" : "CH4 — mean top-3 θ² (radiation length proxy)",
+        "std_z_2d"         : "CH5 — std(z) scattered (thickness proxy)",
     }
-    np.save(args.output, output_dict)
-    
-    print(f"\n[CORRECT] Merged result saved to: {args.output}")
-    print(f"[INFO] Total accumulated events: {m_counts_2d.sum():.0f}")
-    print(f"[INFO] Load with: data = np.load('{args.output}', allow_pickle=True).item()")
-    print(f"[INFO] Access training data: training = data['training_channels']")
 
+    n_channels = len(output_dict)
+    fig, axes = plt.subplots(1, n_channels, figsize=(5 * n_channels, 5))
 
-else:   
-    print(f"[ERROR] ----- Dimension {args.dimension} not implemented yet.")
+    extent = [-X_LIM, X_LIM, -Y_LIM, Y_LIM]
+
+    for ax, (key, val) in zip(axes, output_dict.items()):
+        data = val[:, :, 0]  # remove channel axis → (NY, NX)
+        im = ax.imshow(
+            data,
+            origin="lower",
+            extent=extent,
+            cmap="viridis",
+            aspect="equal",
+        )
+        ax.set_title(channel_labels[key], fontsize=9)
+        ax.set_xlabel("X [cm]")
+        ax.set_ylabel("Y [cm]")
+        plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+
+    plt.suptitle(f"Merge result — {total_events} total events", fontsize=11)
+    plt.tight_layout()
+
+    plot_path = f"{args.output}_channels.png"
+    plt.savefig(plot_path, dpi=150, bbox_inches="tight")
+    print(f"[CORRECT] Visualization saved to: {plot_path}")
+    plt.close()

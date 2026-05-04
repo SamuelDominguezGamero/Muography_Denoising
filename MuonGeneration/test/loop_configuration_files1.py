@@ -1,14 +1,9 @@
 """
-This file automates the full simulation pipeline:
-  1. Creates all geometry files (JSON) for the neural network training dataset.
-  2. Submits SLURM jobs for each geometry x seed combination. Each job:
-       - Runs the Geant4 Monte Carlo simulation
-       - Correlates muon tracks (makeHLTuple.py)
-       - Runs the POCA reconstruction (POCA.py)
-  3. Submits a merge job per geometry with --dependency=afterok,
-     so it only runs when ALL jobs for that geometry finish successfully.
-
-FOR UNET1_2D ---> Predict 2D density maps from 2D XY muon data
+SIMULATION PIPELINE
+- look for geometry files (json)
+- simulate with Geant4 (SLURM jobs, throttled to avoid overloading the queue)
+- post-process with makeHLTuple and POCA (in the same SLURM job, after simulation)
+- merge results with merge_results_1.py (SLURM job dependent on all simulation jobs finishing successfully)
 """
 
 import subprocess
@@ -25,11 +20,9 @@ from numpy.random import Generator, PCG64, SeedSequence
 # ===========================================================================
 # CONTROL FLAGS
 # ===========================================================================
-create_geometries = False
 simulate          = True    # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
-max_geometries    = 1     # the first geometries to be tested on
 max_geometries_simulated = 1  # the first geometries to be simulated (if simulate=True)
 
 force_resimulate  = False   # set to True to re-process geometries even if merged results exist
@@ -41,7 +34,7 @@ force_resimulate  = False   # set to True to re-process geometries even if merge
 # Run `sacctmgr show user <username> withassoc` or ask your sysadmin.
 # A safe default is to leave ~10% headroom below your real limit.
 MAX_JOBS_IN_QUEUE = 2000      # adjust to your cluster's limit
-THROTTLE_SLEEP    = 10     # seconds to wait when queue is full before retrying
+THROTTLE_SLEEP    = 10        # seconds to wait when queue is full before retrying
 
 def get_current_job_count(username="dominguezs"):
     """Returns the number of jobs currently in the SLURM queue for the user."""
@@ -61,42 +54,6 @@ def wait_for_slot(username="dominguezs", max_jobs=MAX_JOBS_IN_QUEUE, sleep=THROT
         print(f"[THROTTLE] Queue full ({count}/{max_jobs} jobs). Waiting {sleep}s before retrying...")
         time.sleep(sleep)
 
-# ===========================================================================
-# ERROR TRACKING SYSTEM
-# ===========================================================================
-# Track which geometries failed during creation, so we can skip them in STEP 2
-# Data structure: { "geometry_name": {"error": "error message", "timestamp": "..."} }
-ERROR_LOG_FILE = os.path.join(os.path.dirname(__file__), ".geometry_errors.json")
-
-def load_error_log():
-    """Load the error log from disk."""
-    if os.path.exists(ERROR_LOG_FILE):
-        try:
-            with open(ERROR_LOG_FILE, "r") as f:
-                return json.load(f)
-        except:
-            return {}
-    return {}
-
-def save_error_log(error_dict):
-    """Save the error log to disk."""
-    with open(ERROR_LOG_FILE, "w") as f:
-        json.dump(error_dict, f, indent=2)
-
-def record_geometry_error(namefile, error_message):
-    """Record that a geometry failed during creation."""
-    error_log = load_error_log()
-    error_log[namefile] = {
-        "error": error_message.strip(),
-        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-    }
-    save_error_log(error_log)
-    print(f"[ERROR RECORDED] {namefile} marked as FAILED (logged in {ERROR_LOG_FILE})")
-
-def is_geometry_failed(namefile):
-    """Check if a geometry is marked as failed."""
-    error_log = load_error_log()
-    return namefile in error_log
 
 # ===========================================================================
 # SECURITY CHECKS
@@ -104,8 +61,8 @@ def is_geometry_failed(namefile):
 if environment == "local":
     simulate = False
 
-if not create_geometries:
-    print("[INFO] create_geometries=False. Set it to True to create geometries.")
+if not simulate:
+    sys.exit("[INFO] ----- simulate=False. Set it to True to submit SLURM jobs.")
 
 
 # ===========================================================================
@@ -169,52 +126,9 @@ zPosDetector_bot = -54
 
 
 # ===========================================================================
-# GEOMETRY VARIATIONS
-# ===========================================================================
-# IMPORTANT: Not all combinations are valid. Check bitmaps_letters.py BITMAP_DATA:
-#   - Sizes 8, 10, 12, 14, 16: Only stroke 1, 2 available
-#   - Stroke 3 is NOT available for any size yet
-#   - Only letters available: M, U, O, N
-
-spacings       = [1, 2, 3, 4, 5, 6] 
-ratios         = [1, 2]
-# Strategy: Use multiple sizes with stroke variations that are actually available
-fontsizes      = [8, 10, 12, 14, 16] # readd 8, 10, 14, 16
-strokes        = [3] # readd 1
-
-FontSizes      = [# NOW UNUSED, SHOULD BE REMOVED
-    {"size": 8,  "strokes": [1, 2]},
-    {"size": 10, "strokes": [1, 2]},
-    {"size": 12, "strokes": [1, 2]},
-    {"size": 14, "strokes": [1, 2]},
-    {"size": 16, "strokes": [1, 2]},
-]
-
-materials      = ["lead", "iron", "uranium", "aluminium", "silicon", "steel"]
-words_geometry = ["MUON", "MUNO", "NOMU", "MOUN", "NOUM", "NMOU", "MNOU", "NMUO", "MNUO", "ONUM", "OUMN", "UONM", "UNOM", "UOMN"]
-
-# Count total valid geometries
-# FIX: stroke 3 is NOT valid for any fontsize (condition was inverted before)
-total_geometries = 0
-for material in materials:
-    for spacing in spacings:
-        for ratio in ratios:
-            for fontsize in fontsizes:
-                for word in words_geometry:
-                    for stroke in strokes:
-                            total_geometries += 1
-
-print(f"[INFO] ----- Total geometries to generate: {total_geometries}")
-time.sleep(5)
-print(60 * "-")
-time.sleep(1)
-print(60 * "-")
-time.sleep(1)
-
-# ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 1_000_000 
+total_muons_per_geometry = 3_000_000 
 n_muons_per_job          = 50_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
@@ -226,149 +140,6 @@ print(60 * "-")
 print(f"[INFO] Jobs per geometry:  {n_jobs_per_geometry}")
 time.sleep(1)
 print(60 * "-")
-print(f"[INFO] Total jobs:         {total_geometries * n_jobs_per_geometry:,}")
-
-
-# ===========================================================================
-# STEP 1: GEOMETRY CREATION
-# ===========================================================================
-print("\n" + "="*60)
-print("STEP 1: GEOMETRY CREATION")
-print("="*60)
-
-i = 0
-done_creating = False
-for spacing in spacings:
-    if not create_geometries or done_creating:
-        break
-    for ratio in ratios:
-        if done_creating:
-            break
-        for fontsize in fontsizes:
-            if done_creating:
-                break
-            x = fontsize
-            for material in materials:
-                if done_creating:
-                    break
-                for word in words_geometry:
-                    if done_creating:
-                        break
-                    for stroke in strokes:
-                        # FIX: stroke 3 not valid for any size yet (condition was inverted before)
-                        if stroke == 3:
-                            continue
-                        i += 1 # geometries counting
-                        if i > max_geometries:
-                            print(f"[INFO] Reached max_geometries={max_geometries}. Stopping geometry creation.")
-                            done_creating = True
-                            break
-                        namefile = (
-                            f"_Lpx{Lpx}_Lpy{Lpy}_Lpz{Lpz}"
-                            f"_npx{npx}_npy{npy}_npz{npz}"
-                            f"_zTop{zPosDetector_top}_zBot{zPosDetector_bot}"
-                            f"_spacing{spacing}_ratio{ratio}"
-                            f"_FontX{x}_FontY{x}"
-                            f"_mat{material}_word{word}_stroke{stroke}"
-                        )
-
-                        if os.path.exists(os.path.join(PATH_geometry_files, namefile + ".json")):
-                            print(f"[INFO | EXISTING] ----- Geometry {i}/{total_geometries} ALREADY EXISTS, skipping: {namefile}")
-                            continue
-
-                        output_json    = os.path.join(PATH_geometry_files, namefile + ".json")
-                        output_density3D = os.path.join(PATH_density_files3D,  namefile + "_ground_truth_density3D.npy")
-                        output_density2D = os.path.join(PATH_density_files2D,  namefile + "_ground_truth_density2D.npy")
-
-                        command = [
-                            "python3", CREATE_GEOMETRY_SCRIPT,
-                            "--Lpx", str(Lpx),
-                            "--Lpy", str(Lpy),
-                            "--Lpz", str(Lpz),
-                            "--npx", str(npx),
-                            "--npy", str(npy),
-                            "--npz", str(npz),
-                            "--zPosDetector_top",             str(zPosDetector_top),
-                            "--zPosDetector_bot",             str(zPosDetector_bot),
-                            "--spacing",                      str(spacing),
-                            "--ratio",                        str(ratio),
-                            "--FontSizeX",                    str(x),
-                            "--FontSizeY",                    str(x),
-                            "--material",                     material,
-                            "--word_geometry",                word,
-                            "--StrokeWidth",                  str(stroke),
-                            "--output_json",                  output_json,
-                            "--dimensions",                   str(dimension),
-                            "--output2D_density",             output_density2D,
-                            "--output3D_density",             output_density3D
-                        ]
-                        if environment == "local":
-                            result = subprocess.run(command, capture_output=True, text=True)
-                        elif environment == "cluster":
-                            # Throttle: wait if queue is full before submitting geometry job
-                            current_count = wait_for_slot(SLURM_USER, MAX_JOBS_IN_QUEUE, THROTTLE_SLEEP)
-
-                            inner_command = " ".join(command)
-                            full_wrap = f"source {PATH_setup} && {inner_command}"
-
-                            sbatch_args = [
-                                "sbatch",
-                                f"--job-name=geom_{i}",
-                                "--time=01:00:00",
-                                "--mem=8G",
-                                "--cpus-per-task=2",
-                                f"--output={PATH_logs}/log_geom_{i}.out",
-                                f"--chdir={PATH_logs}",
-                                f"--wrap={full_wrap}",
-                                "--partition=wncompute_ifca"
-                            ]
-
-                            result = subprocess.run(sbatch_args, capture_output=True, text=True)
-
-                            print(f"[INFO] Geometry {i}/{total_geometries} creation started: {namefile} (queue: {current_count+1}/{MAX_JOBS_IN_QUEUE})")
-                            time.sleep(0.1)
-                        
-                        # Check for errors
-                        if result.returncode != 0:
-                            error_msg = result.stderr if result.stderr else result.stdout
-                            print(f"[ERROR] Geometry {i}/{total_geometries} FAILED: {namefile}")
-                            print(f"        Error: {error_msg[:150]}")
-                            record_geometry_error(namefile, error_msg)
-                            print(80 * '-')
-                        else:
-                            if environment == "local":
-                                print(f"[CORRECT] Geometry {i}/{total_geometries} created: {namefile}")
-                            else:
-                                print(f"[INFO] Geometry {i}/{total_geometries} job submitted: {namefile}")
-                            print(80 * '-')
-                            time.sleep(0.1)
-
-
-print("="*60)
-print("\n[CORRECT] ALL GEOMETRIES CREATED SUCCESSFULLY")
-print("="*60 + "\n")
-
-# ===========================================================================
-# WAIT FOR GEOMETRY JOBS TO FINISH (if cluster environment)
-# ===========================================================================
-if create_geometries and environment == "cluster":
-    print("[INFO] Waiting for geometry creation jobs to complete...")
-    import subprocess as sp
-    max_wait = 1800  # 30 minutes max
-    elapsed = 0
-    while elapsed < max_wait:
-        result = sp.run(["squeue", "-u", SLURM_USER, "-h"], capture_output=True, text=True)
-        job_count = len([l for l in result.stdout.strip().split('\n') if l and 'geom_' in l])
-        if job_count == 0:
-            print("[INFO] All geometry jobs finished.")
-            break
-        print(f"[INFO] Waiting for {job_count} geometry job(s)... ({elapsed}s)")
-        time.sleep(5)
-        elapsed += 5
-    if elapsed >= max_wait:
-        print("[WARNING] Timeout waiting for geometry jobs. Proceeding anyway.")
-    print()
-
 
 # ===========================================================================
 # STEP 2: SIMULATION == SLURM JOB SUBMISSION + MERGE WITH DEPENDENCY
@@ -378,10 +149,8 @@ print("="*60)
 print("STEP 2: SLURM JOB SUBMISSION")
 print("="*60)
 print("="*60)
-time.sleep(10)
+time.sleep(5)
 
-if not simulate:
-    sys.exit("[INFO] simulate=False. Set it to True to submit SLURM jobs.")
 
 os.makedirs(PATH_logs,          exist_ok=True)
 os.makedirs(PATH_output_raw,    exist_ok=True)
@@ -409,18 +178,9 @@ for file in glob.glob(os.path.join(PATH_merged_output, "*.npy")):
     all_simulation_DataFiles.append(file)
 print(f"[INFO] ----- Total number of simulation data files available: {len(all_simulation_DataFiles)}")
 
-# Load error log to track failed geometries
-error_log = load_error_log()
-if error_log:
-    print(f"[WARNING] Found {len(error_log)} geometries marked as FAILED from previous runs:")
-    for geom_name, info in list(error_log.items())[:5]:  # Show first 5
-        print(f"          - {geom_name}")
-    if len(error_log) > 5:
-        print(f"          ... and {len(error_log) - 5} more")
 
 
 
-# SIMULATION (SKIPPING ALREADY SIMULATED GEOMETRIES, FOR THE CHOSEN MUON FLUX)
 i = 0
 for file in all_json_files:
     i += 1
@@ -432,18 +192,8 @@ for file in all_json_files:
     namefile = os.path.splitext(os.path.basename(file))[0]
     geometry_file = file # full path with extension
 
-    # Check if this geometry is marked as failed from previous runs
-    if is_geometry_failed(namefile):
-        print(f"[SKIP] Geometry marked as FAILED (creation error): {namefile}")
-        geometries_failed_during_creation += 1
-        continue
 
-    if not os.path.exists(geometry_file):
-        print(f"[WARNING] Geometry file disappeared: {geometry_file}")
-        print(f"[INFO] Marking as failed and skipping...")
-        record_geometry_error(namefile, "Geometry file not found on disk")
-        geometries_failed_during_creation += 1
-        continue
+
 
     # Check if merged result already exists WITH THE EXACT NUMBER OF MUONS
     # Try both new format (_Muons_) and legacy format (for backwards compatibility)
@@ -691,15 +441,7 @@ echo "[CORRECT] Cleanup finished."
 print("\n" + "="*60)
 print("[FINAL SUMMARY]")
 print("="*60)
-print(f"[INFO] Geometries failed during creation:    {geometries_failed_during_creation}")
 print(f"[INFO] Geometries skipped (already simulated): {geometries_skipped}")
 print(f"[INFO] Simulation jobs submitted:             {jobs_submitted}")
 print(f"[INFO] Simulation jobs failed:                {jobs_failed}")
 print(f"[INFO] Merge jobs submitted:                  {merges_submitted}")
-print("="*60)
-
-if error_log:
-    print(f"\n[WARNING] ERROR LOG: {len(error_log)} geometries marked as FAILED")
-    print(f"[INFO] Error log file: {ERROR_LOG_FILE}")
-    print("[INFO] To clear errors and retry failed geometries, delete this file:")
-    print(f"      rm {ERROR_LOG_FILE}\n")
