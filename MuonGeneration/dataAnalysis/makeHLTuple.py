@@ -4,6 +4,7 @@ from array import array
 from tools.Event import Event
 from tools.EventLoader import EventLoader
 
+print("[INFO] ----- Libraries and tools successfully loaded, starting track correlations")
 
 if __name__ == '__main__':
 
@@ -60,6 +61,7 @@ if __name__ == '__main__':
     t.Branch('energy2', energy2, 'energy2/F')
    
     counter = 0
+    print("Starting loop over events")
     for ev in events:       
         counter = counter + 1
         if not ev.validEvent():

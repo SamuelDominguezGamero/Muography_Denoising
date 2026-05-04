@@ -32,7 +32,7 @@ ROOT.gROOT.SetBatch(True)  # ← imprescindible en clusters, para que no use int
 # ---------------------------------------------------------------------------
 parser = argparse.ArgumentParser(description="POCA voxelization of muon scattering data.")
 parser.add_argument("--input",  required=True, help="Input ROOT file with muon trajectory data.")
-parser.add_argument("--output", default="output.npy", help="Output .npy file containing a dict with keys 'n_events', 'sum_theta', 'sum_theta_sq'.")
+parser.add_argument("--output", default="output", help="Output .npy file containing a dict with keys 'n_events', 'sum_theta', 'sum_theta_sq'.")
 parser.add_argument("--plot",   action="store_true", help="If set, plot the resulting voxel grid.")
 parser.add_argument("--Lpx", type=float, default=128.0, help="Physical length of the geometry in X [cm].")
 parser.add_argument("--Lpy", type=float, default=128.0, help="Physical length of the geometry in Y [cm].")
@@ -102,7 +102,8 @@ def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
            .Define("E", "vx2*vx2 + vy2*vy2 + vz2*vz2")
 
     # Denominator: zero when trajectories are parallel (no unique POCA)
-    df = df.Define("denom", "C*E - B*B")
+    df = df.Define("denom", "C*E - B*B") \
+           .Define("is_parallel", "abs(denom) <= 1e-9")  # ← booleano por evento: True si las trayectorias son paralelas (el muón no se desvía), False si no lo son (el muón realiza scattering)
 
     # Parametric distances along each trajectory to the closest approach point
     # t1 = (A*E - B*D) / denom
@@ -118,9 +119,9 @@ def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
 
     # Keep only POCA points that fall inside the physical volume
     df = df.Filter(
-        f"poca_x >= {-X_LIM} && poca_x < {X_LIM} &&"
-        f"poca_y >= {-Y_LIM} && poca_y < {Y_LIM} &&"
-        f"poca_z >= {-Z_LIM} && poca_z < {Z_LIM}"
+        f"poca_x >= {-X_LIM} && poca_x <= {X_LIM} &&"
+        f"poca_y >= {-Y_LIM} && poca_y <= {Y_LIM} &&"
+        f"poca_z >= {-Z_LIM} && poca_z <= {Z_LIM}"
     )
 
     # Scattering angle between incoming and outgoing trajectories
@@ -134,102 +135,108 @@ def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
            .Define("voxel_z", f"int(fmin({args.npz}-1, fmax(0, (poca_z + {Z_LIM}) / (2*{Z_LIM} / {args.npz}))))")
 
 
-    res = df.AsNumpy(columns=["theta", "voxel_x", "voxel_y", "voxel_z", "poca_z"])
+    export_columns = ["theta", "poca_x", "poca_y", "poca_z", "is_parallel"]
+    df.Snapshot("events", f"{args.output}.root", export_columns)
+    print("[CORRECT] ----- POCA points and scattering angles saved to ROOT file.")
+
+get_poca_info_ROOT(args.input, X_LIM, Y_LIM, Z_LIM)
+
+
+
+
+#     res = df.AsNumpy(columns=["theta", "voxel_x", "voxel_y", "voxel_z", "poca_z", "is_parallel"])
     
-    n_events_filtered = len(res['theta'])
-    print(f"POCA aplicado. Eventos tras filtro: {n_events_filtered}")
+#     n_events_filtered = len(res['theta'])
+#     print(f"POCA aplicado. Eventos tras filtro: {n_events_filtered}")
 
-    # 2. Initialize matrices with Numpy
-    matrix_counts = np.zeros((args.npy, args.npx, args.npz))
-    matrix_sum_theta = np.zeros((args.npy, args.npx, args.npz))
-    matrix_sum_theta_sq = np.zeros((args.npy, args.npx, args.npz))
-    matrix_sum_poca_z = np.zeros((args.npy, args.npx, args.npz))
-    matrix_sum_poca_z_sq = np.zeros((args.npy, args.npx, args.npz))
+#     # 2. Initialize matrices with Numpy
+#     matrix_counts = np.zeros((args.npy, args.npx, args.npz))
+#     matrix_sum_theta = np.zeros((args.npy, args.npx, args.npz))
+#     matrix_sum_theta_sq = np.zeros((args.npy, args.npx, args.npz))
+#     matrix_sum_poca_z = np.zeros((args.npy, args.npx, args.npz))
+#     matrix_sum_poca_z_sq = np.zeros((args.npy, args.npx, args.npz))
 
-    # 3. Fill matrices using voxel indices
-    # Get arrays to avoid repeated dict access
-    v_x = res['voxel_x'].astype(int)
-    v_y = res['voxel_y'].astype(int)
-    v_z = res['voxel_z'].astype(int)
-    theta = res['theta']
-    poca_z = res['poca_z']
-    theta_sq = theta**2
+#     # 3. Fill matrices using voxel indices
+#     # Get arrays to avoid repeated dict access
+#     v_x = res['voxel_x'].astype(int)
+#     v_y = res['voxel_y'].astype(int)
+#     v_z = res['voxel_z'].astype(int)
+#     theta = res['theta']
+#     poca_z = res['poca_z']
+#     theta_sq = theta**2
 
-    np.add.at(matrix_counts, (v_y, v_x, v_z), 1)
-    np.add.at(matrix_sum_theta, (v_y, v_x, v_z), theta)
-    np.add.at(matrix_sum_theta_sq, (v_y, v_x, v_z), theta_sq)
-    np.add.at(matrix_sum_poca_z, (v_y, v_x, v_z), poca_z)
-    np.add.at(matrix_sum_poca_z_sq, (v_y, v_x, v_z), poca_z**2)
-
-    return (matrix_counts, matrix_sum_theta, matrix_sum_theta_sq, 
-            matrix_sum_poca_z, matrix_sum_poca_z_sq,
-            v_y, v_x, v_z, theta, poca_z, theta_sq)
+#     np.add.at(matrix_counts, (v_y, v_x, v_z), 1)
+#     np.add.at(matrix_sum_theta, (v_y, v_x, v_z), theta)
+#     np.add.at(matrix_sum_theta_sq, (v_y, v_x, v_z), theta_sq)
+#     np.add.at(matrix_sum_poca_z, (v_y, v_x, v_z), poca_z)
+#     np.add.at(matrix_sum_poca_z_sq, (v_y, v_x, v_z), poca_z**2)
 
 
-# important comment: we are counting from the bottom-left corner of the volume
-# the spatial grid is indexed as follows (standard numpy image convention):
-# matrix[iy, ix, iz] where:
-#   - iy: row index (Y coordinate, 0 at bottom with origin='lower')
-#   - ix: column index (X coordinate, 0 at left)
-#   - iz: depth index (Z coordinate)
 
-matrix_counts, matrix_sum_theta, matrix_sum_theta_sq, matrix_sum_poca_z, matrix_sum_poca_z_sq, v_y, v_x, v_z, theta, poca_z, theta_sq = get_poca_info_ROOT(args.input, X_LIM, Y_LIM, Z_LIM)
+# # important comment: we are counting from the bottom-left corner of the volume
+# # the spatial grid is indexed as follows (standard numpy image convention):
+# # matrix[iy, ix, iz] where:
+# #   - iy: row index (Y coordinate, 0 at bottom with origin='lower')
+# #   - ix: column index (X coordinate, 0 at left)
+# #   - iz: depth index (Z coordinate)
+
+# matrix_counts, matrix_sum_theta, matrix_sum_theta_sq, matrix_sum_poca_z, matrix_sum_poca_z_sq, v_y, v_x, v_z, theta, poca_z, theta_sq = get_poca_info_ROOT(args.input, X_LIM, Y_LIM, Z_LIM)
 
 
-if args.dimension == "2D":
-    # Project 3D grid onto XY plane by summing over Z
-    # Each 2D cell contains integrated information along the Z axis
+# if args.dimension == "2D":
+#     # Project 3D grid onto XY plane by summing over Z
+#     # Each 2D cell contains integrated information along the Z axis
 
-    # For 2D: project from (npy, npx, npz) to (npy, npx, 1)
-    m_counts_2d = np.sum(matrix_counts, axis=2)[:, :, np.newaxis]
-    m_sum_theta_2d = np.sum(matrix_sum_theta, axis=2)[:, :, np.newaxis]
-    m_sum_theta_sq_2d = np.sum(matrix_sum_theta_sq, axis=2)[:, :, np.newaxis]
-    m_sum_poca_z_2d = np.sum(matrix_sum_poca_z, axis=2)[:, :, np.newaxis]
-    m_sum_poca_z_sq_2d = np.sum(matrix_sum_poca_z_sq, axis=2)[:, :, np.newaxis]
+#     # For 2D: project from (npy, npx, npz) to (npy, npx, 1)
+#     m_counts_2d = np.sum(matrix_counts, axis=2)[:, :, np.newaxis]
+#     m_sum_theta_2d = np.sum(matrix_sum_theta, axis=2)[:, :, np.newaxis]
+#     m_sum_theta_sq_2d = np.sum(matrix_sum_theta_sq, axis=2)[:, :, np.newaxis]
+#     m_sum_poca_z_2d = np.sum(matrix_sum_poca_z, axis=2)[:, :, np.newaxis]
+#     m_sum_poca_z_sq_2d = np.sum(matrix_sum_poca_z_sq, axis=2)[:, :, np.newaxis]
 
-    # Calculate sum(z * theta²) for weighted scattering info
-    matrix_sum_z_theta_sq = np.zeros((args.npy, args.npx, args.npz))
-    np.add.at(matrix_sum_z_theta_sq, (v_y, v_x, v_z), poca_z * theta_sq)
-    m_sum_z_theta_sq_2d = np.sum(matrix_sum_z_theta_sq, axis=2)[:, :, np.newaxis]
+#     # Calculate sum(z * theta²) for weighted scattering info
+#     matrix_sum_z_theta_sq = np.zeros((args.npy, args.npx, args.npz))
+#     np.add.at(matrix_sum_z_theta_sq, (v_y, v_x, v_z), poca_z * theta_sq)
+#     m_sum_z_theta_sq_2d = np.sum(matrix_sum_z_theta_sq, axis=2)[:, :, np.newaxis]
 
-    # Store top-3 theta² values per XY cell (for later merging into top-20)
-    # Initialize storage for top-3 theta² per cell: (npy, npx, 3)
-    m_top3_theta_sq_2d = np.zeros((args.npy, args.npx, 3))
+#     # Store top-3 theta² values per XY cell (for later merging into top-20)
+#     # Initialize storage for top-3 theta² per cell: (npy, npx, 3)
+#     m_top3_theta_sq_2d = np.zeros((args.npy, args.npx, 3))
     
-    # Directly store top-3 from the raw event data
-    # Create a dictionary to store theta² values for each (iy, ix) cell
-    theta_sq_by_cell = {}
-    for idx in range(len(v_y)):
-        key = (int(v_y[idx]), int(v_x[idx]))
-        if key not in theta_sq_by_cell:
-            theta_sq_by_cell[key] = []
-        theta_sq_by_cell[key].append(float(theta_sq[idx]))
+#     # Directly store top-3 from the raw event data
+#     # Create a dictionary to store theta² values for each (iy, ix) cell
+#     theta_sq_by_cell = {}
+#     for idx in range(len(v_y)):
+#         key = (int(v_y[idx]), int(v_x[idx]))
+#         if key not in theta_sq_by_cell:
+#             theta_sq_by_cell[key] = []
+#         theta_sq_by_cell[key].append(float(theta_sq[idx]))
     
-    # Extract top-3 from each cell
-    for (iy, ix), theta_sq_list in theta_sq_by_cell.items():
-        if len(theta_sq_list) > 0:
-            top_vals = np.sort(theta_sq_list)[-3:]  # Top 3 values
-            m_top3_theta_sq_2d[iy, ix, :len(top_vals)] = top_vals
+#     # Extract top-3 from each cell
+#     for (iy, ix), theta_sq_list in theta_sq_by_cell.items():
+#         if len(theta_sq_list) > 0:
+#             top_vals = np.sort(theta_sq_list)[-3:]  # Top 3 values
+#             m_top3_theta_sq_2d[iy, ix, :len(top_vals)] = top_vals
 
-    # Save in format expected by merge_results_1.py
-    output_dict = {
-        "counts_2d": m_counts_2d,
-        "sum_theta_2d": m_sum_theta_2d,
-        "sum_theta_sq_2d": m_sum_theta_sq_2d,
-        "sum_poca_z_2d": m_sum_poca_z_2d,
-        "sum_poca_z_sq_2d": m_sum_poca_z_sq_2d,
-        "sum_z_theta_sq_2d": m_sum_z_theta_sq_2d,
-        "top3_theta_sq_2d": m_top3_theta_sq_2d
-    }
+#     # Save in format expected by merge_results_1.py
+#     output_dict = {
+#         "counts_2d": m_counts_2d,
+#         "sum_theta_2d": m_sum_theta_2d,
+#         "sum_theta_sq_2d": m_sum_theta_sq_2d,
+#         "sum_poca_z_2d": m_sum_poca_z_2d,
+#         "sum_poca_z_sq_2d": m_sum_poca_z_sq_2d,
+#         "sum_z_theta_sq_2d": m_sum_z_theta_sq_2d,
+#         "top3_theta_sq_2d": m_top3_theta_sq_2d
+#     }
 
-    np.save(args.output, output_dict)
+#     np.save(args.output, output_dict)
 
-    print(f"[CORRECT] POCA results saved to: {args.output}")
-    print("[INFO] ----- 2D projection complete!")
+#     print(f"[CORRECT] POCA results saved to: {args.output}")
+#     print("[INFO] ----- 2D projection complete!")
 
 
-elif args.dimension == "3D":
-    # complete code
-    print(f"[ERROR] ----- Dimension {args.dimension} not implemented yet.")
-    sys.exit()
+# elif args.dimension == "3D":
+#     # complete code
+#     print(f"[ERROR] ----- Dimension {args.dimension} not implemented yet.")
+#     sys.exit()
 

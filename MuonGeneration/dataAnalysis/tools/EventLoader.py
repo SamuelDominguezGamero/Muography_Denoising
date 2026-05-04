@@ -33,8 +33,14 @@ class EventLoader:
         events = []
         event = -1
         counter = -1
+        
+        try:
+            hits_tree = f.hits # supported in old versions of ROOT
+        except AttributeError:
+            hits_tree = f.Get('hits') # modern alternative
 
-        for ev in f.hits:
+
+        for ev in hits_tree:
             if event != ev.eventNumber:
                 newEvent = Event(ev.eventNumber, nDet, nLayer)
                 newEvent.add(ev.det, ev.layer, ev.energy, ev.x, ev.y, ev.z, ev.vx, ev.vy, ev.vz, ev.localx, ev.localy, ev.localz, ev.localvx, ev.localvy, ev.localvz, ev.genID)
