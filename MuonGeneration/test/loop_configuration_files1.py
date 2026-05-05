@@ -23,7 +23,7 @@ from numpy.random import Generator, PCG64, SeedSequence
 simulate          = True    # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
-max_geometries_simulated = 1  # the first geometries to be simulated (if simulate=True)
+max_geometries_simulated = 1900  # the first geometries to be simulated (if simulate=True)
 
 force_resimulate  = False   # set to True to re-process geometries even if merged results exist
 
@@ -33,8 +33,8 @@ force_resimulate  = False   # set to True to re-process geometries even if merge
 # Maximum number of jobs allowed in the queue at the same time for this user.
 # Run `sacctmgr show user <username> withassoc` or ask your sysadmin.
 # A safe default is to leave ~10% headroom below your real limit.
-MAX_JOBS_IN_QUEUE = 2000      # adjust to your cluster's limit
-THROTTLE_SLEEP    = 10        # seconds to wait when queue is full before retrying
+MAX_JOBS_IN_QUEUE = 1000      # adjust to your cluster's limit
+THROTTLE_SLEEP    = 15      # seconds to wait when queue is full before retrying
 
 def get_current_job_count(username="dominguezs"):
     """Returns the number of jobs currently in the SLURM queue for the user."""
