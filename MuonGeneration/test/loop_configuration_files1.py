@@ -249,7 +249,7 @@ for file in all_json_files:
 
         out_raw  = os.path.join(PATH_output_raw,   f"Out_{namefile}_seed{seed}.root")
         out_pre  = os.path.join(PATH_preprocessed, f"Pre_{namefile}_seed{seed}.root")
-        out_poca = os.path.join(PATH_poca_output,  f"POCA_{namefile}_seed{seed}.npy")
+        out_poca = os.path.join(PATH_poca_output,  f"POCA_{namefile}_seed{seed}.root")
         out_log  = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.out")
         out_err  = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.err")
         out_sh   = os.path.join(PATH_logs, f"job_{namefile}_seed{seed}.sh")
@@ -409,7 +409,7 @@ echo "[CORRECT] Merge finished for: {namefile}"
 
 echo "[INFO] Removing splitted POCA files for: {namefile}"
 # Usamos el prefijo específico para no borrar lo de otros jobs
-rm {PATH_poca_output}/POCA_{namefile}_seed*.npy
+rm {PATH_poca_output}/POCA_{namefile}_seed*.root
 echo "[CORRECT] Split POCA files removed for: {namefile}"
 
 echo "[INFO] Cleaning up seed logs..."
