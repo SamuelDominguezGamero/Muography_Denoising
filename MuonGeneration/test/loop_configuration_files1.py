@@ -45,13 +45,26 @@ def get_current_job_count(username="dominguezs"):
     lines = [l for l in result.stdout.strip().split('\n') if l]
     return len(lines)
 
-def wait_for_slot(username="dominguezs", max_jobs=MAX_JOBS_IN_QUEUE, sleep=THROTTLE_SLEEP):
-    """Blocks until there is room in the SLURM queue to submit at least one more job."""
+def wait_for_slot(username="dominguezs", max_jobs=MAX_JOBS_IN_QUEUE, sleep=THROTTLE_SLEEP, target_jobs_to_submit=1):
+    """
+    Blocks until there is enough room in the queue to submit target_jobs_to_submit jobs.
+    Returns tuple (current_count, wait_iterations).
+    """
+    wait_iterations = 0
     while True:
         count = get_current_job_count(username)
-        if count < max_jobs:
-            return count   # return current count so caller can log it
-        print(f"[THROTTLE] Queue full ({count}/{max_jobs} jobs). Waiting {sleep}s before retrying...")
+        slots_available = max_jobs - count
+        
+        if slots_available >= target_jobs_to_submit:
+            return count, wait_iterations
+        
+        wait_iterations += 1
+        if wait_iterations == 1:
+            print(f"[THROTTLE] Need {target_jobs_to_submit} slots, but only {slots_available} available ({count}/{max_jobs} jobs in queue).")
+            print(f"[THROTTLE] Waiting for jobs to complete... ({sleep}s between checks)")
+        elif wait_iterations % 4 == 0:  # Print every 4 iterations (~60s)
+            print(f"[THROTTLE] Still waiting... {slots_available}/{target_jobs_to_submit} slots available ({count}/{max_jobs})")
+        
         time.sleep(sleep)
 
 
@@ -128,7 +141,7 @@ zPosDetector_bot = -54
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 3_000_000 
+total_muons_per_geometry = 6_000_000 
 n_muons_per_job          = 50_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
@@ -143,6 +156,16 @@ print(60 * "-")
 
 # ===========================================================================
 # STEP 2: SIMULATION == SLURM JOB SUBMISSION + MERGE WITH DEPENDENCY
+# ===========================================================================
+# WORKFLOW:
+#   1. For each geometry: wait for queue space, then submit all 60 simulation jobs
+#   2. Each job runs: Geant4 → makeHLTuple → POCA → cleanup
+#   3. When all 60 jobs finish, submit ONE merge job (depends on all 60 via --dependency)
+#   4. Merge job combines all POCA results into single .npy file
+#   5. Merge job cleans up intermediate POCA files when done
+# THROTTLING: Queue is limited to MAX_JOBS_IN_QUEUE to avoid overloading cluster
+#   - We wait ONCE before submitting all 60 jobs for a geometry
+#   - SLURM handles job queueing automatically (no manual waits in loop)
 # ===========================================================================
 print("="*60)
 print("="*60)
@@ -181,6 +204,7 @@ print(f"[INFO] ----- Total number of simulation data files available: {len(all_s
 
 
 
+# ===== MAIN LOOP: Process each geometry =====
 i = 0
 for file in all_json_files:
     i += 1
@@ -188,7 +212,7 @@ for file in all_json_files:
         print(f"[INFO] Reached max_geometries_simulated={max_geometries_simulated}. Stopping simulation.")
         break
 
-    # FIX: extract only the basename without extension, not the full path
+    # Extract geometry name and full path
     namefile = os.path.splitext(os.path.basename(file))[0]
     geometry_file = file # full path with extension
 
@@ -232,7 +256,18 @@ for file in all_json_files:
         os.remove(merged_output_new)  # Remove old merged result
         print(f"[INFO] Cleaned old files for: {namefile}")
 
-    print(f"\n[INFO] Submitting {n_jobs_per_geometry} jobs for: {namefile}")
+    print(f"\n[INFO] [{i:4d}/{max_geometries_simulated}] Submitting {n_jobs_per_geometry} jobs for: {namefile}")
+    
+    # === THROTTLING CHECKPOINT ===
+    # Wait for enough slots BEFORE submitting all jobs for this geometry.
+    # This is called ONCE per geometry (not per job) to avoid queue saturation.
+    print(f"[INFO] Checking available slots in queue...")
+    current_queue, wait_iters = wait_for_slot(SLURM_USER, MAX_JOBS_IN_QUEUE, THROTTLE_SLEEP, 
+                                               target_jobs_to_submit=min(n_jobs_per_geometry, 50))
+    if wait_iters > 0:
+        print(f"[INFO] ✓ Queue has space now. Current jobs in queue: {current_queue}/{MAX_JOBS_IN_QUEUE}")
+    else:
+        print(f"[INFO] Queue status: {current_queue}/{MAX_JOBS_IN_QUEUE} jobs")
 
     # Collect job IDs for this geometry to use in the merge dependency
     job_ids = []
@@ -242,6 +277,8 @@ for file in all_json_files:
     # Generate all child seeds at once (more efficient than spawning in loop)
     child_seeds = ss.spawn(n_jobs_per_geometry)
 
+    # === SUBMIT ALL JOBS FOR THIS GEOMETRY ===
+    # Number of jobs depends on parameters: n_jobs_per_geometry = total_muons_per_geometry / n_muons_per_job
     for job in range(n_jobs_per_geometry):
         # Convert SeedSequence to integer for use in simulation
         rng = Generator(PCG64(child_seeds[job]))
@@ -334,9 +371,7 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
         with open(out_sh, "w") as f:
             f.write(job_script)
 
-        # Throttle: wait if queue is full before submitting each simulation job
-        current_count = wait_for_slot(SLURM_USER, MAX_JOBS_IN_QUEUE, THROTTLE_SLEEP)
-
+        # Submit job to queue (no wait here; we already checked space above)
         result = subprocess.run(
             ["sbatch", "--begin=now", out_sh],
             capture_output=True, text=True
@@ -349,16 +384,13 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
             # Extract job ID from "Submitted batch job 12345"
             job_id = result.stdout.strip().split()[-1]
             job_ids.append(job_id)
-            print(f"[SUBMITTED] seed={seed:04d} --> job_id={job_id} (queue: {current_count+1}/{MAX_JOBS_IN_QUEUE})")
+            print(f"[SUBMITTED] seed={seed:04d} --> job_id={job_id}")
             jobs_submitted += 1
 
-    # --------------------------------------------------
-    # Submit merge job with dependency on ALL jobs finishing
-    # --dependency=afterok:id1:id2:...:idN means the merge
-    # job only runs if ALL listed jobs finish successfully.
-    # If any job fails, the merge is cancelled automatically.
-    # SLURM handles the waiting automatically, no explicit sleep needed.
-    # --------------------------------------------------
+    # === SUBMIT MERGE JOB (depends on all 60 simulation jobs) ===
+    # --dependency=afterok:id1:id2:...:idN ensures merge only starts
+    # when ALL simulation jobs finish successfully. If any fails, merge is skipped.
+    # SLURM queues the merge automatically, we don't need to wait.
 
     if not job_ids:
         print(f"[WARNING] No jobs submitted for {namefile}, skipping merge.")
@@ -422,9 +454,7 @@ echo "[CORRECT] Cleanup finished."
     with open(merge_sh, "w") as f:
         f.write(merge_script)
 
-    # Throttle before submitting the merge job too
-    current_count = wait_for_slot(SLURM_USER, MAX_JOBS_IN_QUEUE, THROTTLE_SLEEP)
-
+    # Submit merge job (SLURM will queue it even if at limit; it will wait for dependencies to complete)
     result = subprocess.run(
         ["sbatch", "--begin=now", f"--dependency={dependency_str}", merge_sh],
         capture_output=True, text=True
@@ -438,10 +468,21 @@ echo "[CORRECT] Cleanup finished."
         merges_submitted += 1
 
 
-print("\n" + "="*60)
+print("\n" + "="*70)
 print("[FINAL SUMMARY]")
-print("="*60)
-print(f"[INFO] Geometries skipped (already simulated): {geometries_skipped}")
-print(f"[INFO] Simulation jobs submitted:             {jobs_submitted}")
-print(f"[INFO] Simulation jobs failed:                {jobs_failed}")
-print(f"[INFO] Merge jobs submitted:                  {merges_submitted}")
+print("="*70)
+print(f"[INFO] Configuration:")
+print(f"       max_geometries_simulated     = {max_geometries_simulated}")
+print(f"       MAX_JOBS_IN_QUEUE           = {MAX_JOBS_IN_QUEUE}")
+print(f"       Jobs per geometry           = {n_jobs_per_geometry} simulation + 1 merge")
+print(f"[INFO] Results:")
+print(f"       Geometries processed        = {i - 1}")
+print(f"       Geometries skipped          = {geometries_skipped}")
+print(f"       Simulation jobs submitted   = {jobs_submitted}")
+print(f"       Simulation jobs failed      = {jobs_failed}")
+print(f"       Merge jobs submitted        = {merges_submitted}")
+print(f"[INFO] Next step:")
+print(f"       Monitor the queue with: squeue -u dominguezs")
+print(f"       Check job details with:  scontrol show job <job_id>")
+print(f"       Check logs at: {PATH_logs}")
+print("="*70)
