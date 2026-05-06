@@ -95,7 +95,7 @@ if environment == "cluster":
     PATH_preprocessed   = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_preprocessed"
     # PATH_poca_output    = "/gpfs/projects/cms/dominguezs/data/POCA_POINTS"
     PATH_poca_output    = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/post_POCA_data"
-    PATH_merged_output  = "/gpfs/projects/cms/dominguezs/data/merged_poca_data/UNET1"
+    PATH_merged_output  = "/gpfs/projects/cms/dominguezs/data"
 #    PATH_merged_output  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data/UNET1"
     PATH_png_comparisons = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/png_comparisons"
     PATH_logs           = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/logs"
@@ -443,10 +443,10 @@ echo "[CORRECT] Merge finished for: {namefile}"
 
 ### REMOVING RAW POCA POINTS
 
-# echo "[INFO] Removing splitted POCA files for: {namefile}"
+echo "[INFO] Removing splitted POCA files for: {namefile}"
 # Usamos el prefijo específico para no borrar lo de otros jobs
-# rm {PATH_poca_output}/POCA_{namefile}_seed*.root
-# echo "[CORRECT] Split POCA files removed for: {namefile}"
+rm {PATH_poca_output}/POCA_{namefile}_seed*.root
+echo "[CORRECT] Split POCA files removed for: {namefile}"
 
 echo "[INFO] Cleaning up seed logs..."
 sleep 10
@@ -490,3 +490,6 @@ print(f"       Monitor the queue with: squeue -u dominguezs")
 print(f"       Check job details with:  scontrol show job <job_id>")
 print(f"       Check logs at: {PATH_logs}")
 print("="*70)
+
+
+print(f"[INFO] ----- saved at {PATH_merged_output}")
