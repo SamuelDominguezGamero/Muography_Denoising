@@ -103,13 +103,13 @@ def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
 
     # Denominator: zero when trajectories are parallel (no unique POCA)
     df = df.Define("denom", "C*E - B*B") \
-           .Define("is_parallel", "abs(denom) <= 1e-4")  # ← booleano por evento: True si las trayectorias son paralelas (el muón no se desvía), False si no lo son (el muón realiza scattering)
+           .Define("is_parallel", "abs(denom) <= 1e-9")  # ← booleano por evento: True si las trayectorias son paralelas (el muón no se desvía), False si no lo son (el muón realiza scattering)
 
     # Parametric distances along each trajectory to the closest approach point
     # t1 = (A*E - B*D) / denom
     # t2 = (B*A - C*D) / denom   [equivalent to -(B*A-C*D)/(B*B-C*E)]
-    df = df.Define("t1", "abs(denom) > 1e-4 ? (A*E - B*D) / denom : 0.0") \
-           .Define("t2", "abs(denom) > 1e-4 ? (B*A - C*D) / denom : 0.0")
+    df = df.Define("t1", "abs(denom) > 1e-9 ? (A*E - B*D) / denom : 0.0") \
+           .Define("t2", "abs(denom) > 1e-9 ? (B*A - C*D) / denom : 0.0")
 
     # Closest approach points on each trajectory
     # POCA = midpoint between P1 and P2

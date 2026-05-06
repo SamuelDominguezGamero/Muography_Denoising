@@ -93,7 +93,8 @@ if environment == "cluster":
     PATH_density_files2D  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions/UNET1"
     PATH_output_raw     = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_raw"
     PATH_preprocessed   = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_preprocessed"
-    PATH_poca_output    = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/post_POCA_data"
+    PATH_poca_output    = "/gpfs/projects/cms/dominguezs/data/POCA_POINTS"
+    # PATH_poca_output    = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/post_POCA_data"
     PATH_merged_output  = "/gpfs/projects/cms/dominguezs/data/merged_poca_data/UNET1"
 #    PATH_merged_output  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/merged_poca_data/UNET1"
     PATH_png_comparisons = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/png_comparisons"
@@ -439,10 +440,13 @@ if [ $? -ne 0 ]; then echo "[ERROR] Merge failed. Aborting."; exit 1; fi
 
 echo "[CORRECT] Merge finished for: {namefile}"
 
-echo "[INFO] Removing splitted POCA files for: {namefile}"
+
+### REMOVING RAW POCA POINTS
+
+# echo "[INFO] Removing splitted POCA files for: {namefile}"
 # Usamos el prefijo específico para no borrar lo de otros jobs
-rm {PATH_poca_output}/POCA_{namefile}_seed*.root
-echo "[CORRECT] Split POCA files removed for: {namefile}"
+# rm {PATH_poca_output}/POCA_{namefile}_seed*.root
+# echo "[CORRECT] Split POCA files removed for: {namefile}"
 
 echo "[INFO] Cleaning up seed logs..."
 sleep 10
