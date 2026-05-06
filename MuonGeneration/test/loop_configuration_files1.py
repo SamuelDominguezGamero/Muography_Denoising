@@ -23,7 +23,7 @@ from numpy.random import Generator, PCG64, SeedSequence
 simulate          = True    # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
-max_geometries_simulated = 1900  # the first geometries to be simulated (if simulate=True)
+max_geometries_simulated = 1  # the first geometries to be simulated (if simulate=True)
 
 force_resimulate  = False   # set to True to re-process geometries even if merged results exist
 
@@ -141,8 +141,8 @@ zPosDetector_bot = -54
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 6_000_000 
-n_muons_per_job          = 50_000
+total_muons_per_geometry = 15_000_000 
+n_muons_per_job          = 100_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
 time.sleep(1)
