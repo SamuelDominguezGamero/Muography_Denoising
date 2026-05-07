@@ -61,6 +61,8 @@ if __name__ == '__main__':
     t.Branch('energy2', energy2, 'energy2/F')
    
     counter = 0
+    valid   = 0
+    invalid = 0
     print("Starting loop over events")
     for ev in events:       
         counter = counter + 1
@@ -68,10 +70,14 @@ if __name__ == '__main__':
             continue    
         x1_, y1_, z1_, vx1_, vy1_, vz1_, energy1_ = ev.makeFit(0)
         x2_, y2_, z2_, vx2_, vy2_, vz2_, energy2_ = ev.makeFit(1)
- 
+        
+        if not ev.validEvent():
+            invalid += 1
+            continue
+        valid += 1
         nevent[0] = ev.nEvent
-        print(ev.nEvent)
-        ev.Print()
+        # print(ev.nEvent)
+        # ev.Print()
         x1[0] = x1_
         y1[0] = y1_
         z1[0] = z1_
@@ -87,6 +93,13 @@ if __name__ == '__main__':
         vz2[0] = vz2_
         energy2[0] = energy2_
         t.Fill()
+    print("[FINISHED] ----- Loop over events finished")
+    print("\n")
+    print("----------------------------------------------------------------")
     print(f"{counter} events has been processed trough the script makeHLTuple.py")
+    print(f"Valid events: {valid}, Invalid events: {invalid}")
+    print("----------------------------------------------------------------")
+    print("\n")
+
     output.Write()
     output.Close()

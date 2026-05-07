@@ -102,11 +102,14 @@ class Event:
             yz += self.y[j][i]*self.z[j][i]
             zz += self.z[j][i]*self.z[j][i]
         dxdz = (n * xz - x * z)/(n * zz - z*z)
-        x0 = x/n - dxdz * z/n
+        x0   = x/n - dxdz * z/n
         dydz = (n * yz - y * z)/(n * zz - z*z)
-        y0 = y/n - dydz * z/n
-        z0 = z/n
-        return x0, y0, z0, dxdz, dydz, -1.0, self.Energy[j][0]
+        y0   = y/n - dydz * z/n
+        z0   = z/n
+        x    = x0 + dxdz * z0
+        y    = y0 + dydz * z0
+        z    = z0
+        return x, y, z, dxdz, dydz, -1.0, self.Energy[j][0]
  
     def validEvent(self):
 
