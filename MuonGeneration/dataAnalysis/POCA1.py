@@ -162,6 +162,10 @@ def get_poca_info_ROOT(root_input_file, X_LIM, Y_LIM, Z_LIM):
            .Define("voxel_y", f"int(fmin({args.npy}-1, fmax(0, (poca_y + {Y_LIM}) / (2*{Y_LIM} / {args.npy}))))") \
            .Define("voxel_z", f"int(fmin({args.npz}-1, fmax(0, (poca_z + {Z_LIM}) / (2*{Z_LIM} / {args.npz}))))")
 
+    df_check = df.Filter("abs(denom) > 1e-9")
+    n_valid_denom = df_check.Count().GetValue()
+    print(f"[INFO] Events with valid denom (non-parallel): {n_valid_denom}")
+
 
     export_columns = ["theta", "poca_x", "poca_y", "poca_z"]
     df.Snapshot("events", f"{args.output}", export_columns)
