@@ -3,12 +3,13 @@ echo "[INFO] ----- Starting complete pipeline..."
 
 echo  "------------------------------------------------"
 
-#python3 ./MuonGeneration/dataAnalysis/makeHLTuple.py -i prueba_04mayo.root -c /home/samuel/Work/Muography_Denoising/_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matiron_wordNMUO_stroke2.json -o dataset_correlacionado_fixed.root
+python3 ./makeHLTuple.py -i ./prueba_muones_dispersados_raw.root -c ./00_lead_cube_100x100x20.json
+-o ./prueba_cubo_grande_07mayo.root
 
 echo  "------------------------------------------------"
 
-python3 ./MuonGeneration/dataAnalysis/POCA1.py --input prueba_cubo_grande_07mayo.root --output pocapoints_cubo_grande_07mayo.root
+# python3 ./MuonGeneration/dataAnalysis/POCA1.py --input prueba_cubo_grande_07mayo.root --output pocapoints_cubo_grande_07mayo.root
 
 echo  "------------------------------------------------"
 
-python3 ./MuonGeneration/dataAnalysis/visualizar_proyecciones.py --input pocapoints_cubo_grande_07mayo.root
+# python3 ./MuonGeneration/dataAnalysis/visualizar_proyecciones.py --input pocapoints_cubo_grande_07mayo.root

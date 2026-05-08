@@ -82,7 +82,7 @@
     "TheVoxels": [
         {
             "xPosVoxel": 0.0,
-            "yPosVoxel": 0.,
+            "yPosVoxel": 0.0,
             "zPosVoxel": 0.0,
             "xSizeVoxel": 100.0,
             "ySizeVoxel": 100.0,

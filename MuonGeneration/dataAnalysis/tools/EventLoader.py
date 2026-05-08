@@ -16,8 +16,8 @@ class EventLoader:
         try:
             with open(self.configuration, 'r') as cinput:
                 data = json.load(cinput)
-        except:
-            print('Configuration file is not valid')
+        except Exception as e:
+            print(f'Configuration file is not valid: {e}')
             sys.exit()
         cinput.close()
 
