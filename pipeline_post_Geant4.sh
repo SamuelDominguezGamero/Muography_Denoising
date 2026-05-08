@@ -3,6 +3,10 @@ echo "[INFO] ----- Starting complete pipeline..."
 
 echo  "------------------------------------------------"
 
+echo "[INFO] ----- Starting GEANT4 simulation for 50x100x10cm lead piece..."
+
+echo  "------------------------------------------------"
+
 python3 ./makeHLTuple.py -i ./prueba_muones_dispersados_raw.root -c ./00_lead_cube_100x100x20.json
 -o ./prueba_cubo_grande_07mayo.root
 
