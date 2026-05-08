@@ -11,8 +11,6 @@ FOR UNET1_2D!!!
 print("[INFO] ----- Iniciando POCA (python entered)")
 import os
 import sys
-
-from pyparsing import col
 print("[CORRECT] ----- basic libraries imported")
 
 
