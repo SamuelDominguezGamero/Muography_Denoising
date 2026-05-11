@@ -1,0 +1,668 @@
+[INFO] Starting merge pipeline for: _Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2
+[INFO] Running merge_hits.py...
+[INFO] Starting merge_hits.py...
+[CORRECT] ROOT imported.
+[INFO] Geometry: _Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2
+[INFO] Input directory:  /gpfs/projects/cms/dominguezs/data/1_post_makeHLT
+[INFO] Output directory: /gpfs/projects/cms/dominguezs/data/2_merged_post_makeHLT
+[INFO] Output file:      /gpfs/projects/cms/dominguezs/data/2_merged_post_makeHLT/Pre_merged__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2.root
+[CORRECT] Found 300 Pre_*.root files (matches n_jobs=300).
+[INFO] Reading file 1/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1001567459.root
+  Events in this file: 29596
+[INFO] Reading file 2/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1009102922.root
+  Events in this file: 29063
+[INFO] Reading file 3/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1009863420.root
+  Events in this file: 29268
+[INFO] Reading file 4/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed101537307.root
+  Events in this file: 29136
+[INFO] Reading file 5/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1026326299.root
+  Events in this file: 29451
+[INFO] Reading file 6/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed102910192.root
+  Events in this file: 29115
+[INFO] Reading file 7/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1037630824.root
+  Events in this file: 29251
+[INFO] Reading file 8/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1041274511.root
+  Events in this file: 29373
+[INFO] Reading file 9/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1041589903.root
+  Events in this file: 28945
+[INFO] Reading file 10/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1043035372.root
+  Events in this file: 29249
+[INFO] Reading file 11/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1052520986.root
+  Events in this file: 29415
+[INFO] Reading file 12/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1055018812.root
+  Events in this file: 29230
+[INFO] Reading file 13/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1060248597.root
+  Events in this file: 29405
+[INFO] Reading file 14/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1065705729.root
+  Events in this file: 29178
+[INFO] Reading file 15/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1075923795.root
+  Events in this file: 29244
+[INFO] Reading file 16/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1081260408.root
+  Events in this file: 29361
+[INFO] Reading file 17/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1088839249.root
+  Events in this file: 28922
+[INFO] Reading file 18/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed109088217.root
+  Events in this file: 29420
+[INFO] Reading file 19/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1096420903.root
+  Events in this file: 29026
+[INFO] Reading file 20/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1096629805.root
+  Events in this file: 29412
+[INFO] Reading file 21/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1097265935.root
+  Events in this file: 29397
+[INFO] Reading file 22/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed109963326.root
+  Events in this file: 29291
+[INFO] Reading file 23/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1105796487.root
+  Events in this file: 29107
+[INFO] Reading file 24/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1109872089.root
+  Events in this file: 29226
+[INFO] Reading file 25/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1122434106.root
+  Events in this file: 29087
+[INFO] Reading file 26/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1124920391.root
+  Events in this file: 29306
+[INFO] Reading file 27/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1124994590.root
+  Events in this file: 29134
+[INFO] Reading file 28/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1126525794.root
+  Events in this file: 29346
+[INFO] Reading file 29/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1129869787.root
+  Events in this file: 29329
+[INFO] Reading file 30/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed114057918.root
+  Events in this file: 29186
+[INFO] Reading file 31/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1152307248.root
+  Events in this file: 29370
+[INFO] Reading file 32/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1163400120.root
+  Events in this file: 29052
+[INFO] Reading file 33/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1167087830.root
+  Events in this file: 29209
+[INFO] Reading file 34/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1169728208.root
+  Events in this file: 29196
+[INFO] Reading file 35/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1173112881.root
+  Events in this file: 29311
+[INFO] Reading file 36/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1179231616.root
+  Events in this file: 29151
+[INFO] Reading file 37/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1188505194.root
+  Events in this file: 29406
+[INFO] Reading file 38/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed119268184.root
+  Events in this file: 29370
+[INFO] Reading file 39/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1204227934.root
+  Events in this file: 29442
+[INFO] Reading file 40/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1206343700.root
+  Events in this file: 29080
+[INFO] Reading file 41/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1212548472.root
+  Events in this file: 29500
+[INFO] Reading file 42/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed122503314.root
+  Events in this file: 29318
+[INFO] Reading file 43/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1225689783.root
+  Events in this file: 29181
+[INFO] Reading file 44/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1230590621.root
+  Events in this file: 29453
+[INFO] Reading file 45/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1235663553.root
+  Events in this file: 29177
+[INFO] Reading file 46/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1236384960.root
+  Events in this file: 29169
+[INFO] Reading file 47/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1238393363.root
+  Events in this file: 29115
+[INFO] Reading file 48/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1246785740.root
+  Events in this file: 29526
+[INFO] Reading file 49/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1247970523.root
+  Events in this file: 29228
+[INFO] Reading file 50/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1249573408.root
+  Events in this file: 29121
+[INFO] Reading file 51/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed126092949.root
+  Events in this file: 29095
+[INFO] Reading file 52/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1260988501.root
+  Events in this file: 29276
+[INFO] Reading file 53/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed127258154.root
+  Events in this file: 29249
+[INFO] Reading file 54/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1275887560.root
+  Events in this file: 29383
+[INFO] Reading file 55/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1278501207.root
+  Events in this file: 29404
+[INFO] Reading file 56/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1279263550.root
+  Events in this file: 29451
+[INFO] Reading file 57/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1286103828.root
+  Events in this file: 29206
+[INFO] Reading file 58/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1287147092.root
+  Events in this file: 29100
+[INFO] Reading file 59/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1296424678.root
+  Events in this file: 29343
+[INFO] Reading file 60/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1304062276.root
+  Events in this file: 29155
+[INFO] Reading file 61/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1308254257.root
+  Events in this file: 29597
+[INFO] Reading file 62/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1310410664.root
+  Events in this file: 29252
+[INFO] Reading file 63/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1310732895.root
+  Events in this file: 29213
+[INFO] Reading file 64/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1318488749.root
+  Events in this file: 29196
+[INFO] Reading file 65/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1322661632.root
+  Events in this file: 29203
+[INFO] Reading file 66/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed132466244.root
+  Events in this file: 29258
+[INFO] Reading file 67/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1330474564.root
+  Events in this file: 29552
+[INFO] Reading file 68/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed133923439.root
+  Events in this file: 29118
+[INFO] Reading file 69/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1346123795.root
+  Events in this file: 29035
+[INFO] Reading file 70/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1346707001.root
+  Events in this file: 29345
+[INFO] Reading file 71/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1352190988.root
+  Events in this file: 29374
+[INFO] Reading file 72/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1357984260.root
+  Events in this file: 29143
+[INFO] Reading file 73/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1361845493.root
+  Events in this file: 29223
+[INFO] Reading file 74/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1367367411.root
+  Events in this file: 29246
+[INFO] Reading file 75/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1372853146.root
+  Events in this file: 29061
+[INFO] Reading file 76/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1377038732.root
+  Events in this file: 29343
+[INFO] Reading file 77/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1382011719.root
+  Events in this file: 29230
+[INFO] Reading file 78/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed139528330.root
+  Events in this file: 29339
+[INFO] Reading file 79/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1398481316.root
+  Events in this file: 29286
+[INFO] Reading file 80/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed140045824.root
+  Events in this file: 29452
+[INFO] Reading file 81/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1405659836.root
+  Events in this file: 29128
+[INFO] Reading file 82/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1410079016.root
+  Events in this file: 29398
+[INFO] Reading file 83/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1418749168.root
+  Events in this file: 29306
+[INFO] Reading file 84/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed14204134.root
+  Events in this file: 29029
+[INFO] Reading file 85/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1428703941.root
+  Events in this file: 29546
+[INFO] Reading file 86/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1439825631.root
+  Events in this file: 29408
+[INFO] Reading file 87/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1446135963.root
+  Events in this file: 29201
+[INFO] Reading file 88/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1456794109.root
+  Events in this file: 29211
+[INFO] Reading file 89/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1467900029.root
+  Events in this file: 29231
+[INFO] Reading file 90/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1468164095.root
+  Events in this file: 29387
+[INFO] Reading file 91/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1490580453.root
+  Events in this file: 29513
+[INFO] Reading file 92/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed149263328.root
+  Events in this file: 29039
+[INFO] Reading file 93/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1495003676.root
+  Events in this file: 29152
+[INFO] Reading file 94/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1496247856.root
+  Events in this file: 29312
+[INFO] Reading file 95/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed149840898.root
+  Events in this file: 29123
+[INFO] Reading file 96/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1503711291.root
+  Events in this file: 29091
+[INFO] Reading file 97/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1503947917.root
+  Events in this file: 29281
+[INFO] Reading file 98/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1504161280.root
+  Events in this file: 29027
+[INFO] Reading file 99/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1510921579.root
+  Events in this file: 29355
+[INFO] Reading file 100/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1513092767.root
+  Events in this file: 29388
+[INFO] Reading file 101/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1520044643.root
+  Events in this file: 29207
+[INFO] Reading file 102/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1525830599.root
+  Events in this file: 29110
+[INFO] Reading file 103/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1527242139.root
+  Events in this file: 29469
+[INFO] Reading file 104/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1527300332.root
+  Events in this file: 29394
+[INFO] Reading file 105/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed153694206.root
+  Events in this file: 29160
+[INFO] Reading file 106/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1552022127.root
+  Events in this file: 29338
+[INFO] Reading file 107/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1554230941.root
+  Events in this file: 29339
+[INFO] Reading file 108/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1561897175.root
+  Events in this file: 29075
+[INFO] Reading file 109/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed156307057.root
+  Events in this file: 29359
+[INFO] Reading file 110/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1563335616.root
+  Events in this file: 29160
+[INFO] Reading file 111/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1571062212.root
+  Events in this file: 29336
+[INFO] Reading file 112/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1576179477.root
+  Events in this file: 28964
+[INFO] Reading file 113/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1577470894.root
+  Events in this file: 29335
+[INFO] Reading file 114/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed158010673.root
+  Events in this file: 29194
+[INFO] Reading file 115/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1594139771.root
+  Events in this file: 29380
+[INFO] Reading file 116/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1605965979.root
+  Events in this file: 29106
+[INFO] Reading file 117/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed160640897.root
+  Events in this file: 29079
+[INFO] Reading file 118/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1609993094.root
+  Events in this file: 29224
+[INFO] Reading file 119/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1621754487.root
+  Events in this file: 29487
+[INFO] Reading file 120/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1636482531.root
+  Events in this file: 29242
+[INFO] Reading file 121/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1638835458.root
+  Events in this file: 29476
+[INFO] Reading file 122/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed16392268.root
+  Events in this file: 29265
+[INFO] Reading file 123/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1642426219.root
+  Events in this file: 29118
+[INFO] Reading file 124/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1643524820.root
+  Events in this file: 28889
+[INFO] Reading file 125/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1657593985.root
+  Events in this file: 29454
+[INFO] Reading file 126/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1669549720.root
+  Events in this file: 29243
+[INFO] Reading file 127/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1673821623.root
+  Events in this file: 28999
+[INFO] Reading file 128/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1677961828.root
+  Events in this file: 28948
+[INFO] Reading file 129/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1683435382.root
+  Events in this file: 29439
+[INFO] Reading file 130/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1685772474.root
+  Events in this file: 29143
+[INFO] Reading file 131/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1686966185.root
+  Events in this file: 29157
+[INFO] Reading file 132/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1689000731.root
+  Events in this file: 29258
+[INFO] Reading file 133/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1698365067.root
+  Events in this file: 29271
+[INFO] Reading file 134/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1700609362.root
+  Events in this file: 29234
+[INFO] Reading file 135/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1703591506.root
+  Events in this file: 29269
+[INFO] Reading file 136/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1709202498.root
+  Events in this file: 29060
+[INFO] Reading file 137/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1715022263.root
+  Events in this file: 29578
+[INFO] Reading file 138/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1715373464.root
+  Events in this file: 28970
+[INFO] Reading file 139/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1716512270.root
+  Events in this file: 29540
+[INFO] Reading file 140/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1717684036.root
+  Events in this file: 29257
+[INFO] Reading file 141/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1725858752.root
+  Events in this file: 29033
+[INFO] Reading file 142/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1734536649.root
+  Events in this file: 29503
+[INFO] Reading file 143/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1737200335.root
+  Events in this file: 29248
+[INFO] Reading file 144/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1739652092.root
+  Events in this file: 29315
+[INFO] Reading file 145/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1739986612.root
+  Events in this file: 29045
+[INFO] Reading file 146/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1743440067.root
+  Events in this file: 29140
+[INFO] Reading file 147/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1776940936.root
+  Events in this file: 29509
+[INFO] Reading file 148/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1831609523.root
+  Events in this file: 29178
+[INFO] Reading file 149/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1832637499.root
+  Events in this file: 29291
+[INFO] Reading file 150/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1848179601.root
+  Events in this file: 29399
+[INFO] Reading file 151/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1852616393.root
+  Events in this file: 29498
+[INFO] Reading file 152/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1870574906.root
+  Events in this file: 28988
+[INFO] Reading file 153/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1899311721.root
+  Events in this file: 29121
+[INFO] Reading file 154/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1899585264.root
+  Events in this file: 29503
+[INFO] Reading file 155/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed189983497.root
+  Events in this file: 29328
+[INFO] Reading file 156/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1904611871.root
+  Events in this file: 29236
+[INFO] Reading file 157/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1906302357.root
+  Events in this file: 29156
+[INFO] Reading file 158/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1909002636.root
+  Events in this file: 29107
+[INFO] Reading file 159/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1912944987.root
+  Events in this file: 29414
+[INFO] Reading file 160/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1930211364.root
+  Events in this file: 29271
+[INFO] Reading file 161/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1957965618.root
+  Events in this file: 29097
+[INFO] Reading file 162/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed195811977.root
+  Events in this file: 29290
+[INFO] Reading file 163/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1959645285.root
+  Events in this file: 29036
+[INFO] Reading file 164/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1962696628.root
+  Events in this file: 29194
+[INFO] Reading file 165/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed1982822950.root
+  Events in this file: 29233
+[INFO] Reading file 166/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed19859055.root
+  Events in this file: 29263
+[INFO] Reading file 167/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2008757693.root
+  Events in this file: 29063
+[INFO] Reading file 168/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2011559409.root
+  Events in this file: 29121
+[INFO] Reading file 169/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2015185779.root
+  Events in this file: 29240
+[INFO] Reading file 170/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2019029956.root
+  Events in this file: 29253
+[INFO] Reading file 171/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2021725143.root
+  Events in this file: 29310
+[INFO] Reading file 172/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed204442549.root
+  Events in this file: 29161
+[INFO] Reading file 173/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2054443419.root
+  Events in this file: 29355
+[INFO] Reading file 174/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed206162679.root
+  Events in this file: 29348
+[INFO] Reading file 175/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2066557400.root
+  Events in this file: 29413
+[INFO] Reading file 176/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2071315138.root
+  Events in this file: 29404
+[INFO] Reading file 177/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2075067990.root
+  Events in this file: 29288
+[INFO] Reading file 178/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2076798648.root
+  Events in this file: 29417
+[INFO] Reading file 179/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2078647778.root
+  Events in this file: 29273
+[INFO] Reading file 180/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2092098620.root
+  Events in this file: 29201
+[INFO] Reading file 181/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2096273050.root
+  Events in this file: 29114
+[INFO] Reading file 182/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed210266824.root
+  Events in this file: 29195
+[INFO] Reading file 183/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed210472277.root
+  Events in this file: 29249
+[INFO] Reading file 184/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2113165390.root
+  Events in this file: 29678
+[INFO] Reading file 185/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2116518052.root
+  Events in this file: 29262
+[INFO] Reading file 186/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2123972526.root
+  Events in this file: 29238
+[INFO] Reading file 187/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2134931544.root
+  Events in this file: 29007
+[INFO] Reading file 188/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed2144872020.root
+  Events in this file: 29170
+[INFO] Reading file 189/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed219703674.root
+  Events in this file: 29212
+[INFO] Reading file 190/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed220210829.root
+  Events in this file: 29172
+[INFO] Reading file 191/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed223346750.root
+  Events in this file: 29287
+[INFO] Reading file 192/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed230867776.root
+  Events in this file: 29151
+[INFO] Reading file 193/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed236248731.root
+  Events in this file: 29425
+[INFO] Reading file 194/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed23967302.root
+  Events in this file: 29156
+[INFO] Reading file 195/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed249300227.root
+  Events in this file: 29289
+[INFO] Reading file 196/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed253018674.root
+  Events in this file: 29259
+[INFO] Reading file 197/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed27439760.root
+  Events in this file: 29303
+[INFO] Reading file 198/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed29236702.root
+  Events in this file: 29186
+[INFO] Reading file 199/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed305720374.root
+  Events in this file: 29355
+[INFO] Reading file 200/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed316330038.root
+  Events in this file: 29173
+[INFO] Reading file 201/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed336107928.root
+  Events in this file: 29362
+[INFO] Reading file 202/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed3375487.root
+  Events in this file: 29282
+[INFO] Reading file 203/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed342830202.root
+  Events in this file: 29264
+[INFO] Reading file 204/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed359814034.root
+  Events in this file: 29189
+[INFO] Reading file 205/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed360271202.root
+  Events in this file: 29134
+[INFO] Reading file 206/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed363154899.root
+  Events in this file: 29361
+[INFO] Reading file 207/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed374440613.root
+  Events in this file: 29310
+[INFO] Reading file 208/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed377220335.root
+  Events in this file: 29144
+[INFO] Reading file 209/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed383469387.root
+  Events in this file: 29257
+[INFO] Reading file 210/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed385779377.root
+  Events in this file: 29245
+[INFO] Reading file 211/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed389608171.root
+  Events in this file: 29255
+[INFO] Reading file 212/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed398334628.root
+  Events in this file: 29502
+[INFO] Reading file 213/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed409741009.root
+  Events in this file: 29416
+[INFO] Reading file 214/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed409833856.root
+  Events in this file: 29405
+[INFO] Reading file 215/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed412811252.root
+  Events in this file: 29122
+[INFO] Reading file 216/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed413648541.root
+  Events in this file: 29266
+[INFO] Reading file 217/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed417016656.root
+  Events in this file: 29362
+[INFO] Reading file 218/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed420836701.root
+  Events in this file: 29375
+[INFO] Reading file 219/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed421249374.root
+  Events in this file: 29062
+[INFO] Reading file 220/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed427224204.root
+  Events in this file: 29452
+[INFO] Reading file 221/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed439161880.root
+  Events in this file: 29308
+[INFO] Reading file 222/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed450771973.root
+  Events in this file: 29364
+[INFO] Reading file 223/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed451042088.root
+  Events in this file: 29351
+[INFO] Reading file 224/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed454696968.root
+  Events in this file: 29318
+[INFO] Reading file 225/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed467268391.root
+  Events in this file: 29335
+[INFO] Reading file 226/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed473592372.root
+  Events in this file: 29211
+[INFO] Reading file 227/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed48155002.root
+  Events in this file: 29107
+[INFO] Reading file 228/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed483409085.root
+  Events in this file: 29311
+[INFO] Reading file 229/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed490589555.root
+  Events in this file: 29367
+[INFO] Reading file 230/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed490957240.root
+  Events in this file: 29344
+[INFO] Reading file 231/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed501789841.root
+  Events in this file: 29411
+[INFO] Reading file 232/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed511504226.root
+  Events in this file: 29423
+[INFO] Reading file 233/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed513942206.root
+  Events in this file: 29181
+[INFO] Reading file 234/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed519588124.root
+  Events in this file: 29217
+[INFO] Reading file 235/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed521911329.root
+  Events in this file: 29443
+[INFO] Reading file 236/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed524517326.root
+  Events in this file: 29355
+[INFO] Reading file 237/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed526800727.root
+  Events in this file: 29372
+[INFO] Reading file 238/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed529908992.root
+  Events in this file: 29226
+[INFO] Reading file 239/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed531797532.root
+  Events in this file: 29381
+[INFO] Reading file 240/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed53284296.root
+  Events in this file: 29430
+[INFO] Reading file 241/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed538372113.root
+  Events in this file: 29232
+[INFO] Reading file 242/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed539005383.root
+  Events in this file: 29450
+[INFO] Reading file 243/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed540407715.root
+  Events in this file: 29591
+[INFO] Reading file 244/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed54397563.root
+  Events in this file: 29158
+[INFO] Reading file 245/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed550594167.root
+  Events in this file: 29179
+[INFO] Reading file 246/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed558380111.root
+  Events in this file: 29341
+[INFO] Reading file 247/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed562039932.root
+  Events in this file: 29403
+[INFO] Reading file 248/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed574323079.root
+  Events in this file: 29225
+[INFO] Reading file 249/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed580442928.root
+  Events in this file: 28977
+[INFO] Reading file 250/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed587079939.root
+  Events in this file: 29267
+[INFO] Reading file 251/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed59052881.root
+  Events in this file: 29234
+[INFO] Reading file 252/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed592955103.root
+  Events in this file: 29312
+[INFO] Reading file 253/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed597144619.root
+  Events in this file: 29349
+[INFO] Reading file 254/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed599732522.root
+  Events in this file: 29139
+[INFO] Reading file 255/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed600365557.root
+  Events in this file: 29363
+[INFO] Reading file 256/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed608807951.root
+  Events in this file: 29147
+[INFO] Reading file 257/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed611151559.root
+  Events in this file: 29012
+[INFO] Reading file 258/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed618113885.root
+  Events in this file: 29416
+[INFO] Reading file 259/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed662786353.root
+  Events in this file: 29209
+[INFO] Reading file 260/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed665286463.root
+  Events in this file: 29240
+[INFO] Reading file 261/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed672342053.root
+  Events in this file: 29567
+[INFO] Reading file 262/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed680304607.root
+  Events in this file: 29429
+[INFO] Reading file 263/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed710475115.root
+  Events in this file: 29199
+[INFO] Reading file 264/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed714442579.root
+  Events in this file: 29390
+[INFO] Reading file 265/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed717714202.root
+  Events in this file: 29148
+[INFO] Reading file 266/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed731232785.root
+  Events in this file: 29256
+[INFO] Reading file 267/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed742611528.root
+  Events in this file: 29165
+[INFO] Reading file 268/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed743108614.root
+  Events in this file: 29153
+[INFO] Reading file 269/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed763013567.root
+  Events in this file: 29125
+[INFO] Reading file 270/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed763361049.root
+  Events in this file: 29207
+[INFO] Reading file 271/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed77949805.root
+  Events in this file: 29433
+[INFO] Reading file 272/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed785948641.root
+  Events in this file: 29315
+[INFO] Reading file 273/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed804148714.root
+  Events in this file: 28839
+[INFO] Reading file 274/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed827197510.root
+  Events in this file: 29386
+[INFO] Reading file 275/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed828858678.root
+  Events in this file: 29472
+[INFO] Reading file 276/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed82989559.root
+  Events in this file: 29311
+[INFO] Reading file 277/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed831613018.root
+  Events in this file: 29397
+[INFO] Reading file 278/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed832201941.root
+  Events in this file: 29332
+[INFO] Reading file 279/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed833058407.root
+  Events in this file: 29096
+[INFO] Reading file 280/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed841821141.root
+  Events in this file: 29276
+[INFO] Reading file 281/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed849021751.root
+  Events in this file: 29239
+[INFO] Reading file 282/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed853055339.root
+  Events in this file: 29336
+[INFO] Reading file 283/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed878524822.root
+  Events in this file: 29154
+[INFO] Reading file 284/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed885265454.root
+  Events in this file: 29469
+[INFO] Reading file 285/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed887280257.root
+  Events in this file: 29236
+[INFO] Reading file 286/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed889223414.root
+  Events in this file: 29243
+[INFO] Reading file 287/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed896246449.root
+  Events in this file: 28948
+[INFO] Reading file 288/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed906774899.root
+  Events in this file: 29220
+[INFO] Reading file 289/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed908458849.root
+  Events in this file: 29399
+[INFO] Reading file 290/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed95153546.root
+  Events in this file: 29568
+[INFO] Reading file 291/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed955676226.root
+  Events in this file: 29413
+[INFO] Reading file 292/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed958371580.root
+  Events in this file: 29195
+[INFO] Reading file 293/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed960641588.root
+  Events in this file: 29251
+[INFO] Reading file 294/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed963450948.root
+  Events in this file: 29345
+[INFO] Reading file 295/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed966309731.root
+  Events in this file: 29301
+[INFO] Reading file 296/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed971235477.root
+  Events in this file: 29072
+[INFO] Reading file 297/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed973611135.root
+  Events in this file: 29208
+[INFO] Reading file 298/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed987282997.root
+  Events in this file: 29332
+[INFO] Reading file 299/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed992889891.root
+  Events in this file: 29272
+[INFO] Reading file 300/300: Pre__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2_seed993642205.root
+  Events in this file: 29256
+[CORRECT] Merge completed.
+[INFO] Total events in merged file: 8779165
+[CORRECT] Output saved to: /gpfs/projects/cms/dominguezs/data/2_merged_post_makeHLT/Pre_merged__Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2.root
+[CORRECT] merge_hits.py done.
+[INFO] Running POCA1.py on merged hits...
+[INFO] ----- Iniciando POCA (python entered)
+[CORRECT] ----- basic libraries imported
+[CORRECT] ----- ALL LIBRARIES successfully imported
+Volume: [-64.0,64.0] x [-64.0,64.0] x [-64.0,64.0] cm
+Grid:   128 x 128 x 128 voxels
+Voxel size: 1.000 x 1.000 x 1.000 cm
+[INFO] ----- Total input events: 8779165
+x1: min=-63.97, max=64.00, mean=0.01, std=32.41
+y1: min=-63.98, max=63.98, mean=0.01, std=32.42
+z1: min=49.50, max=49.50, mean=49.50, std=0.00
+vx1: min=-12.73, max=12.27, mean=0.00, std=0.36
+vy1: min=-12.45, max=12.46, mean=0.00, std=0.36
+vz1: min=-1.00, max=-1.00, mean=-1.00, std=0.00
+x2: min=-64.00, max=63.99, mean=0.00, std=34.06
+y2: min=-63.98, max=64.00, mean=0.01, std=34.07
+z2: min=-48.75, max=-48.75, mean=-48.75, std=0.00
+vx2: min=-13.35, max=13.29, mean=-0.00, std=0.35
+vy2: min=-13.42, max=13.42, mean=0.00, std=0.35
+vz2: min=-1.00, max=-1.00, mean=-1.00, std=0.00
+
+--- First 20 rows ---
+      x1       y1       z1      vx1      vy1      vz1       x2       y2       z2      vx2      vy2      vz2
+  -62.01   -57.55    49.50    -0.04    -0.43    -1.00   -58.07   -15.49   -48.75    -0.04    -0.43    -1.00
+   17.20    10.24    49.50     0.72     0.34    -1.00   -53.07   -23.53   -48.75     0.72     0.34    -1.00
+   49.15     0.21    49.50     0.20    -0.37    -1.00    29.64    36.58   -48.75     0.20    -0.37    -1.00
+   -9.16   -46.58    49.50    -0.06    -0.03    -1.00    -3.65   -43.57   -48.75    -0.06    -0.03    -1.00
+   56.30    -8.99    49.50     0.35     0.30    -1.00    21.81   -38.83   -48.75     0.35     0.30    -1.00
+  -35.89    48.81    49.50    -0.59     0.15    -1.00    22.27    34.50   -48.75    -0.59     0.15    -1.00
+  -13.73   -14.78    49.50    -0.51    -0.13    -1.00    36.41    -2.07   -48.75    -0.51    -0.13    -1.00
+  -59.19    -8.35    49.50    -0.01     0.01    -1.00   -58.11    -9.73   -48.75    -0.01     0.01    -1.00
+   16.48   -16.83    49.50     0.07    -0.39    -1.00     9.61    21.19   -48.75     0.07    -0.39    -1.00
+    1.00    28.62    49.50     0.05    -0.11    -1.00    -3.82    38.94   -48.75     0.05    -0.10    -1.00
+   55.50    14.17    49.50     0.24     0.65    -1.00    31.95   -49.29   -48.75     0.24     0.65    -1.00
+   -9.12   -24.62    49.50     0.00     0.04    -1.00    -9.57   -29.01   -48.75     0.00     0.04    -1.00
+  -40.57   -40.90    49.50    -0.53    -0.05    -1.00    11.77   -36.43   -48.75    -0.53    -0.05    -1.00
+  -22.96   -43.84    49.50    -0.07    -0.33    -1.00   -15.90   -11.61   -48.75    -0.07    -0.33    -1.00
+  -38.48    38.60    49.50    -0.47    -0.07    -1.00     7.87    45.85   -48.75    -0.47    -0.07    -1.00
+   20.50   -53.37    49.50     0.07    -0.04    -1.00    14.04   -49.42   -48.75     0.07    -0.04    -1.00
+   53.07    17.80    49.50     0.54    -0.38    -1.00     0.36    55.45   -48.75     0.54    -0.38    -1.00
+   16.86   -50.16    49.50     0.11    -0.02    -1.00     5.64   -48.23   -48.75     0.11    -0.02    -1.00
+   19.38    52.26    49.50    -0.42     0.45    -1.00    60.89     7.68   -48.75    -0.42     0.45    -1.00
+  -38.03    47.07    49.50    -0.01     0.16    -1.00   -36.73    31.01   -48.75    -0.01     0.16    -1.00
+poca_x_pre: min=nan, max=nan, mean=nan, std=nan
+poca_y_pre: min=nan, max=nan, mean=nan, std=nan
+poca_z_pre: min=nan, max=nan, mean=nan, std=nan
+[INFO] ----- Current: Voxelization of POCA points...
+[INFO] Events with valid denom (non-parallel): 27606
+[CORRECT] ----- POCA points and scattering angles saved to ROOT file.
+[INFO] ----- TOTAL VALID POCA POINTS: 27606
+[CORRECT] POCA1.py done.
+[INFO] Cleaning up intermediate files...
+[CORRECT] Individual Pre_*.root files removed.
+[INFO] Cleanup finished.
+[CORRECT] Merge pipeline finished for: _Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2

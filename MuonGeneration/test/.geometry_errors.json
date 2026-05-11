@@ -1,0 +1,10 @@
+{
+  "_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing3_ratio2_FontX14_FontY14_matlead_wordMUON_stroke3_depthZ10": {
+    "error": "=== Iniciando Test de Dimensiones de Matrices ===\n------------------------------------------------\nTEST PASADO: 60 matrices verificadas sin errores.\n================================================\n============================================================\n[CORRECT] ----- Valid voxel dimensions (integers)  [CORRECT]\n============================================================\n[CORRECT] ----- Word matrix created successfully.\n[ERROR] ----- Palabra (65x14) no cabe en (64x64) en XY desde posici\u00f3n (-1, 25)",
+    "timestamp": "2026-05-11 12:41:13"
+  },
+  "_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing3_ratio2_FontX16_FontY16_matlead_wordMUON_stroke3_depthZ10": {
+    "error": "=== Iniciando Test de Dimensiones de Matrices ===\n------------------------------------------------\nTEST PASADO: 60 matrices verificadas sin errores.\n================================================\n============================================================\n[CORRECT] ----- Valid voxel dimensions (integers)  [CORRECT]\n============================================================\n[CORRECT] ----- Word matrix created successfully.\n[ERROR] ----- Palabra (73x16) no cabe en (64x64) en XY desde posici\u00f3n (-5, 24)",
+    "timestamp": "2026-05-11 12:41:16"
+  }
+}

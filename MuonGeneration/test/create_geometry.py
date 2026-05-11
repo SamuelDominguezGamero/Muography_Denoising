@@ -1,9 +1,11 @@
 """
 Creates the geometry json file to be parsed by Geant4.
-There are 2 main elements: 
-- detectors
-- voxels (the geometry itself, with their features: position, size, material)
-    -> should be positioned forming a selected word, usually MUON. 
+Elements:
+- detectors: measurement layers
+- voxels: geometry with material, position, size
+
+Efficient method: Word thickness via variable zSizeVoxel (single slab, not repeated layers)
+Example: --depth_z_cm 10.0 creates 10cm thick word without layer repetition.
 """
 
 
@@ -40,7 +42,9 @@ parser.add_argument("--FontSizeX", type=int, default=12, help="Font size in X fo
 parser.add_argument("--FontSizeY", type=int, default=12, help="Font size in Y for the word geometry. Measured in G4 voxels. Valid sizes are 8, 10, 12, 14, 16.")
 parser.add_argument("--StrokeWidth", type=int, default=1, help="Stroke width for the word geometry. Measured in G4 voxels. Valid sizes are 1, 2, 3.")
 parser.add_argument("--spacing", type=int, default=1, help="Spacing between letters in the word geometry. Measured in G4 voxels.")
-parser.add_argument("--depth_z_word", type=int, default=1, help="Depth in Z direction for the word geometry. Measured in G4 voxels.")
+# EFFICIENT VARIABLE THICKNESS: Instead of repeating word across multiple Z layers,
+# use a single slab with configurable thickness via zSizeVoxel. Much more efficient!
+parser.add_argument("--depth_z_cm", type=float, default=2.0, help="Word thickness in centimeters. Efficient single slab method (variable zSizeVoxel).")
 
 parser.add_argument("--material", type=str, default="lead", help="Material for the word geometry. Default is 'lead'.")
 
@@ -162,8 +166,64 @@ for iy in range(ny):
 # Generation of letters and words --> M, U, O, N --> script bitmaps_letters.py --> fixed matrixes and resolutions
 
 
+def embed_word_in_geometry_efficient(word_matrix, voxel_list, start_vox, 
+                                      depth_z_cm, SizeG4Voxel_x, SizeG4Voxel_y, SizeG4Voxel_z,
+                                      nx, ny, nz, Lx, Ly, Lz, material):
+    """
+    EFFICIENT: Create word voxels with variable Z thickness (single slab, not multiple layers).
+    Each letter voxel gets thickness=depth_z_cm, centered at z=0.
+    Memory efficient: no layer repetition, just one slab.
+    """
+    ny_word, nx_word = word_matrix.shape
+    
+    # Center in XY if not specified
+    if start_vox is None:
+        x_start = (nx - nx_word) // 2
+        y_start = (ny - ny_word) // 2
+    else:
+        x_start, y_start = start_vox
+    
+    # Verify word fits in XY plane
+    if x_start < 0 or y_start < 0 or (x_start + nx_word > nx) or (y_start + ny_word > ny):
+        print(f"[ERROR] ----- Palabra ({nx_word}x{ny_word}) "
+              f"no cabe en ({nx}x{ny}) en XY "
+              f"desde posición ({x_start}, {y_start})")
+        sys.exit(1)
+    
+    print(f"[INFO] Geometry slab center in Z: z=0.0 cm (thickness={depth_z_cm:.1f}cm)")
+    print(f"Inserted word ({nx_word}x{ny_word}) with thickness {depth_z_cm:.1f}cm in XY: [{y_start}:{y_start+ny_word}, {x_start}:{x_start+nx_word}]")
+    
+    # Create voxel for each 1 in word_matrix
+    for iy in range(ny_word):
+        for ix in range(nx_word):
+            if word_matrix[iy, ix] == 1:
+                global_ix = x_start + ix
+                global_iy = y_start + iy
+                
+                # Physical coordinates
+                x_pos = -Lx/2.0 + (global_ix + 0.5) * SizeG4Voxel_x
+                y_pos = -Ly/2.0 + (global_iy + 0.5) * SizeG4Voxel_y
+                z_pos = 0.0  # Center at Z=0
+                
+                voxel_dict = {
+                    "xPosVoxel": float(x_pos),
+                    "yPosVoxel": float(y_pos),
+                    "zPosVoxel": float(z_pos),
+                    "xSizeVoxel": float(SizeG4Voxel_x),
+                    "ySizeVoxel": float(SizeG4Voxel_y),
+                    "zSizeVoxel": float(depth_z_cm),  # VARIABLE THICKNESS in cm
+                    "materialVoxel": material
+                }
+                voxel_list.append(voxel_dict)
+    
+    return voxel_list
+
+
 def embed_word_in_geometry(word_matrix, boolean_matrix, start_vox: tuple, depth_z: int):
     """
+    DEPRECATED: Old inefficient method. Kept for backwards compatibility.
+    Use embed_word_in_geometry_efficient instead.
+    
     Inserts the word MUON into the real 3D geometry of Geant4, represented as a boolean matrix.
 
     Parameters:
@@ -238,14 +298,22 @@ print("[CORRECT] ----- Word matrix created successfully." )
 # Calculamos posición central
 
 
-MatrixGeometryBoolean = embed_word_in_geometry(
-    word_matrix = word_matrix,
-    boolean_matrix = MatrixGeometryBoolean,
-    start_vox = None, # Default: insert in the center of the world
-    depth_z = args.depth_z_word
+# Use efficient method: create voxels directly with variable Z thickness
+voxels_word_list = []
+voxels_word_list = embed_word_in_geometry_efficient(
+    word_matrix=word_matrix,
+    voxel_list=voxels_word_list,
+    start_vox=None,  # Default: center in XY
+    depth_z_cm=args.depth_z_cm,  # Variable thickness in cm!
+    SizeG4Voxel_x=SizeG4Voxel_x,
+    SizeG4Voxel_y=SizeG4Voxel_y,
+    SizeG4Voxel_z=SizeG4Voxel_z,
+    nx=nx, ny=ny, nz=nz,
+    Lx=Lx, Ly=Ly, Lz=Lz,
+    material=args.material
 )
 
-print("[CORRECT] ----- Word matrix inserted successfully in G4 geometry." )
+print("[CORRECT] ----- Word voxels created successfully with efficient method (variable Z thickness).")
 
 
 MatrixGeometryMaterials[MatrixGeometryBoolean == 1] = args.material
@@ -320,21 +388,10 @@ global_dictionary = {
 }
 
 
-# Loop through voxels
-for iy in range(ny):
-    for ix in range(nx):
-        for iz in range(nz):
-            if MatrixGeometryBoolean[iy, ix, iz] == 1: # only consider filled voxels
-                voxel_dict = {
-                    "xPosVoxel": float(MatrixGeometryCenter[iy, ix, iz, 0]),
-                    "yPosVoxel": float(MatrixGeometryCenter[iy, ix, iz, 1]),
-                    "zPosVoxel": float(MatrixGeometryCenter[iy, ix, iz, 2]),
-                    "xSizeVoxel": float(SizeG4Voxel_x),
-                    "ySizeVoxel": float(SizeG4Voxel_y),
-                    "zSizeVoxel": float(SizeG4Voxel_z),
-                    "materialVoxel": str(MatrixGeometryMaterials[iy, ix, iz])
-                }
-                global_dictionary["TheVoxels"].append(voxel_dict)
+# Add word voxels (created with efficient variable-thickness method)
+global_dictionary["TheVoxels"].extend(voxels_word_list)
+
+print(f"[INFO] Added {len(voxels_word_list)} voxels from word geometry (efficient method)")
 
 print("[CORRECT] ----- Voxel dictionaries created successfully." )
 

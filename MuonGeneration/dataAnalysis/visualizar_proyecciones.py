@@ -21,7 +21,7 @@ theta = res["theta"]
 print(f"[INFO] POCA points loaded: {len(x)}")
 
 # Selección de binning para la visualización (ej. el fino)
-binning = 64
+binning = 50
 
 fig, axes = plt.subplots(1, 4, figsize=(20, 5))
 
