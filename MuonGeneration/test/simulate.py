@@ -149,7 +149,7 @@ zPosDetector_bot = -54
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 15_000_000 
+total_muons_per_geometry = 30_000_000
 n_muons_per_job          = 100_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
