@@ -27,7 +27,7 @@ force_resimulate  = False      # set to True to re-process geometries even if me
 max_geometries_simulated = 100 
 simulate_just_one_geometry = True
 namefile_to_simulate = "_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2.json"
-
+print_skips = False
 
 # ===========================================================================
 # SLURM JOB THROTTLING
@@ -223,7 +223,8 @@ for file in all_json_files:
             break
     else:
         if namefile_to_simulate not in file:
-            print(f"[SKIP] Looking for specific geometry: {namefile_to_simulate}. Skipping: {file}")
+            if print_skips:
+                print(f"[SKIP] Looking for specific geometry: {namefile_to_simulate}. Skipping: {file}")
             continue
         else:
             print(60 * "=")
