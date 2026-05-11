@@ -116,6 +116,24 @@ else:
 
 print(f"[INFO] Environment: {environment}")
 print(f"[INFO] Script directory: {SCRIPT_DIR}")
+if simulate_just_one_geometry:
+    print(f"[INFO] Looking for geometry containing: {namefile_to_simulate}")
+print(f"[INFO] Geometry files path: {PATH_geometry_files}")
+print(f"[INFO] Output paths:")
+print(f"       Raw:          {PATH_output_raw}")
+print(f"       Preprocessed: {PATH_preprocessed}")
+print(f"       POCA output:  {PATH_poca_output}")
+print(f"       Merged output: {PATH_merged_output}")
+print(f"[INFO] Logs path: {PATH_logs}")
+print(f"[INFO] SLURM user: {SLURM_USER}")
+print(f"[INFO] SLURM throttling: max {MAX_JOBS_IN_QUEUE} jobs in queue, waiting {THROTTLE_SLEEP}s when full")
+print(60 * "=")
+time.sleep(1)
+print(60 * "=")
+time.sleep(1)
+print(60 * "=")
+print("\n")
+print("\n")
 
 
 # ===========================================================================
@@ -466,6 +484,8 @@ print(f"       MAX_JOBS_IN_QUEUE           = {MAX_JOBS_IN_QUEUE}")
 print(f"       Jobs per geometry           = {n_jobs_per_geometry} simulation + 1 merge")
 print(f"[INFO] Results:")
 print(f"       Geometries processed        = {i - 1}")
+if simulate_just_one_geometry:
+    print(f"       (Just one geometry simulated: {namefile_to_simulate})")
 print(f"       Geometries skipped          = {geometries_skipped}")
 print(f"       Simulation jobs submitted   = {jobs_submitted}")
 print(f"       Simulation jobs failed      = {jobs_failed}")
