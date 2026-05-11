@@ -81,35 +81,32 @@ if not simulate:
 # ===========================================================================
 SCRIPT_DIR             = os.path.dirname(os.path.abspath(__file__))
 CREATE_GEOMETRY_SCRIPT = os.path.join(SCRIPT_DIR, "create_geometry.py")
-MERGE_SCRIPT           = os.path.join(SCRIPT_DIR, "merge_results_1.py")
-PLOT_SCRIPT            = os.path.join(SCRIPT_DIR, "plot_central_slice_comparison.py")
+MERGE_HITS_SCRIPT      = os.path.join(SCRIPT_DIR, "merge_hits.py")
+MERGE_POCA_SCRIPT      = os.path.join(SCRIPT_DIR, "merge_poca.py")
 
 if environment == "cluster":
-    PATH_geometry_files   = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
-    PATH_output_raw       = "/gpfs/projects/cms/dominguezs/data/0_raw_geant4"
-    PATH_preprocessed     = "/gpfs/projects/cms/dominguezs/data/1_post_makeHLT"
-    PATH_poca_output      = "/gpfs/projects/cms/dominguezs/data/2_poca"
-    PATH_merged_output    = "/gpfs/projects/cms/dominguezs/data/3_merged_poca"
-    PATH_logs             = "/gpfs/projects/cms/dominguezs/data/logs"
-    PATH_data_analysis    = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/dataAnalysis"
-    PATH_generator        = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration-build/Generator"
-    PATH_setup            = "/gpfs/users/dominguezs/Muography_Denoising/setup.sh"
-    SLURM_USER            = "dominguezs"
+    PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
+    PATH_output_raw          = "/gpfs/projects/cms/dominguezs/data/0_raw_geant4"
+    PATH_preprocessed        = "/gpfs/projects/cms/dominguezs/data/1_post_makeHLT"
+    PATH_merged_post_makeHLT = "/gpfs/projects/cms/dominguezs/data/2_merged_post_makeHLT"
+    PATH_poca_output         = "/gpfs/projects/cms/dominguezs/data/3_merged_poca"
+    PATH_logs                = "/gpfs/projects/cms/dominguezs/data/logs"
+    PATH_data_analysis       = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/dataAnalysis"
+    PATH_generator           = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration-build/Generator"
+    PATH_setup               = "/gpfs/users/dominguezs/Muography_Denoising/setup.sh"
+    SLURM_USER               = "dominguezs"
 
 elif environment == "local":
-    PATH_geometry_files = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
-    PATH_density_files3D  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/3Dimensions"
-    PATH_density_files2D  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions/UNET1"
-    PATH_output_raw     = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_raw"
-    PATH_preprocessed   = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_preprocessed"
-    PATH_poca_output    = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/post_POCA_data"
-    PATH_merged_output  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/merged_poca_data/UNET1"
-    PATH_png_comparisons = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/png_comparisons"
-    PATH_logs           = "/home/samuel/Work/Muography_Denoising/MuonGeneration/logs"
-    PATH_data_analysis  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/dataAnalysis"
-    PATH_generator      = None
-    PATH_setup          = None
-    SLURM_USER          = None
+    PATH_geometry_files      = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
+    PATH_output_raw          = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_raw"
+    PATH_preprocessed        = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_preprocessed"
+    PATH_merged_post_makeHLT = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_merged_hits"
+    PATH_poca_output         = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/post_POCA_data"
+    PATH_logs                = "/home/samuel/Work/Muography_Denoising/MuonGeneration/logs"
+    PATH_data_analysis       = "/home/samuel/Work/Muography_Denoising/MuonGeneration/dataAnalysis"
+    PATH_generator           = None
+    PATH_setup               = None
+    SLURM_USER               = None
 
 else:
     sys.exit("[ERROR] environment must be 'local' or 'cluster'.")
@@ -120,10 +117,10 @@ if simulate_just_one_geometry:
     print(f"[INFO] Looking for geometry containing: {namefile_to_simulate}")
 print(f"[INFO] Geometry files path: {PATH_geometry_files}")
 print(f"[INFO] Output paths:")
-print(f"       Raw:          {PATH_output_raw}")
-print(f"       Preprocessed: {PATH_preprocessed}")
-print(f"       POCA output:  {PATH_poca_output}")
-print(f"       Merged output: {PATH_merged_output}")
+print(f"       Raw:                     {PATH_output_raw}")
+print(f"       Preprocessed (hits):     {PATH_preprocessed}")
+print(f"       Merged hits:             {PATH_merged_post_makeHLT}")
+print(f"       POCA output:             {PATH_poca_output}")
 print(f"[INFO] Logs path: {PATH_logs}")
 print(f"[INFO] SLURM user: {SLURM_USER}")
 print(f"[INFO] SLURM throttling: max {MAX_JOBS_IN_QUEUE} jobs in queue, waiting {THROTTLE_SLEEP}s when full")
@@ -186,11 +183,11 @@ print("="*60)
 time.sleep(5)
 
 
-os.makedirs(PATH_logs,          exist_ok=True)
-os.makedirs(PATH_output_raw,    exist_ok=True)
-os.makedirs(PATH_preprocessed,  exist_ok=True)
-os.makedirs(PATH_poca_output,   exist_ok=True)
-os.makedirs(PATH_merged_output, exist_ok=True)
+os.makedirs(PATH_logs,                  exist_ok=True)
+os.makedirs(PATH_output_raw,            exist_ok=True)
+os.makedirs(PATH_preprocessed,          exist_ok=True)
+os.makedirs(PATH_merged_post_makeHLT,   exist_ok=True)
+os.makedirs(PATH_poca_output,           exist_ok=True)
 
 jobs_submitted = 0
 jobs_failed    = 0
@@ -204,9 +201,6 @@ all_json_files = []
 for file in glob.glob(os.path.join(PATH_geometry_files, "*.json")):
     all_json_files.append(file)
 print(f"[INFO] ----- Total number of geometry json files available for simulation: {len(all_json_files)}")
-
-
-
 
 
 
@@ -242,11 +236,11 @@ for file in all_json_files:
     # Check if merged result already exists WITH THE EXACT NUMBER OF MUONS
     # Try both new format (_Muons_) and legacy format (for backwards compatibility)
     if dimension == "2D":
-        merged_output = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}_2D.npy")
+        merged_poca_output = os.path.join(PATH_poca_output, f"POCA_merged_{namefile}_Muons_{total_muons_per_geometry}_2D.root")
     elif dimension == "3D":
-        merged_output = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}_3D.npy")
+        merged_poca_output = os.path.join(PATH_poca_output, f"POCA_merged_{namefile}_Muons_{total_muons_per_geometry}_3D.root")
 
-    merged_exists = os.path.exists(merged_output)
+    merged_exists = os.path.exists(merged_poca_output)
 
 
     # Skip if already processed
@@ -257,10 +251,13 @@ for file in all_json_files:
     elif merged_exists and force_resimulate:
         print(f"[RESIMULATE] Force flag enabled, re-processing: {namefile}")
         # Clean old files before re-simulating
-        old_poca = glob.glob(os.path.join(PATH_poca_output, f"POCA_{namefile}_seed*.npy"))
+        old_hits = glob.glob(os.path.join(PATH_merged_post_makeHLT, f"Pre_merged_{namefile}*.root"))
+        for f in old_hits:
+            os.remove(f)
+        old_poca = glob.glob(os.path.join(PATH_poca_output, f"POCA_merged_{namefile}*.root"))
         for f in old_poca:
             os.remove(f)
-        os.remove(merged_output)  # Remove old merged result
+        os.remove(merged_poca_output)  # Remove old merged result
         print(f"[INFO] Cleaned old files for: {namefile}")
 
     print(f"\n[INFO] [{i:4d}/{max_geometries_simulated}] Submitting {n_jobs_per_geometry} jobs for: {namefile}")
@@ -361,15 +358,15 @@ if [ -f "{out_raw}" ]; then
     fi
 fi
 
-# Remove preprocessed file
-if [ -f "{out_pre}" ]; then
-    rm -f "{out_pre}" 2>/dev/null
-    if [ $? -eq 0 ]; then
-        echo "[✓] Preprocessed file removed: {out_pre}"
-    else
-        echo "[✗] Failed to remove preprocessed file: {out_pre}"
-    fi
-fi
+# # Remove preprocessed file
+# if [ -f "{out_pre}" ]; then
+#     rm -f "{out_pre}" 2>/dev/null
+#     if [ $? -eq 0 ]; then
+#         echo "[✓] Preprocessed file removed: {out_pre}"
+#     else
+#         echo "[✗] Failed to remove preprocessed file: {out_pre}"
+#     fi
+# fi
 
 # Verify disk freed
 echo "[INFO] Cleanup finished. POCA output ready: {out_poca}"
@@ -410,9 +407,11 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
     dependency_str = "afterok:" + ":".join(job_ids)
 
     if dimension == "2D":
-        out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}_2D.npy")
+        out_merged_hits = os.path.join(PATH_merged_post_makeHLT, f"Pre_merged_{namefile}.root")
+        out_merged_poca = os.path.join(PATH_poca_output, f"POCA_merged_{namefile}.root")
     elif dimension == "3D":
-        out_merged = os.path.join(PATH_merged_output, f"MERGED_{namefile}_Muons_{total_muons_per_geometry}_3D.npy")
+        out_merged_hits = os.path.join(PATH_merged_post_makeHLT, f"Pre_merged_{namefile}.root")
+        out_merged_poca = os.path.join(PATH_poca_output, f"POCA_merged_{namefile}.root")
 
     merge_log  = os.path.join(PATH_logs, f"log_merge_{namefile}.out")
     merge_err  = os.path.join(PATH_logs, f"log_merge_{namefile}.err")
@@ -423,41 +422,45 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
 #SBATCH --output={merge_log}
 #SBATCH --error={merge_err}
 #SBATCH --partition=wncompute_ifca
-#SBATCH --time=00:10:00
-#SBATCH --mem=8G
-#SBATCH --cpus-per-task=2
+#SBATCH --time=00:30:00
+#SBATCH --mem=16G
+#SBATCH --cpus-per-task=4
 
 source {PATH_setup}
 
-echo "[INFO] Starting merge for: {namefile}"
+echo "[INFO] Starting merge pipeline for: {namefile}"
 
-python3 -u {MERGE_SCRIPT} \\
-    --namefile         {namefile} \\
-    --n_jobs           {n_jobs_per_geometry} \\
-    --npx              {npx} \\
-    --npy              {npy} \\
-    --npz              {npz} \\
-    --dimension        {dimension} \\
-    --path_poca_output {PATH_poca_output} \\
-    --output           {out_merged}
-if [ $? -ne 0 ]; then echo "[ERROR] Merge failed. Aborting."; exit 1; fi
+# --- 1st: Merge all Pre_*.root files ---
+echo "[INFO] Running merge_hits.py..."
+python3 -u {MERGE_HITS_SCRIPT} \\
+    --namefile          {namefile} \\
+    --n_jobs            {n_jobs_per_geometry} \\
+    --path_hits_input   {PATH_preprocessed} \\
+    --path_hits_output  {PATH_merged_post_makeHLT} \\
+    --output            {out_merged_hits}
+if [ $? -ne 0 ]; then echo "[ERROR] merge_hits.py failed. Aborting."; exit 1; fi
+echo "[CORRECT] merge_hits.py done."
 
-echo "[CORRECT] Merge finished for: {namefile}"
+# --- 2nd: Run POCA1.py on merged hits ---
+echo "[INFO] Running POCA1.py on merged hits..."
+python3 -u {PATH_data_analysis}/POCA1.py \\
+    --input     {out_merged_hits} \\
+    --output    {out_merged_poca} \\
+    --Lpx {Lpx} --Lpy {Lpy} --Lpz {Lpz} \\
+    --npx {npx} --npy {npy} --npz {npz} \\
+    --dimension {dimension}
+if [ $? -ne 0 ]; then echo "[ERROR] POCA1.py failed. Aborting."; exit 1; fi
+echo "[CORRECT] POCA1.py done."
 
+# --- 3rd: Cleanup intermediate files ---
+echo "[INFO] Cleaning up intermediate files..."
 
-### REMOVING RAW POCA POINTS
+# Remove individual Pre_*.root files
+rm {PATH_preprocessed}/Pre_{namefile}_seed*.root
+echo "[CORRECT] Individual Pre_*.root files removed."
 
-echo "[INFO] Removing splitted POCA files for: {namefile}"
-# Usamos el prefijo específico para no borrar lo de otros jobs
-rm {PATH_poca_output}/POCA_{namefile}_seed*.root
-echo "[CORRECT] Split POCA files removed for: {namefile}"
-
-echo "[INFO] Cleaning up seed logs..."
-sleep 10
-rm {PATH_logs}/log_{namefile}_seed*.out
-rm {PATH_logs}/log_{namefile}_seed*.err
-rm {PATH_logs}/job_{namefile}_seed*.sh
-echo "[CORRECT] Cleanup finished."
+echo "[INFO] Cleanup finished."
+echo "[CORRECT] Merge pipeline finished for: {namefile}"
 """
     with open(merge_sh, "w") as f:
         f.write(merge_script)
@@ -498,4 +501,4 @@ print(f"       Check logs at: {PATH_logs}")
 print("="*70)
 
 
-print(f"[INFO] ----- saved at {PATH_merged_output}")
+print(f"[INFO] ----- saved at {PATH_poca_output}")
