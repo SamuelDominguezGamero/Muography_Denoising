@@ -35,7 +35,7 @@ from numpy.random import Generator, PCG64, SeedSequence
 # CONTROL FLAGS
 # ===========================================================================
 create_geometries = True
-environment       = "local"  # "local" or "cluster"
+environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
 max_geometries    = np.inf     # the first geometries to be tested on
 max_geometries_simulated = np.inf  # the first geometries to be simulated (if simulate=True)
