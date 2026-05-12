@@ -189,19 +189,49 @@ zPosDetector_bot = -54
 #   - Sizes 8, 10, 12, 14, 16: Stroke 1, 2, 3 all available
 #   - Only letters available: M, U, O, N
 
-spacings       = [3] 
-ratios         = [2]
+spacings       = [1,2,3] 
+ratios         = [1, 2]
 # Strategy: Use multiple sizes with stroke variations that are actually available
 # NOTE: Font 14+ with stroke 3 will show warnings when they don't fit - this is natural and expected
 fontsizes      = [8, 10, 12, 14, 16] # All sizes tested; warnings shown if too large
-strokes        = [3]
+strokes        = [1,2,3]
 # DEPTH: Variable Z thickness for word geometry in centimeters (efficient method)
 # Single slab with configurable thickness - no more inefficient layer repetition!
-depth_z_cm_list = [2.0, 5.0, 10.0]  # Example: test thin, normal, and thick geometries
+depth_z_cm_list = [1, 2.0, 4.0, 5.0, 10.0, 20.0]  # Example: test thin, normal, and thick geometries
 
 
-materials      = ["lead"] #  "iron", "uranium", "aluminium", "silicon", "steel"
-words_geometry = ["MUON"] # , "MUNO", "NOMU", "MOUN", "NOUM", "NMOU", "MNOU", "NMUO", "MNUO", "ONUM", "OUMN", "UONM", "UNOM", "UOMN"
+materials      = ["lead", "iron", "uranium", "aluminium", "silicon", "steel"]
+words_geometry = ["MUON", "MUNO", "UNOM", "UOMN", "MU", "NUM", "OOOO", "OOMM", "UUOO"]
+
+words_possible = [
+    # 1 letra
+    "M", "U", "O", "N",
+    # 2 letras
+    "MM", "MU", "MO", "MN", "UM", "UU", "UO", "UN", "OM", "OU", "OO", "ON", "NM", "NU", "NO", "NN",
+    # 3 letras
+    "MMM", "MMU", "MMO", "MMN", "MUM", "MUU", "MUO", "MUN", "MOM", "MOU", "MOO", "MON", "MNM", "MNU", "MNO", "MNN",
+    "UMM", "UMU", "UMO", "UMN", "UUM", "UUU", "UUO", "UUN", "UOM", "UOU", "UOO", "UON", "UNM", "UNU", "UNO", "UNN",
+    "OMM", "OMU", "OMO", "OMN", "OUM", "OUU", "OUO", "OUN", "OOM", "OOU", "OOO", "OON", "ONM", "ONU", "ONO", "ONN",
+    "NMM", "NMU", "NMO", "NMN", "NUM", "NUU", "NUO", "NUN", "NOM", "NOU", "NOO", "NON", "NNM", "NNU", "NNO", "NNN",
+    # 4 letras
+    "MMMM", "MMMU", "MMMO", "MMMN", "MMUM", "MMUU", "MMUO", "MMUN", "MMOM", "MMOU", "MMOO", "MMON", "MMNM", "MMNU", "MMNO", "MMNN",
+    "MUMM", "MUMU", "MUMO", "MUMN", "MUUM", "MUUU", "MUUO", "MUUN", "MUOM", "MUOU", "MUOO", "MUON", "MUNM", "MUNU", "MUNO", "MUNN",
+    "MOMM", "MOMU", "MOMO", "MOMN", "MOUM", "MOUU", "MOUO", "MOUN", "MOOM", "MOOU", "MOOO", "MOON", "MONM", "MONU", "MONO", "MONN",
+    "MNMM", "MNMU", "MNMO", "MNMN", "MNUM", "MNUU", "MNUO", "MNUN", "MNOM", "MNOU", "MNOO", "MNON", "MNNM", "MNNU", "MNNO", "MNNN",
+    "UMMM", "UMMU", "UMMO", "UMMN", "UMUM", "UMUU", "UMUO", "UMUN", "UMOM", "UMOU", "UMOO", "UMON", "UMNM", "UMNU", "UMNO", "UMNN",
+    "UUMM", "UUMU", "UUMO", "UUMN", "UUUM", "UUUU", "UUUO", "UUUN", "UUOM", "UUOU", "UUOO", "UUON", "UUNM", "UUNU", "UUNO", "UUNN",
+    "UOMM", "UOMU", "UOMO", "UOMN", "UOUM", "UOUU", "UOUO", "UOUN", "UOOM", "UOOU", "UOOO", "UOON", "UONM", "UONU", "UONO", "UONN",
+    "UNMM", "UNMU", "UNMO", "UNMN", "UNUM", "UNUU", "UNUO", "UNUN", "UNOM", "UNOU", "UNOO", "UNON", "UNNM", "UNNU", "UNNO", "UNNN",
+    "OMMM", "OMMU", "OMMO", "OMMN", "OMUM", "OMUU", "OMUO", "OMUN", "OMOM", "OMOU", "OMOO", "OMON", "OMNM", "OMNU", "OMNO", "OMNN",
+    "OUMM", "OUMU", "OUMO", "OUMN", "OUUM", "OUUU", "OUUO", "OUUN", "OUOM", "OUOU", "OUOO", "OUON", "OUNM", "OUNU", "OUNO", "OUNN",
+    "OOMM", "OOMU", "OOMO", "OOMN", "OOUM", "OOUU", "OOUO", "OOUN", "OOOM", "OOOU", "OOOO", "OOON", "OONM", "OONU", "OONO", "OONN",
+    "ONMM", "ONMU", "ONMO", "ONMN", "ONUM", "ONUU", "ONUO", "ONUN", "ONOM", "ONOU", "ONOO", "ONON", "ONNM", "ONNU", "ONNO", "ONNN",
+    "NMMM", "NMMU", "NMMO", "NMMN", "NMUM", "NMUU", "NMUO", "NMUN", "NMOM", "NMOU", "NMOO", "NMON", "NMNM", "NMNU", "NMNO", "NMNN",
+    "NUMM", "NUMU", "NUMO", "NUMN", "NUUM", "NUUU", "NUUO", "NUUN", "NUOM", "NUOU", "NUOO", "NUON", "NUNM", "NUNU", "NUNO", "NUNN",
+    "NOMM", "NOMU", "NOMO", "NOMN", "NOUM", "NOUU", "NOUO", "NOUN", "NOOM", "NOOU", "NOOO", "NOON", "NONM", "NONU", "NONO", "NONN",
+    "NNMM", "NNMU", "NNMO", "NNMN", "NNUM", "NNUU", "NNUO", "NNUN", "NNOM", "NNOU", "NNOO", "NNON", "NNNM", "NNNU", "NNNO", "NNNN"
+]
+
 
 # Count total valid geometries
 total_geometries = 0

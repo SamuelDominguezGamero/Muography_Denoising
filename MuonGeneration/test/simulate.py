@@ -29,6 +29,10 @@ simulate_just_one_geometry = True
 namefile_to_simulate = "_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2.json"
 print_skips = False
 
+# ===== FILTER BY DEPTH_Z (NEW GEOMETRIES) =====
+filter_by_depthZ       = False  # Set to True to filter geometries by depthZ value
+depthZ_list_to_simulate = [1, 2, 5, 10, 20]  # Only simulate geometries with these depthZ values (e.g., [2, 5, 10])
+
 # ===========================================================================
 # SLURM JOB THROTTLING
 # ===========================================================================
@@ -115,6 +119,8 @@ print(f"[INFO] Environment: {environment}")
 print(f"[INFO] Script directory: {SCRIPT_DIR}")
 if simulate_just_one_geometry:
     print(f"[INFO] Looking for geometry containing: {namefile_to_simulate}")
+if filter_by_depthZ:
+    print(f"[INFO] Filtering by depthZ: {depthZ_list_to_simulate}")
 print(f"[INFO] Geometry files path: {PATH_geometry_files}")
 print(f"[INFO] Output paths:")
 print(f"       Raw:                     {PATH_output_raw}")
@@ -149,7 +155,7 @@ zPosDetector_bot = -54
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 30_000_000
+total_muons_per_geometry = 1_000_000
 n_muons_per_job          = 100_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
@@ -193,6 +199,7 @@ jobs_submitted = 0
 jobs_failed    = 0
 merges_submitted = 0
 geometries_skipped = 0
+geometries_skipped_by_depthZ = 0
 geometries_failed_during_creation = 0
 
 
@@ -230,8 +237,20 @@ for file in all_json_files:
     namefile = os.path.splitext(os.path.basename(file))[0]
     geometry_file = file # full path with extension
 
-
-
+    # === FILTER BY DEPTHZ (if enabled) ===
+    if filter_by_depthZ:
+        matches_depthZ = False
+        for depthZ in depthZ_list_to_simulate:
+            if f"_depthZ{depthZ}" in namefile:
+                matches_depthZ = True
+                break
+        if not matches_depthZ:
+            if print_skips:
+                print(f"[SKIP] depthZ filter: {namefile} not in {depthZ_list_to_simulate}")
+            geometries_skipped_by_depthZ += 1
+            continue
+        else:
+            print(f"[MATCH] depthZ filter matched: {namefile}")
 
     # Check if merged result already exists WITH THE EXACT NUMBER OF MUONS
     # Try both new format (_Muons_) and legacy format (for backwards compatibility)
@@ -490,7 +509,9 @@ print(f"[INFO] Results:")
 print(f"       Geometries processed        = {i - 1}")
 if simulate_just_one_geometry:
     print(f"       (Just one geometry simulated: {namefile_to_simulate})")
-print(f"       Geometries skipped          = {geometries_skipped}")
+if filter_by_depthZ:
+    print(f"       Geometries skipped (depthZ) = {geometries_skipped_by_depthZ}")
+print(f"       Geometries skipped (total)  = {geometries_skipped}")
 print(f"       Simulation jobs submitted   = {jobs_submitted}")
 print(f"       Simulation jobs failed      = {jobs_failed}")
 print(f"       Merge jobs submitted        = {merges_submitted}")
