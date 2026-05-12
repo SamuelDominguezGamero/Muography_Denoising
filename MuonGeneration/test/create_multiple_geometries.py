@@ -260,7 +260,7 @@ print("STEP 1: GEOMETRY CREATION")
 print("="*60)
 
 i = 0
-done_creating = False
+done_creating = False # control variable to break all loops if max_geometries has been created
 for spacing in spacings:
     if not create_geometries or done_creating:
         break
