@@ -24,7 +24,7 @@ simulate          = True       # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"       # 2D or 3D, first we should stick to 2D for faster iterations
 force_resimulate  = True      # set to True to re-process geometries even if merged results exist
-max_geometries_simulated = 100 
+max_geometries_simulated = 4600 
 simulate_just_one_geometry = False
 namefile_to_simulate = "_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2.json"
 print_skips = False
@@ -36,8 +36,8 @@ depthZ_list_to_simulate = [1, 2, 5, 10, 20]  # Only simulate geometries with the
 # ===========================================================================
 # SLURM JOB THROTTLING
 # ===========================================================================
-MAX_JOBS_IN_QUEUE = 1000      # adjust to your cluster's limit
-THROTTLE_SLEEP    = 15        # seconds to wait when queue is full before retrying
+MAX_JOBS_IN_QUEUE = 1200      # adjust to your cluster's limit
+THROTTLE_SLEEP    = 10        # seconds to wait when queue is full before retrying
 
 def get_current_job_count(username="dominguezs"):
     """Returns the number of jobs currently in the SLURM queue for the user."""
@@ -155,8 +155,8 @@ zPosDetector_bot = -54
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 1_000_000
-n_muons_per_job          = 100_000
+total_muons_per_geometry = 750_000
+n_muons_per_job          = 75_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
 time.sleep(1)
