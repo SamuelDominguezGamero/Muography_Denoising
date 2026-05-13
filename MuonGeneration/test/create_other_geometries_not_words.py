@@ -1,95 +1,5 @@
-"""
-Geant4 Geometry Generator with Geometric Shapes and Text Support
-
-DESCRIPTION:
-    Creates JSON configuration files for Geant4 Monte Carlo simulations with 
-    custom geometries. Supports both text-based (words) and geometric shapes 
-    (circles, triangles, rectangles, diamonds, stars, polygons).
-    
-    Core elements:
-    - Detectors: two planar detectors (top and bottom)
-    - Voxels: volumetric geometry with material properties, positioned in 3D space
-
-AVAILABLE GEOMETRIES:
-    Text-based:
-        --geometry_type word          Word made from bitmap letters (MUON, etc.)
-    
-    Filled shapes:
-        --geometry_type circle_filled     Solid circle
-        --geometry_type triangle_filled   Solid equilateral triangle
-        --geometry_type rectangle_filled  Solid rectangle
-        --geometry_type diamond           Solid diamond (rotated square)
-        --geometry_type star              Solid 5-point star
-        --geometry_type hexagon           Solid regular hexagon
-    
-    Hollow shapes (outline only):
-        --geometry_type circle_empty      Circle outline
-        --geometry_type triangle_empty    Triangle outline
-        --geometry_type rectangle_empty   Rectangle frame
-
-QUICK START EXAMPLES:
-    # Filled circle (radius 20 voxels)
-    python3 create_other_geometries_not_words.py --geometry_type circle_filled \\
-            --shape_size 20 --output_json geom_circle.json
-    
-    # Empty circle with stroke=2 (2-voxel outline)
-    python3 create_other_geometries_not_words.py --geometry_type circle_empty \\
-            --shape_size 20 --shape_stroke 2 --output_json geom_circle_empty.json
-    
-    # Filled rectangle (40x20 voxels)
-    python3 create_other_geometries_not_words.py --geometry_type rectangle_filled \\
-            --rect_width 40 --rect_height 20 --output_json geom_rect.json
-    
-    # Word MUON (backward compatible)
-    python3 create_other_geometries_not_words.py --geometry_type word \\
-            --word_geometry MUON --FontSizeX 12 --FontSizeY 12 \\
-            --output_json geom_muon.json
-
-KEY PARAMETERS:
-    Geometry selection:
-        --geometry_type {word|circle_filled|circle_empty|triangle_filled|...}
-        
-    Shape parameters:
-        --shape_size INT              Size/radius of shape (default: 32 voxels)
-        --shape_stroke INT            Outline thickness for hollow shapes (default: 1 voxel)
-        --rect_width, --rect_height   Rectangle dimensions
-        
-    World/resolution:
-        --Lpx, --Lpy, --Lpz           World dimensions in cm (default: 128x128x128)
-        --npx, --npy, --npz           Number of POCA voxels (default: 128x128x128)
-        --ratio INT                   Upsampling ratio: Geant4/POCA (default: 2)
-        
-    Material & depth:
-        --material {lead|iron|uranium|aluminium|argon|silicon|steel} (default: lead)
-        --depth_z_word INT            Thickness in Z direction (default: 1 voxel)
-        
-    Output:
-        --output_json PATH            Geant4 JSON config file
-        --output2D_density PATH       2D density slice (numpy)
-        --visual_testing_XY_slice     Enable PNG visualization
-
-TECHNICAL NOTES:
-    - Voxel dimensions must be integers (Lpx/npx, Lpy/npy, Lpz/npz)
-    - Ratio must exactly divide npx, npy, npz for proper alignment
-    - Shapes are generated at Geant4 resolution and upsampled to POCA resolution
-    - Coordinates follow: y=height, x=width, z=depth (arrays indexed [y,x,z])
-    - Material densities: lead=11.35, iron=7.874, uranium=18.95, etc.
-"""
-
-
-
 import json
-import math 
-import sys
-import numpy as np
-import pandas as pd
 import argparse
-import os
-from bitmaps_letters import get_word, get_letter, dimensions_test
-from geometric_shapes import get_shape
-
-# Debugging: 
-dimensions_test() # should stop the whole program if the dimensions are not correct for the defined font sizes and stroke widths. This is crucial to ensure that the generated word matrices fit properly in the Geant4 geometry.
 
 
 parser = argparse.ArgumentParser(description="Creation of geometry from POCA resolution ---> key parameter = ratio.")
@@ -100,382 +10,62 @@ parser.add_argument("--npx", type=int, default=128, help="Number of voxels (X) G
 parser.add_argument("--npy", type=int, default=128, help="Number of voxels (Y) Geant4.")
 parser.add_argument("--npz", type=int, default=128, help="Number of voxels (Z) Geant4.")
 parser.add_argument("--ratio", type=int, default=2, help="SizeVoxelGeant4 / SizeVoxelPOCA: (natural >= 1). Keep in mind that the number of voxels in POCA should be greater than or equal to those in Geant4. The resolution of POCA is the resolution of the image that will be given to the neural network.")
+
 parser.add_argument("--zPosDetector_top", type=float, default=118.0,
     help="Z position of the TOP detector (cm), above the geometry.")
 parser.add_argument("--zPosDetector_bot", type=float, default=-118.0,
     help="Z position of the BOTTOM detector (cm), below the geometry.")
 
-
-parser.add_argument("--word_geometry", type=str, default="MUON", help="Word to be embedded in the geometry. Default is 'MUON'.")
-parser.add_argument("--FontSizeX", type=int, default=12, help="Font size in X for the word geometry. Measured in G4 voxels. Valid sizes are 8, 10, 12, 14, 16.")
-parser.add_argument("--FontSizeY", type=int, default=12, help="Font size in Y for the word geometry. Measured in G4 voxels. Valid sizes are 8, 10, 12, 14, 16.")
-parser.add_argument("--StrokeWidth", type=int, default=1, help="Stroke width for the word geometry. Measured in G4 voxels. Valid sizes are 1, 2, 3.")
-parser.add_argument("--spacing", type=int, default=1, help="Spacing between letters in the word geometry. Measured in G4 voxels.")
-parser.add_argument("--depth_z_word", type=int, default=1, help="Depth in Z direction for the word geometry. Measured in G4 voxels.")
-
+parser.add_argument("--depth_z_cm", type=float, default=2.0, help="Word thickness in centimeters. Efficient single slab method (variable zSizeVoxel).")
 parser.add_argument("--material", type=str, default="lead", help="Material for the word geometry. Default is 'lead'.")
-
-# Geometry type selection
-parser.add_argument("--geometry_type", type=str, default="word", 
-    choices=["word", "circle_filled", "circle_empty", "triangle_filled", "triangle_empty", 
-             "rectangle_filled", "rectangle_empty", "star", "diamond", "hexagon"],
-    help="Type of geometry to create. 'word' for text, or geometric shapes. Default is 'word'.")
-
-# Geometric shape parameters (used when geometry_type is not 'word')
-parser.add_argument("--shape_size", type=int, default=32, 
-    help="Size parameter for geometric shapes (radius for circle, side length for others). Default is 32 voxels.")
-parser.add_argument("--shape_stroke", type=int, default=1,
-    help="Stroke width for hollow shapes (circle_empty, triangle_empty, etc.). Default is 1 voxel.")
-parser.add_argument("--rect_width", type=int, default=40,
-    help="Width of rectangle shape. Default is 40 voxels.")
-parser.add_argument("--rect_height", type=int, default=20,
-    help="Height of rectangle shape. Default is 20 voxels.")
-parser.add_argument("--polygon_sides", type=int, default=6,
-    help="Number of sides for polygon shape. Default is 6 (hexagon).")
-
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-default_density_path = os.path.join(script_dir, "default_ground_truth_density.npy")
-default_json_path = os.path.join(script_dir, "default_geometry.json")
-
-# outputs
-parser.add_argument("--dimensions", type=str, default="2D", help="Dimensions for the UNET (2d or 3d).")
-parser.add_argument("--output3D_density", type=str, default=default_density_path, help="Output npy file (Tensor) for the ground truth density of the geometry, assigns the geometry of the material for each of the voxels (0 for air).")
-parser.add_argument("--output_json", type=str, default=default_json_path, help="Output JSON file name for the Geant4 geometry configuration.")
-parser.add_argument("--output2D_density", type=str, default="2D", help="Output path for the 2D geometry.")
-
-# plotting
-parser.add_argument("--visual_testing_XY_slice", action="store_false",
-    help="If True, plots the XY slice of the geometry at the central Z voxel using matplotlib.")
-
-# save all the arguments:
 args = parser.parse_args()
 
 
-
-# ALL-SPACE GEOMETRY CREATION
-
 # ====== POCA ====== 
-Lpx = args.Lpx
-Lpy = args.Lpy
-Lpz = args.Lpz
-# resolución de poca: 
-npx = args.npx # number of voxels (X)
-npy = args.npy # number of voxels (Y)
-npz = args.npz # number of voxels (Z)
-
+Lpx = args.Lpx # Length of the world (X) POCA
+Lpy = args.Lpy # Length of the world (Y) POCA
+Lpz = args.Lpz # Length of the world (Z) POCA
+npx = args.npx # Number of voxels (X) POCA
+npy = args.npy # number of voxels (Y) POCA
+npz = args.npz # number of voxels (Z) POCA
 size_voxel_poca_x = Lpx/npx 
 size_voxel_poca_y = Lpy/npy 
 size_voxel_poca_z = Lpz/npz 
 
-sizes = [size_voxel_poca_x, size_voxel_poca_y, size_voxel_poca_z]
 
-if all(s % 1 == 0 for s in sizes):
-    print("============================================================")
-    print("[CORRECT] ----- Valid voxel dimensions (integers)  [CORRECT]")
-    print("============================================================")
-else:
-    sys.exit("[ERROR] ----- Voxel dimensions are not integers. Please adjust Lpx, Lpy, Lpz or npx, npy, npz to ensure integer voxel sizes. Remember that Lpx, Lpy, Lpz should be DIVISIBLE by npx, npy, npz respectively to get integer voxel sizes.")
-
-
-size_vec = np.array(sizes)
-left_down_corner = np.array([-Lpx/2.0, -Lpy/2.0, -Lpz/2.0])
-first_voxel = left_down_corner + size_vec/2.0
-
-
-voxels_centers_poca = []
-test_print = False
-for ix in range(npx): 
-    for iy in range(npy): 
-        for iz in range(npz): 
-            desplazamiento = np.array([ix * size_vec[0], iy * size_vec[1], iz * size_vec[2]])
-            voxel_center = first_voxel + desplazamiento
-            voxels_centers_poca.append(voxel_center)
-            if test_print: # debugging
-                print(f"Voxel (POCA) center at: {voxel_center}")
-            
-
-
-
-
-# ====== GEANT4 ======
-# apply same logic for geant4 
-# ratio = npx/nx = nyp/ny = npz/nz -> ratio between both resolutions  
-# usually, there should be more voxels in poca than in geant4
-#                          """"""""""""""""""""""""""""""""""
-
-
-ratio = args.ratio # must be a natural number >= 1
-
-if npx % ratio != 0 or npy % ratio != 0 or npz % ratio != 0:
-    sys.exit(f"[ERROR] ----- ratio ({ratio}) must be an exact divisor of the voxels in POCA ({npx}, {npy}, {npz}). "
-             f"Otherwise, the cells in Geant4 and POCA will not align spatially.")
-
-# once tests are passed: 
-# numbers of voxels in geant4 (real geometry):
-nx = npx // ratio # should be an integer
-ny = npy // ratio 
-nz = npz // ratio # afterwards, we will remove layers of voxels in Z that are not interesting for the POCA
-
-Lx = Lpx # cm
+# ====== GEANT4 ====== 
+Lx = Lpx 
 Ly = Lpy
-Lz = Lpz 
-
-SizeG4Voxel_x = Lx/nx
-SizeG4Voxel_y = Ly/ny
-SizeG4Voxel_z = Lz/nz
-
-
-
-voxel_centers_G4 = []
-MatrixGeometryMaterials = np.zeros((ny, nx, nz), dtype=object)  # This will hold the material of each voxel (ny, nx, nz) = (height, width, depth)
-MatrixGeometryBoolean = np.zeros((ny, nx, nz), dtype=int)  # This will hold 1 for filled voxels and 0 for empty voxels
-MatrixGeometryCenter = np.zeros((ny, nx, nz, 3))  # This will hold the center coordinates of each voxel
-MatrixGeometryDensity = np.zeros((ny, nx, nz))  # This will hold the density of each voxel (for reference)
-
-for iy in range(ny):
-    for ix in range(nx):
-        for iz in range(nz):
-            voxel_center_g4 = np.array([-Lx/2.0 + (ix + 0.5) * SizeG4Voxel_x,
-                                        -Ly/2.0 + (iy + 0.5) * SizeG4Voxel_y,
-                                        -Lz/2.0 + (iz + 0.5) * SizeG4Voxel_z])
-            voxel_centers_G4.append(voxel_center_g4)
-            MatrixGeometryCenter[iy, ix, iz] = voxel_center_g4
-            if test_print:
-                print(f"Voxel (GEANT4) center at: {voxel_center_g4}")
+Lz = Lpz
+size_voxel_G4_x = args.ratio * size_voxel_poca_x
+size_voxel_G4_y = args.ratio * size_voxel_poca_y
+size_voxel_G4_z = args.ratio * size_voxel_poca_z
 
 
 
-
-######## DEFINING A CUSTOM GEOMETRY ########
-# Generation of letters and words --> M, U, O, N --> script bitmaps_letters.py --> fixed matrixes and resolutions
-
-
-def embed_word_in_geometry(word_matrix, boolean_matrix, start_vox: tuple, depth_z: int):
-    """
-    Inserts the word MUON into the real 3D geometry of Geant4, represented as a boolean matrix.
-
-    Parameters:
-    - word_matrix: 2D numpy array (ny_word, nx_word) with 1s where the letter is and 0s elsewhere. Shape is (height, width).
-    - boolean_matrix: 3D numpy array (ny_world, nx_world, nz_world) representing the Geant4 world. We will modify this in-place to insert the word. Shape is (height, width, depth).
-    - start_vox: Tuple (x0, y0, z0) indicating the starting voxel coordinates in the boolean_matrix where the top-left corner of the word will be placed. Coordinates are in the order (X, Y, Z).
-    - depth_z: Integer indicating how many voxels in the Z direction the word should occupy (thickness of the word in Z). The word will be extruded in Z for this many voxels, starting from z0.
-    """
-    # word_matrix.shape es (ny_word, nx_word) = (height, width) = (nrows, ncols)
-    ny_word, nx_word = word_matrix.shape
-    ny_world, nx_world, nz_world = boolean_matrix.shape # shape is (ny, nx, nz)
-    
-    if start_vox is None: # Default: insert in the center of the world
-        # For even/odd combinations, exact z=0 may not coincide with a voxel center.
-        # This choice minimizes the offset of the inserted slab center from z=0.
-        z_start = int(np.floor((nz_world - depth_z) / 2.0 + 0.5))
-        x_start = (nx_world - nx_word) // 2
-        y_start = (ny_world - ny_word) // 2
-        start_vox = (x_start, y_start, z_start)
-    
-    x0, y0, z0 = start_vox
-
-
-    
-
-    # Debugging: verify that the word fits in the world at the specified location and depth
-    if (
-        x0 < 0 or y0 < 0 or z0 < 0 or
-        (x0 + nx_word > nx_world) or
-        (y0 + ny_word > ny_world) or
-        (z0 + depth_z > nz_world)
-    ):
-        print(f"[ERROR] ----- Palabra ({nx_word}x{ny_word}x{depth_z}) "
-            f"no cabe en ({nx_world}x{ny_world}x{nz_world}) "
-            f"desde posición ({x0}, {y0}, {z0})")
-        print("===========================================================")   
-        sys.exit(1)
-
-    z_idx_center = z0 + depth_z / 2.0
-    z_center_cm = -Lz / 2.0 + z_idx_center * SizeG4Voxel_z
-    print(f"[INFO] Geometry slab center in Z: z={z_center_cm:.3f} cm (target z=0)")
-
-    print(f"Inserted word ({nx_word}x{ny_word}) in: [{y0}:{y0+ny_word}, {x0}:{x0+nx_word}, {z0}:{z0+depth_z}]")
-
-    # Insert word into the 3D matrix.
-    # `word_matrix` uses (ny, nx) = (height, width), matching boolean_matrix[y, x, z].
-    for z in range(z0, z0 + depth_z):
-        boolean_matrix[y0 : y0 + ny_word, x0 : x0 + nx_word, z] = word_matrix
-
-    return boolean_matrix
+# ====== GEOMETRIES ====== 
+def rectangle(height, width, depth, center):
+    voxels_high = height / size_voxel_G4_y
+    voxels_wide = width / size_voxel_G4_x
+    if (height %% size_voxel_G4_x != 0) or (width %% size_voxel_G4_x):
 
 
 
 
 
-#### HELPER FUNCTION: GENERATE GEOMETRY MATRIX ####
-
-def generate_geometry_matrix(geometry_type: str, args) -> tuple:
-    """
-    Generate a 2D geometry matrix based on the specified type.
-    
-    Args:
-        geometry_type: Type of geometry ('word', 'circle_filled', 'circle_empty', etc.)
-        args: Argument parser object containing all parameters
-    
-    Returns:
-        Tuple of (matrix, shape_description) where:
-        - matrix: 2D numpy array (height, width)
-        - shape_description: String description of the generated shape
-    """
-    
-    geometry_type = geometry_type.lower()
-    
-    if geometry_type == "word":
-        # Original word-based geometry
-        word_matrix, shape_word_YX = get_word(
-            word_string=args.word_geometry,
-            res_x_list=args.FontSizeX,
-            res_y_list=args.FontSizeY,
-            stroke_list=args.StrokeWidth,
-            spacing=args.spacing
-        )
-        
-        if word_matrix is None:
-            print("[ERROR] Failed to create word matrix. Check bitmap templates.")
-            sys.exit(1)
-        
-        shape_desc = f"Word '{args.word_geometry}' (size {args.FontSizeX}x{args.FontSizeY}, stroke {args.StrokeWidth})"
-        return word_matrix, shape_desc
-    
-    elif geometry_type == "circle_filled":
-        matrix = get_shape("circle", size=args.shape_size, filled=True)
-        shape_desc = f"Filled circle (radius {args.shape_size} voxels)"
-        return matrix, shape_desc
-    
-    elif geometry_type == "circle_empty":
-        matrix = get_shape("circle", size=args.shape_size, filled=False, stroke=args.shape_stroke)
-        shape_desc = f"Empty circle (radius {args.shape_size}, stroke {args.shape_stroke} voxels)"
-        return matrix, shape_desc
-    
-    elif geometry_type == "triangle_filled":
-        matrix = get_shape("triangle", size=args.shape_size, filled=True)
-        shape_desc = f"Filled triangle (size {args.shape_size} voxels)"
-        return matrix, shape_desc
-    
-    elif geometry_type == "triangle_empty":
-        matrix = get_shape("triangle", size=args.shape_size, filled=False, stroke=args.shape_stroke)
-        shape_desc = f"Empty triangle (size {args.shape_size}, stroke {args.shape_stroke} voxels)"
-        return matrix, shape_desc
-    
-    elif geometry_type == "rectangle_filled":
-        matrix = get_shape("rectangle", size=args.rect_width, filled=True, 
-                          width=args.rect_width, height=args.rect_height)
-        shape_desc = f"Filled rectangle ({args.rect_width}x{args.rect_height} voxels)"
-        return matrix, shape_desc
-    
-    elif geometry_type == "rectangle_empty":
-        matrix = get_shape("rectangle", size=args.rect_width, filled=False, 
-                          stroke=args.shape_stroke, width=args.rect_width, height=args.rect_height)
-        shape_desc = f"Empty rectangle ({args.rect_width}x{args.rect_height}, stroke {args.shape_stroke} voxels)"
-        return matrix, shape_desc
-    
-    elif geometry_type == "star":
-        matrix = get_shape("star", size=args.shape_size, filled=True, points=5)
-        shape_desc = f"Filled star (size {args.shape_size} voxels, 5 points)"
-        return matrix, shape_desc
-    
-    elif geometry_type == "diamond":
-        matrix = get_shape("diamond", size=args.shape_size, filled=True)
-        shape_desc = f"Filled diamond (size {args.shape_size} voxels)"
-        return matrix, shape_desc
-    
-    elif geometry_type == "hexagon":
-        matrix = get_shape("polygon", size=args.shape_size, filled=True, sides=6)
-        shape_desc = f"Filled hexagon (size {args.shape_size} voxels)"
-        return matrix, shape_desc
-    
-    else:
-        print(f"[ERROR] Unknown geometry type: '{geometry_type}'")
-        print(f"Available types: word, circle_filled, circle_empty, triangle_filled, triangle_empty,")
-        print(f"                rectangle_filled, rectangle_empty, star, diamond, hexagon")
-        sys.exit(1)
-
-
-#### EXECUTION OF THE PROGRAM ####
-
-
-word_matrix, shape_description = generate_geometry_matrix(args.geometry_type, args)
-
-print(f"[CORRECT] ----- Geometry matrix created successfully: {shape_description}")
-
-
-# 3. Insertar la geometría en el centro del mundo
-# Calculamos posición central
-
-
-MatrixGeometryBoolean = embed_word_in_geometry(
-    word_matrix = word_matrix,
-    boolean_matrix = MatrixGeometryBoolean,
-    start_vox = None, # Default: insert in the center of the world
-    depth_z = args.depth_z_word
-)
-
-print("[CORRECT] ----- Word matrix inserted successfully in G4 geometry." )
-
-
-MatrixGeometryMaterials[MatrixGeometryBoolean == 1] = args.material
-MatrixGeometryMaterials[MatrixGeometryBoolean == 0] = "air"
-
-
-possible_materials = ["lead", "air", "iron", "uranium", "aluminium", "argon", "silicon", "steel"] 
-# possible materials defined in DetectorConstruction.cc (Geant4)
 
 
 
-
-# ---- Debugging ---- 
-# verify that only allowed materials are present in the geometry
-for element in np.unique(MatrixGeometryMaterials):
-    if element not in possible_materials:
-        sys.exit(f"[ERROR] ----- Invalid material found in MatrixGeometryMaterials. Allowed materials are: {possible_materials}")
-# ----           ----
-
-
-density_dictionary = {
-    "lead": 11.35,
-    "air": 0.00120479,
-    "iron": 7.874,
-    "uranium": 18.95,
-    "aluminium": 2.699,
-    "argon": 0.001639,  # Gas a STP (condiciones estándar)
-    "silicon": 2.33,
-    "steel": 8.00       # G4_STAINLESS-STEEL
-}
-MatrixGeometryDensity = density_dictionary[args.material] * MatrixGeometryBoolean # assign density based on the material of each voxel
-# https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
+# Geometric figures --> to train the UNET with other geometries that are not letters, so it can generalize better
 
 
 
 
 
-# Upsample from Geant4 resolution (ny, nx, nz) to POCA resolution (npy, npx, npz)
-# Each G4 voxel expands into ratio x ratio x ratio POCA voxels with the same value
-# MatrixGeometryBoolean_POCA  = np.kron(MatrixGeometryBoolean,  np.ones((ratio, ratio, ratio), dtype=int))
-# MatrixGeometryDensity_POCA  = np.kron(MatrixGeometryDensity,  np.ones((ratio, ratio, ratio)))
-if args.ratio == 1:
-    MatrixGeometryBoolean_POCA = MatrixGeometryBoolean
-    MatrixGeometryDensity_POCA = MatrixGeometryDensity
-else:
-    MatrixGeometryBoolean_POCA  = np.repeat(np.repeat(np.repeat(MatrixGeometryBoolean, ratio, axis=0), ratio, axis=1), ratio, axis=2)
-    MatrixGeometryDensity_POCA  = np.repeat(np.repeat(np.repeat(MatrixGeometryDensity, ratio, axis=0), ratio, axis=1), ratio, axis=2)
-
-# Verify the output shape is correct
-assert MatrixGeometryBoolean_POCA.shape == (npy, npx, npz), \
-    f"[ERROR] Shape mismatch: {MatrixGeometryBoolean_POCA.shape} != {(npy, npx, npz)}"
-
-print(f"[CORRECT] Upsampled from ({nx},{ny},{nz}) to ({npx},{npy},{npz}) using ratio={ratio}")
 
 
 
-### CREATING THE JSON FILE FOR GEANT4 ###
 
-# loop through each voxel. The one that is filled, we assign all its features (material, size, center) to the dictionary that will be exported to json. The one that is empty, we can ignore it (or assign it as air, depending on how we want to represent the geometry in Geant4). 
 
 global_dictionary = {
     "theWorld": {
@@ -491,26 +81,6 @@ global_dictionary = {
 }
 
 
-# Loop through voxels
-for iy in range(ny):
-    for ix in range(nx):
-        for iz in range(nz):
-            if MatrixGeometryBoolean[iy, ix, iz] == 1: # only consider filled voxels
-                voxel_dict = {
-                    "xPosVoxel": float(MatrixGeometryCenter[iy, ix, iz, 0]),
-                    "yPosVoxel": float(MatrixGeometryCenter[iy, ix, iz, 1]),
-                    "zPosVoxel": float(MatrixGeometryCenter[iy, ix, iz, 2]),
-                    "xSizeVoxel": float(SizeG4Voxel_x),
-                    "ySizeVoxel": float(SizeG4Voxel_y),
-                    "zSizeVoxel": float(SizeG4Voxel_z),
-                    "materialVoxel": str(MatrixGeometryMaterials[iy, ix, iz])
-                }
-                global_dictionary["TheVoxels"].append(voxel_dict)
-
-print("[CORRECT] ----- Voxel dictionaries created successfully." )
-
-
-# detectors:
 
 global_dictionary["Detectors"] = [ # should be replaced with something more modular, pending
         {
@@ -584,69 +154,3 @@ global_dictionary["Detectors"] = [ # should be replaced with something more modu
             ]
         }
 ]
-
-
-print("[CORRECT] ----- Full json file information created successfully." )
-
-# translate global_dictionary to a full json file
-with open(args.output_json, 'w') as f:
-    json.dump(global_dictionary, f, indent=4)
-
-print("[CORRECT] ----- Json file created successfully, available at: " + args.output_json )
-
-
-#######################
-### SAVING RESULTS  ###
-#######################
-
-
-if args.dimensions == "2D":
-    # Central Z slice (same one used for embedding)
-    z_center    = (nz // 2)  # same logic as embed_word_in_geometry with start_vox=None
-    xy_slice    = MatrixGeometryBoolean[:, :, z_center]  # shape (ny, nx)    
-    np.save(args.output2D_density, xy_slice)
-    
-    print(f"[CORRECT] ----- 2D geometry slice saved successfully at: {args.output2D_density}" )
-
-elif args.dimensions == "3D":
-    np.save(args.output3D_density, MatrixGeometryDensity_POCA)
-    print(f"[CORRECT] ----- 3D Ground truth density saved successfully at: {args.output3D_density}" )
-
-
-
-
-######################
-### VISUAL TESTING ###
-######################
-if args.visual_testing_XY_slice:
-    print("[INFO] ----- Visual testing enabled. Plotting XY slice of the geometry at the central Z voxel...")
-    import matplotlib.pyplot as plt
-    import matplotlib.patches as mpatches
-
-    
-    fig, ax = plt.subplots(figsize=(10, 10))
-    ax.imshow(
-        xy_slice,             # shape is (ny, nx): rows are Y and columns are X
-        origin="lower",      # y index increases upwards in physical coordinates
-        cmap="Greys",
-        interpolation="nearest",
-        extent=[-Lx/2, Lx/2, -Ly/2, Ly/2]  # real-world coordinates in cm
-    )
-
-    ax.set_title(f"XY slice at Z voxel {z_center} (zPos = {MatrixGeometryCenter[0, 0, z_center, 2]:.1f} cm)\n"
-                 f"Word: '{args.word_geometry}' | FontSize: {args.FontSizeX}x{args.FontSizeY} | "
-                 f"Stroke: {args.StrokeWidth} | G4 voxel size: {SizeG4Voxel_x:.1f} cm")
-    ax.set_xlabel("X (cm)")
-    ax.set_ylabel("Y (cm)")
-
-    lead_patch = mpatches.Patch(color="black", label="lead")
-    air_patch  = mpatches.Patch(color="white", label="air")
-    ax.legend(handles=[lead_patch, air_patch], loc="upper right")
-
-    plt.tight_layout()
-    plot_path = os.path.join(script_dir, "geometry_xy_slice.png")
-    plt.savefig(plot_path, dpi=150, bbox_inches='tight')
-    print(f"[CORRECT] ----- Visualization saved at: {plot_path}")
-    plt.close()
-else:
-    print("[INFO] ----- Visual testing disabled. To enable, use the flag --visual_testing_XY_slice when running the script.")

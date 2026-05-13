@@ -25,7 +25,7 @@ environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"       # 2D or 3D, first we should stick to 2D for faster iterations
 force_resimulate  = True      # set to True to re-process geometries even if merged results exist
 max_geometries_simulated = 100 
-simulate_just_one_geometry = True
+simulate_just_one_geometry = False
 namefile_to_simulate = "_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2.json"
 print_skips = False
 
