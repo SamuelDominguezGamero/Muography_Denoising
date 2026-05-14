@@ -1,0 +1,9 @@
+=== Iniciando Test de Dimensiones de Matrices ===
+------------------------------------------------
+TEST PASADO: 60 matrices verificadas sin errores.
+================================================
+============================================================
+[CORRECT] ----- Valid voxel dimensions (integers)  [CORRECT]
+============================================================
+[CORRECT] ----- Word matrix created successfully.
+[ERROR] ----- Palabra (65x14) no cabe en (64x64) en XY desde posición (-1, 25)
