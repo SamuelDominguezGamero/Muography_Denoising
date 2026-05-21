@@ -1,4 +1,4 @@
-"""
+3;1~"""
 SIMULATION PIPELINE
 - look for geometry files (json)
 - simulate with Geant4 (SLURM jobs, throttled to avoid overloading the queue)
@@ -24,9 +24,9 @@ simulate          = True       # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"       # 2D or 3D, first we should stick to 2D for faster iterations
 force_resimulate  = True      # set to True to re-process geometries even if merged results exist
-max_geometries_simulated = 4600 
-simulate_just_one_geometry = False
-namefile_to_simulate = "_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_spacing5_ratio1_FontX16_FontY16_matsteel_wordMUON_stroke2.json"
+max_geometries_simulated = 1 
+simulate_just_one_geometry = True
+namefile_to_simulate = "EMPTY.json"
 print_skips = False
 
 # ===== FILTER BY DEPTH_Z (NEW GEOMETRIES) =====

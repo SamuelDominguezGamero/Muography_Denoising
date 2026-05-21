@@ -4,3 +4,10 @@
 *.001
 *.png
 clon_carpeta_datos_cluster
+*.tar
+*.keras
+*.out
+*.err
+*.txt
+*.zip
+*.csv
