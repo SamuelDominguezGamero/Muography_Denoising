@@ -14,7 +14,6 @@ import json
 import math 
 import sys
 import numpy as np
-import pandas as pd
 import argparse
 import os
 from bitmaps_letters import get_word, get_letter, dimensions_test
@@ -50,18 +49,23 @@ parser.add_argument("--material", type=str, default="lead", help="Material for t
 
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-default_density_path = os.path.join(script_dir, "default_ground_truth_density.npy")
 default_json_path = os.path.join(script_dir, "default_geometry.json")
 
 # outputs
-parser.add_argument("--dimensions", type=str, default="2D", help="Dimensions for the UNET (2d or 3d).")
-parser.add_argument("--output3D_density", type=str, default=default_density_path, help="Output npy file (Tensor) for the ground truth density of the geometry, assigns the geometry of the material for each of the voxels (0 for air).")
 parser.add_argument("--output_json", type=str, default=default_json_path, help="Output JSON file name for the Geant4 geometry configuration.")
-parser.add_argument("--output2D_density", type=str, default="2D", help="Output path for the 2D geometry.")
 
 # plotting
 parser.add_argument("--visual_testing_XY_slice", action="store_false",
     help="If True, plots the XY slice of the geometry at the central Z voxel using matplotlib.")
+
+# XY and Z offsets (default 0 = centered). Convention: files without _xoff/_yoff/_zoff in the
+# filename have offset=(0,0,0). This keeps all legacy files valid without re-processing.
+parser.add_argument("--x_offset_cm", type=float, default=0.0,
+    help="X offset of the word center from the world center (cm). Default 0 = centered.")
+parser.add_argument("--y_offset_cm", type=float, default=0.0,
+    help="Y offset of the word center from the world center (cm). Default 0 = centered.")
+parser.add_argument("--z_offset_cm", type=float, default=0.0,
+    help="Z position of the slab center (cm). Default 0 = world center.")
 
 # save all the arguments:
 args = parser.parse_args()
@@ -93,22 +97,7 @@ else:
     sys.exit("[ERROR] ----- Voxel dimensions are not integers. Please adjust Lpx, Lpy, Lpz or npx, npy, npz to ensure integer voxel sizes. Remember that Lpx, Lpy, Lpz should be DIVISIBLE by npx, npy, npz respectively to get integer voxel sizes.")
 
 
-size_vec = np.array(sizes)
-left_down_corner = np.array([-Lpx/2.0, -Lpy/2.0, -Lpz/2.0])
-first_voxel = left_down_corner + size_vec/2.0
 
-
-voxels_centers_poca = []
-test_print = False
-for ix in range(npx): 
-    for iy in range(npy): 
-        for iz in range(npz): 
-            desplazamiento = np.array([ix * size_vec[0], iy * size_vec[1], iz * size_vec[2]])
-            voxel_center = first_voxel + desplazamiento
-            voxels_centers_poca.append(voxel_center)
-            if test_print: # debugging
-                print(f"Voxel (POCA) center at: {voxel_center}")
-            
 
 
 
@@ -142,22 +131,7 @@ SizeG4Voxel_z = Lz/nz
 
 
 
-voxel_centers_G4 = []
-MatrixGeometryMaterials = np.zeros((ny, nx, nz), dtype=object)  # This will hold the material of each voxel (ny, nx, nz) = (height, width, depth)
-MatrixGeometryBoolean = np.zeros((ny, nx, nz), dtype=int)  # This will hold 1 for filled voxels and 0 for empty voxels
-MatrixGeometryCenter = np.zeros((ny, nx, nz, 3))  # This will hold the center coordinates of each voxel
-MatrixGeometryDensity = np.zeros((ny, nx, nz))  # This will hold the density of each voxel (for reference)
 
-for iy in range(ny):
-    for ix in range(nx):
-        for iz in range(nz):
-            voxel_center_g4 = np.array([-Lx/2.0 + (ix + 0.5) * SizeG4Voxel_x,
-                                        -Ly/2.0 + (iy + 0.5) * SizeG4Voxel_y,
-                                        -Lz/2.0 + (iz + 0.5) * SizeG4Voxel_z])
-            voxel_centers_G4.append(voxel_center_g4)
-            MatrixGeometryCenter[iy, ix, iz] = voxel_center_g4
-            if test_print:
-                print(f"Voxel (GEANT4) center at: {voxel_center_g4}")
 
 
 
@@ -166,45 +140,49 @@ for iy in range(ny):
 # Generation of letters and words --> M, U, O, N --> script bitmaps_letters.py --> fixed matrixes and resolutions
 
 
-def embed_word_in_geometry_efficient(word_matrix, voxel_list, start_vox, 
+def embed_word_in_geometry_efficient(word_matrix, voxel_list, start_vox,
                                       depth_z_cm, SizeG4Voxel_x, SizeG4Voxel_y, SizeG4Voxel_z,
-                                      nx, ny, nz, Lx, Ly, Lz, material):
+                                      nx, ny, nz, Lx, Ly, Lz, material, z_offset_cm=0.0):
     """
     EFFICIENT: Create word voxels with variable Z thickness (single slab, not multiple layers).
-    Each letter voxel gets thickness=depth_z_cm, centered at z=0.
+    Each letter voxel gets thickness=depth_z_cm, centered at z_offset_cm.
     Memory efficient: no layer repetition, just one slab.
+
+    Parameters:
+    - start_vox: (x_start, y_start) in G4 voxel units, or None to center in XY.
+    - z_offset_cm: Z position of the slab center in cm (default 0 = world center).
     """
     ny_word, nx_word = word_matrix.shape
-    
+
     # Center in XY if not specified
     if start_vox is None:
         x_start = (nx - nx_word) // 2
         y_start = (ny - ny_word) // 2
     else:
         x_start, y_start = start_vox
-    
+
     # Verify word fits in XY plane
     if x_start < 0 or y_start < 0 or (x_start + nx_word > nx) or (y_start + ny_word > ny):
         print(f"[ERROR] ----- Palabra ({nx_word}x{ny_word}) "
               f"no cabe en ({nx}x{ny}) en XY "
               f"desde posición ({x_start}, {y_start})")
         sys.exit(1)
-    
-    print(f"[INFO] Geometry slab center in Z: z=0.0 cm (thickness={depth_z_cm:.1f}cm)")
+
+    print(f"[INFO] Geometry slab center in Z: z={z_offset_cm:.1f} cm (thickness={depth_z_cm:.1f} cm)")
     print(f"Inserted word ({nx_word}x{ny_word}) with thickness {depth_z_cm:.1f}cm in XY: [{y_start}:{y_start+ny_word}, {x_start}:{x_start+nx_word}]")
-    
-    # Create voxel for each 1 in word_matrix
+
+    # Create one voxel per active pixel in word_matrix
     for iy in range(ny_word):
         for ix in range(nx_word):
             if word_matrix[iy, ix] == 1:
                 global_ix = x_start + ix
                 global_iy = y_start + iy
-                
+
                 # Physical coordinates
                 x_pos = -Lx/2.0 + (global_ix + 0.5) * SizeG4Voxel_x
                 y_pos = -Ly/2.0 + (global_iy + 0.5) * SizeG4Voxel_y
-                z_pos = 0.0  # Center at Z=0
-                
+                z_pos = z_offset_cm  # Configurable Z center
+
                 voxel_dict = {
                     "xPosVoxel": float(x_pos),
                     "yPosVoxel": float(y_pos),
@@ -215,7 +193,7 @@ def embed_word_in_geometry_efficient(word_matrix, voxel_list, start_vox,
                     "materialVoxel": material
                 }
                 voxel_list.append(voxel_dict)
-    
+
     return voxel_list
 
 
@@ -294,79 +272,42 @@ if word_matrix is None:
 print("[CORRECT] ----- Word matrix created successfully." )
 
 
-# 3. Insertar la palabra en el centro del mundo
-# Calculamos posición central
-
+# Compute XY placement with optional offset (default 0 = centered, compatible with legacy files)
+ny_word, nx_word = word_matrix.shape
+x_offset_vox = int(round(args.x_offset_cm / SizeG4Voxel_x))
+y_offset_vox = int(round(args.y_offset_cm / SizeG4Voxel_y))
+x_start = (nx - nx_word) // 2 + x_offset_vox
+y_start = (ny - ny_word) // 2 + y_offset_vox
 
 # Use efficient method: create voxels directly with variable Z thickness
 voxels_word_list = []
 voxels_word_list = embed_word_in_geometry_efficient(
     word_matrix=word_matrix,
     voxel_list=voxels_word_list,
-    start_vox=None,  # Default: center in XY
-    depth_z_cm=args.depth_z_cm,  # Variable thickness in cm!
+    start_vox=(x_start, y_start),
+    depth_z_cm=args.depth_z_cm,
     SizeG4Voxel_x=SizeG4Voxel_x,
     SizeG4Voxel_y=SizeG4Voxel_y,
     SizeG4Voxel_z=SizeG4Voxel_z,
     nx=nx, ny=ny, nz=nz,
     Lx=Lx, Ly=Ly, Lz=Lz,
-    material=args.material
+    material=args.material,
+    z_offset_cm=args.z_offset_cm
 )
 
 print("[CORRECT] ----- Word voxels created successfully with efficient method (variable Z thickness).")
 
 
-MatrixGeometryMaterials[MatrixGeometryBoolean == 1] = args.material
-MatrixGeometryMaterials[MatrixGeometryBoolean == 0] = "air"
-
-
-possible_materials = ["lead", "air", "iron", "uranium", "aluminium", "argon", "silicon", "steel"] 
-# possible materials defined in DetectorConstruction.cc (Geant4)
-
-
-
-
-# ---- Debugging ---- 
-# verify that only allowed materials are present in the geometry
-for element in np.unique(MatrixGeometryMaterials):
-    if element not in possible_materials:
-        sys.exit(f"[ERROR] ----- Invalid material found in MatrixGeometryMaterials. Allowed materials are: {possible_materials}")
-# ----           ----
-
-
-density_dictionary = {
-    "lead": 11.35,
-    "air": 0.00120479,
-    "iron": 7.874,
-    "uranium": 18.95,
-    "aluminium": 2.699,
-    "argon": 0.001639,  # Gas a STP (condiciones estándar)
-    "silicon": 2.33,
-    "steel": 8.00       # G4_STAINLESS-STEEL
-}
-MatrixGeometryDensity = density_dictionary[args.material] * MatrixGeometryBoolean # assign density based on the material of each voxel
+# Validate material (must match Geant4 DetectorConstruction.cc)
 # https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
+possible_materials = ["lead", "air", "iron", "uranium", "aluminium", "argon", "silicon", "steel"]
+if args.material not in possible_materials:
+    sys.exit(f"[ERROR] Invalid material: '{args.material}'. Allowed: {possible_materials}")
 
 
 
 
 
-# Upsample from Geant4 resolution (ny, nx, nz) to POCA resolution (npy, npx, npz)
-# Each G4 voxel expands into ratio x ratio x ratio POCA voxels with the same value
-# MatrixGeometryBoolean_POCA  = np.kron(MatrixGeometryBoolean,  np.ones((ratio, ratio, ratio), dtype=int))
-# MatrixGeometryDensity_POCA  = np.kron(MatrixGeometryDensity,  np.ones((ratio, ratio, ratio)))
-if args.ratio == 1:
-    MatrixGeometryBoolean_POCA = MatrixGeometryBoolean
-    MatrixGeometryDensity_POCA = MatrixGeometryDensity
-else:
-    MatrixGeometryBoolean_POCA  = np.repeat(np.repeat(np.repeat(MatrixGeometryBoolean, ratio, axis=0), ratio, axis=1), ratio, axis=2)
-    MatrixGeometryDensity_POCA  = np.repeat(np.repeat(np.repeat(MatrixGeometryDensity, ratio, axis=0), ratio, axis=1), ratio, axis=2)
-
-# Verify the output shape is correct
-assert MatrixGeometryBoolean_POCA.shape == (npy, npx, npz), \
-    f"[ERROR] Shape mismatch: {MatrixGeometryBoolean_POCA.shape} != {(npy, npx, npz)}"
-
-print(f"[CORRECT] Upsampled from ({nx},{ny},{nz}) to ({npx},{npy},{npz}) using ratio={ratio}")
 
 
 
@@ -481,22 +422,9 @@ with open(args.output_json, 'w') as f:
 print("[CORRECT] ----- Json file created successfully, available at: " + args.output_json )
 
 
-#######################
-### SAVING RESULTS  ###
-#######################
-
-
-if args.dimensions == "2D":
-    # Central Z slice (same one used for embedding)
-    z_center    = (nz // 2)  # same logic as embed_word_in_geometry with start_vox=None
-    xy_slice    = MatrixGeometryBoolean[:, :, z_center]  # shape (ny, nx)    
-    np.save(args.output2D_density, xy_slice)
-    
-    print(f"[CORRECT] ----- 2D geometry slice saved successfully at: {args.output2D_density}" )
-
-elif args.dimensions == "3D":
-    np.save(args.output3D_density, MatrixGeometryDensity_POCA)
-    print(f"[CORRECT] ----- 3D Ground truth density saved successfully at: {args.output3D_density}" )
+# XY footprint used for visual testing
+xy_gt = np.zeros((ny, nx), dtype=int)
+xy_gt[y_start:y_start + ny_word, x_start:x_start + nx_word] = word_matrix
 
 
 
@@ -505,29 +433,29 @@ elif args.dimensions == "3D":
 ### VISUAL TESTING ###
 ######################
 if args.visual_testing_XY_slice:
-    print("[INFO] ----- Visual testing enabled. Plotting XY slice of the geometry at the central Z voxel...")
+    print("[INFO] ----- Visual testing enabled. Plotting XY footprint of the word geometry...")
     import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
 
-    
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.imshow(
-        xy_slice,             # shape is (ny, nx): rows are Y and columns are X
-        origin="lower",      # y index increases upwards in physical coordinates
+        xy_gt,
+        origin="lower",
         cmap="Greys",
         interpolation="nearest",
-        extent=[-Lx/2, Lx/2, -Ly/2, Ly/2]  # real-world coordinates in cm
+        extent=[-Lx/2, Lx/2, -Ly/2, Ly/2]
     )
-
-    ax.set_title(f"XY slice at Z voxel {z_center} (zPos = {MatrixGeometryCenter[0, 0, z_center, 2]:.1f} cm)\n"
-                 f"Word: '{args.word_geometry}' | FontSize: {args.FontSizeX}x{args.FontSizeY} | "
-                 f"Stroke: {args.StrokeWidth} | G4 voxel size: {SizeG4Voxel_x:.1f} cm")
+    ax.set_title(
+        f"XY footprint | slab center z={args.z_offset_cm:.1f} cm, depth={args.depth_z_cm:.1f} cm\n"
+        f"Word: '{args.word_geometry}' | FontSize: {args.FontSizeX}x{args.FontSizeY} | "
+        f"Stroke: {args.StrokeWidth} | G4 voxel size: {SizeG4Voxel_x:.1f} cm"
+    )
     ax.set_xlabel("X (cm)")
     ax.set_ylabel("Y (cm)")
 
-    lead_patch = mpatches.Patch(color="black", label="lead")
-    air_patch  = mpatches.Patch(color="white", label="air")
-    ax.legend(handles=[lead_patch, air_patch], loc="upper right")
+    material_patch = mpatches.Patch(color="black", label=args.material)
+    air_patch = mpatches.Patch(color="white", label="air")
+    ax.legend(handles=[material_patch, air_patch], loc="upper right")
 
     plt.tight_layout()
     plot_path = os.path.join(script_dir, "geometry_xy_slice.png")

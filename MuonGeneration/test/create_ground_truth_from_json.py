@@ -17,6 +17,7 @@ else:
     OUT_DIR_3D = Path("/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/3Dimensions")
     OUT_DIR_2D = Path("/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions")
     JSON_DIR = Path("/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_json")
+    # JSON_DIR = Path("/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_jsons_not_letters")
 
 OUT_DIR_3D.mkdir(parents=True, exist_ok=True)
 OUT_DIR_2D.mkdir(parents=True, exist_ok=True)

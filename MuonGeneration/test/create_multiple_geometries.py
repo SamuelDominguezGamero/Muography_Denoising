@@ -35,10 +35,10 @@ from numpy.random import Generator, PCG64, SeedSequence
 # CONTROL FLAGS
 # ===========================================================================
 create_geometries = True
-environment       = "cluster"  # "local" or "cluster"
+environment       = "local"  # "local" or "cluster"
 dimension         = "2D"     # 2D or 3D, first we should stick to 2D for faster iterations
 max_geometries    = np.inf     # the first geometries to be tested on
-max_geometries_simulated = np.inf  # the first geometries to be simulated (if simulate=True)
+
 
 force_resimulate  = False   # set to True to re-process geometries even if merged results exist
 
@@ -132,7 +132,6 @@ if environment == "cluster":
     PATH_preprocessed   = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/data_preprocessed"
     PATH_poca_output    = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/post_POCA_data"
     PATH_merged_output  = "/gpfs/projects/cms/dominguezs/data/merged_poca_data/UNET1"
-    PATH_png_comparisons = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/png_comparisons"
     PATH_logs           = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/logs"
     PATH_data_analysis  = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/dataAnalysis"
     PATH_generator      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration-build/Generator"
@@ -147,7 +146,6 @@ elif environment == "local":
     PATH_preprocessed   = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_preprocessed"
     PATH_poca_output    = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/post_POCA_data"
     PATH_merged_output  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/merged_poca_data/UNET1"
-    PATH_png_comparisons = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/png_comparisons"
     PATH_logs           = "/home/samuel/Work/Muography_Denoising/MuonGeneration/logs"
     PATH_data_analysis  = "/home/samuel/Work/Muography_Denoising/MuonGeneration/dataAnalysis"
     PATH_generator      = None
@@ -160,7 +158,7 @@ else:
 # Create output directories if they don't exist
 for path in [PATH_geometry_files, PATH_density_files3D, PATH_density_files2D, 
              PATH_output_raw, PATH_preprocessed, PATH_poca_output, PATH_merged_output, 
-             PATH_png_comparisons, PATH_logs, PATH_data_analysis]:
+             PATH_logs, PATH_data_analysis]:
     if path and not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
         print(f"[INFO] Created directory: {path}")
@@ -189,19 +187,26 @@ zPosDetector_bot = -54
 #   - Sizes 8, 10, 12, 14, 16: Stroke 1, 2, 3 all available
 #   - Only letters available: M, U, O, N
 
-spacings       = [1,2,3] 
+spacings       = [3] 
 ratios         = [1, 2]
 # Strategy: Use multiple sizes with stroke variations that are actually available
 # NOTE: Font 14+ with stroke 3 will show warnings when they don't fit - this is natural and expected
-fontsizes      = [8, 10, 12, 14, 16] # All sizes tested; warnings shown if too large
-strokes        = [1,2,3]
+fontsizes      = [10, 16] # All sizes tested; warnings shown if too large
+strokes        = [2]
 # DEPTH: Variable Z thickness for word geometry in centimeters (efficient method)
 # Single slab with configurable thickness - no more inefficient layer repetition!
-depth_z_cm_list = [1, 2.0, 4.0, 5.0, 10.0, 20.0]  # Example: test thin, normal, and thick geometries
+depth_z_cm_list = [5.0, 15.0, 30.0, 50.0]  # Example: test thin, normal, and thick geometries
 
+# XY/Z offsets in cm. Default [0.0] keeps full backwards compatibility:
+# files WITHOUT _xoff/_yoff/_zoff in the filename are treated as offset=(0,0,0) by convention.
+# Add non-zero values here to generate offset variants (suffix only appended when any offset != 0).
+x_offsets_cm   = [0.0, 10, -10]   # X offset of word center from world center (cm)
+y_offsets_cm   = [0.0, 10, -10]   # Y offset of word center from world center (cm)
+z_offsets_cm   = [0.0, 10, -10]   # Z position of slab center (cm)
 
 materials      = ["lead", "iron", "uranium", "aluminium", "silicon", "steel"]
-words_geometry = ["MUON", "MUNO", "UNOM", "UOMN", "MU", "NUM", "OOOO", "OOMM", "UUOO"]
+
+
 
 words_possible = [
     # 1 letra
@@ -232,6 +237,8 @@ words_possible = [
     "NNMM", "NNMU", "NNMO", "NNMN", "NNUM", "NNUU", "NNUO", "NNUN", "NNOM", "NNOU", "NNOO", "NNON", "NNNM", "NNNU", "NNNO", "NNNN"
 ]
 
+words_geometry = ["M", "U", "O", "N", "MMM", "NNUO", "NOMM", "MUON", "MONU", "OUNN"]
+
 
 # Count total valid geometries
 total_geometries = 0
@@ -242,7 +249,10 @@ for material in materials:
                 for word in words_geometry:
                     for stroke in strokes:
                         for depth_z_cm in depth_z_cm_list:
-                            total_geometries += 1
+                            for x_offset_cm in x_offsets_cm:
+                                for y_offset_cm in y_offsets_cm:
+                                    for z_offset_cm in z_offsets_cm:
+                                        total_geometries += 1
 
 print(f"[INFO] ----- Total geometries to generate: {total_geometries}")
 time.sleep(1)
@@ -281,104 +291,121 @@ for spacing in spacings:
                         if done_creating:
                             break
                         for depth_z_cm in depth_z_cm_list:
-                            i += 1 # geometries counting
-                            if i > max_geometries:
-                                print(f"[INFO] Reached max_geometries={max_geometries}. Stopping geometry creation.")
-                                done_creating = True
+                            if done_creating:
                                 break
-                            namefile = (
-                                f"_Lpx{Lpx}_Lpy{Lpy}_Lpz{Lpz}"
-                                f"_npx{npx}_npy{npy}_npz{npz}"
-                                f"_zTop{zPosDetector_top}_zBot{zPosDetector_bot}"
-                                f"_spacing{spacing}_ratio{ratio}"
-                                f"_FontX{x}_FontY{x}"
-                                f"_mat{material}_word{word}_stroke{stroke}"
-                                f"_depthZ{int(depth_z_cm)}"
-                            )
+                            for x_offset_cm in x_offsets_cm:
+                                if done_creating:
+                                    break
+                                for y_offset_cm in y_offsets_cm:
+                                    if done_creating:
+                                        break
+                                    for z_offset_cm in z_offsets_cm:
+                                        i += 1 # geometries counting
+                                        if i > max_geometries:
+                                            print(f"[INFO] Reached max_geometries={max_geometries}. Stopping geometry creation.")
+                                            done_creating = True
+                                            break
 
-                        if os.path.exists(os.path.join(PATH_geometry_files, namefile + ".json")):
-                            print(60*'*')
-                            print(f"[INFO | EXISTING] ----- Geometry {i}/{total_geometries} ALREADY EXISTS, skipping: {namefile}")
-                            print(60*'*')
-                            continue
+                                        # Offset suffix: only added when any offset is non-zero.
+                                        # Files without this suffix have offset=(0,0,0) by convention.
+                                        if x_offset_cm != 0.0 or y_offset_cm != 0.0 or z_offset_cm != 0.0:
+                                            offset_str = f"_xoff{x_offset_cm:g}_yoff{y_offset_cm:g}_zoff{z_offset_cm:g}"
+                                        else:
+                                            offset_str = ""
 
-                        output_json    = os.path.join(PATH_geometry_files, namefile + ".json")
-                        output_density3D = os.path.join(PATH_density_files3D,  namefile + "_ground_truth_density3D.npy")
-                        output_density2D = os.path.join(PATH_density_files2D,  namefile + "_ground_truth_density2D.npy")
+                                        namefile = (
+                                            f"_Lpx{Lpx}_Lpy{Lpy}_Lpz{Lpz}"
+                                            f"_npx{npx}_npy{npy}_npz{npz}"
+                                            f"_zTop{zPosDetector_top}_zBot{zPosDetector_bot}"
+                                            f"_spacing{spacing}_ratio{ratio}"
+                                            f"_FontX{x}_FontY{x}"
+                                            f"_mat{material}_word{word}_stroke{stroke}"
+                                            f"_depthZ{int(depth_z_cm)}"
+                                            f"{offset_str}"
+                                        )
 
-                        command = [
-                            "python3", CREATE_GEOMETRY_SCRIPT,
-                            "--Lpx", str(Lpx),
-                            "--Lpy", str(Lpy),
-                            "--Lpz", str(Lpz),
-                            "--npx", str(npx),
-                            "--npy", str(npy),
-                            "--npz", str(npz),
-                            "--zPosDetector_top",             str(zPosDetector_top),
-                            "--zPosDetector_bot",             str(zPosDetector_bot),
-                            "--spacing",                      str(spacing),
-                            "--ratio",                        str(ratio),
-                            "--depth_z_cm",                   str(depth_z_cm),
-                            "--FontSizeX",                    str(x),
-                            "--FontSizeY",                    str(x),
-                            "--material",                     material,
-                            "--word_geometry",                word,
-                            "--StrokeWidth",                  str(stroke),
-                            "--output_json",                  output_json,
-                            "--dimensions",                   str(dimension),
-                            "--output2D_density",             output_density2D,
-                            "--output3D_density",             output_density3D
-                        ]
-                        if environment == "local":
-                            result = subprocess.run(command, capture_output=True, text=True)
-                        elif environment == "cluster":
-                            # Throttle: wait if queue is full before submitting geometry job
-                            current_count = wait_for_slot(SLURM_USER, MAX_JOBS_IN_QUEUE, THROTTLE_SLEEP)
+                                        if os.path.exists(os.path.join(PATH_geometry_files, namefile + ".json")):
+                                            print(60*'*')
+                                            print(f"[INFO | EXISTING] ----- Geometry {i}/{total_geometries} ALREADY EXISTS, skipping: {namefile}")
+                                            print(60*'*')
+                                            continue
 
-                            inner_command = " ".join(command)
-                            full_wrap = f"source {PATH_setup} && {inner_command}"
+                                        output_json      = os.path.join(PATH_geometry_files, namefile + ".json")
 
-                            sbatch_args = [
-                                "sbatch",
-                                f"--job-name=geom_{i}",
-                                "--time=01:00:00",
-                                "--mem=8G",
-                                "--cpus-per-task=2",
-                                f"--output={PATH_logs}/log_geom_{i}.out",
-                                f"--chdir={PATH_logs}",
-                                f"--wrap={full_wrap}",
-                                "--partition=wncompute_ifca"
-                            ]
+                                        command = [
+                                            "python3", CREATE_GEOMETRY_SCRIPT,
+                                            "--Lpx", str(Lpx),
+                                            "--Lpy", str(Lpy),
+                                            "--Lpz", str(Lpz),
+                                            "--npx", str(npx),
+                                            "--npy", str(npy),
+                                            "--npz", str(npz),
+                                            "--zPosDetector_top",  str(zPosDetector_top),
+                                            "--zPosDetector_bot",  str(zPosDetector_bot),
+                                            "--spacing",           str(spacing),
+                                            "--ratio",             str(ratio),
+                                            "--depth_z_cm",        str(depth_z_cm),
+                                            "--x_offset_cm",       str(x_offset_cm),
+                                            "--y_offset_cm",       str(y_offset_cm),
+                                            "--z_offset_cm",       str(z_offset_cm),
+                                            "--FontSizeX",         str(x),
+                                            "--FontSizeY",         str(x),
+                                            "--material",          material,
+                                            "--word_geometry",     word,
+                                            "--StrokeWidth",       str(stroke),
+                                            "--output_json",       output_json,
+                                        ]
+                                        if environment == "local":
+                                            result = subprocess.run(command, capture_output=True, text=True)
+                                        elif environment == "cluster":
+                                            # Throttle: wait if queue is full before submitting geometry job
+                                            current_count = wait_for_slot(SLURM_USER, MAX_JOBS_IN_QUEUE, THROTTLE_SLEEP)
 
-                            result = subprocess.run(sbatch_args, capture_output=True, text=True)
+                                            inner_command = " ".join(command)
+                                            full_wrap = f"source {PATH_setup} && {inner_command}"
 
-                            print(f"[INFO] Geometry {i}/{total_geometries} creation started: {namefile} (queue: {current_count+1}/{MAX_JOBS_IN_QUEUE})")
-                            time.sleep(0.1)
-                        
-                        # Check for errors
-                        if result.returncode != 0:
-                            error_msg = result.stderr if result.stderr else result.stdout
-                            
-                            # Check if error is due to geometry not fitting
-                            if "cabe" in error_msg.lower() or "fit" in error_msg.lower():
-                                print(f"\n{'!'*80}")
-                                print(f"{'!'*80}")
-                                print(f"[NO CABE] Geometry {i}/{total_geometries} - TOO LARGE: {namefile}")
-                                print(f"{'!'*80}")
-                                print(f"{'!'*80}\n")
-                            else:
-                                print(f"[ERROR] Geometry {i}/{total_geometries} FAILED: {namefile}")
-                                print(f"        Error: {error_msg[:150]}")
-                            
-                            record_geometry_error(namefile, error_msg)
-                            print(80 * '-')
-                        else:
-                            if environment == "local":
-                                print(f"[CORRECT] Geometry {i}/{total_geometries} created: {namefile}")
-                            else:
-                                print(f"[INFO] Geometry {i}/{total_geometries} job submitted: {namefile}")
-                            print(80 * '-')
-                            time.sleep(0.1)
+                                            sbatch_args = [
+                                                "sbatch",
+                                                f"--job-name=geom_{i}",
+                                                "--time=01:00:00",
+                                                "--mem=8G",
+                                                "--cpus-per-task=2",
+                                                f"--output={PATH_logs}/log_geom_{i}.out",
+                                                f"--chdir={PATH_logs}",
+                                                f"--wrap={full_wrap}",
+                                                "--partition=wncompute_ifca"
+                                            ]
+
+                                            result = subprocess.run(sbatch_args, capture_output=True, text=True)
+
+                                            print(f"[INFO] Geometry {i}/{total_geometries} creation started: {namefile} (queue: {current_count+1}/{MAX_JOBS_IN_QUEUE})")
+                                            time.sleep(0.1)
+
+                                        # Check for errors
+                                        if result.returncode != 0:
+                                            error_msg = result.stderr if result.stderr else result.stdout
+
+                                            # Check if error is due to geometry not fitting
+                                            if "cabe" in error_msg.lower() or "fit" in error_msg.lower():
+                                                print(f"\n{'!'*80}")
+                                                print(f"{'!'*80}")
+                                                print(f"[NO CABE] Geometry {i}/{total_geometries} - TOO LARGE: {namefile}")
+                                                print(f"{'!'*80}")
+                                                print(f"{'!'*80}\n")
+                                            else:
+                                                print(f"[ERROR] Geometry {i}/{total_geometries} FAILED: {namefile}")
+                                                print(f"        Error: {error_msg[:150]}")
+
+                                            record_geometry_error(namefile, error_msg)
+                                            print(80 * '-')
+                                        else:
+                                            if environment == "local":
+                                                print(f"[CORRECT] Geometry {i}/{total_geometries} created: {namefile}")
+                                            else:
+                                                print(f"[INFO] Geometry {i}/{total_geometries} job submitted: {namefile}")
+                                            print(80 * '-')
+                                            time.sleep(0.1)
+
 
 
 print("="*60)
