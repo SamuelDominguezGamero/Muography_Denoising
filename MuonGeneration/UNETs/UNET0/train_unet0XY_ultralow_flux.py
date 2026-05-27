@@ -73,18 +73,18 @@ OUTPUT_DIR            = DATA / "models_XY_1_perc"
 PRETRAINED_MODEL_PATH = DATA / "models_XY_10_perc" / "checkpoints" / "best_model_0_XY_10_perc.keras"
 
 # Hyperparameters
-BATCH_SIZE    = 32
-LEARNING_RATE = 1e-4
+BATCH_SIZE    = 16
+LEARNING_RATE = 1e-3
 EPOCHS        = 100
 SIZE_IMAGES   = 128
-N_FILTERS     = 64
+N_FILTERS     = 128
 FILTER_SIZE   = 3
 N_LEVELS      = 4
 
 FLUX_FRACTION  = 0.01   # Binomial subsampling: keep ~1 % of muon counts per pixel
 
 USE_GPU            = True
-FORCE_RESTART      = True   # True: start from PRETRAINED_MODEL_PATH (ignore 1%-flux checkpoints)
+FORCE_RESTART      = False   # True: start from PRETRAINED_MODEL_PATH (ignore 1%-flux checkpoints)
 USE_AUGMENTATION   = True   # On-the-fly rotations x4 (train split only)
 EVAL_ONLY          = False  # True: load best 1%-flux model, evaluate + visualize, skip training
 VISUALIZE_RESULTS  = True
