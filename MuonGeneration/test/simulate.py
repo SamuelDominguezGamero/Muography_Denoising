@@ -1,4 +1,4 @@
-3;1~"""
+"""
 SIMULATION PIPELINE
 - look for geometry files (json)
 - simulate with Geant4 (SLURM jobs, throttled to avoid overloading the queue)
@@ -90,6 +90,7 @@ MERGE_POCA_SCRIPT      = os.path.join(SCRIPT_DIR, "merge_poca.py")
 
 if environment == "cluster":
     PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
+    PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_jsons_not_letters"
     PATH_output_raw          = "/gpfs/projects/cms/dominguezs/data/0_raw_geant4"
     PATH_preprocessed        = "/gpfs/projects/cms/dominguezs/data/1_post_makeHLT"
     PATH_merged_post_makeHLT = "/gpfs/projects/cms/dominguezs/data/2_merged_post_makeHLT"
@@ -101,7 +102,8 @@ if environment == "cluster":
     SLURM_USER               = "dominguezs"
 
 elif environment == "local":
-    PATH_geometry_files      = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
+    # PATH_geometry_files      = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
+    PATH_geometry_files      = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_jsons_not_letters"
     PATH_output_raw          = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_raw"
     PATH_preprocessed        = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_preprocessed"
     PATH_merged_post_makeHLT = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/data_merged_hits"
