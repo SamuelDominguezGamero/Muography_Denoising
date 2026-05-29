@@ -24,9 +24,9 @@ simulate          = True       # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"       # 2D or 3D, first we should stick to 2D for faster iterations
 force_resimulate  = True      # set to True to re-process geometries even if merged results exist
-max_geometries_simulated = 1 
-simulate_just_one_geometry = True
-namefile_to_simulate = "EMPTY.json"
+max_geometries_simulated = 8500 
+simulate_just_one_geometry = False
+namefile_to_simulate = None
 print_skips = False
 
 # ===== FILTER BY DEPTH_Z (NEW GEOMETRIES) =====
@@ -89,7 +89,7 @@ MERGE_HITS_SCRIPT      = os.path.join(SCRIPT_DIR, "merge_hits.py")
 MERGE_POCA_SCRIPT      = os.path.join(SCRIPT_DIR, "merge_poca.py")
 
 if environment == "cluster":
-    PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
+    # PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
     PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_jsons_not_letters"
     PATH_output_raw          = "/gpfs/projects/cms/dominguezs/data/0_raw_geant4"
     PATH_preprocessed        = "/gpfs/projects/cms/dominguezs/data/1_post_makeHLT"
@@ -157,8 +157,8 @@ zPosDetector_bot = -54
 # ===========================================================================
 # SIMULATION PARAMETERS
 # ===========================================================================
-total_muons_per_geometry = 750_000
-n_muons_per_job          = 75_000
+total_muons_per_geometry = 100_000
+n_muons_per_job          = 50_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
 time.sleep(1)
