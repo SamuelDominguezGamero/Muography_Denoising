@@ -1,18 +1,103 @@
 """
 Generates geometry JSON files for non-word shapes for UNET training.
 
-Two modes:
-  Orchestrator: python create_other_geometries_not_words.py
-                → iterates all shape/param combinations and calls itself in creator mode.
-  Creator:      python create_other_geometries_not_words.py --shape cylinder_filled ...
-                → creates a single geometry JSON + 2D/3D ground-truth density .npy.
+════════════════════════════════════════════════════════════════════════════════
+MODES
+════════════════════════════════════════════════════════════════════════════════
 
-Edit the VARIATIONS section in orchestrator mode to control what gets generated.
+  ORCHESTRATOR (default, no --shape argument)
+  ─────────────────────────────────────────────
+  Iterates all shape / parameter combinations defined in the VARIATIONS section
+  and spawns itself as a subprocess in creator mode for each combination.
 
-Shapes  : rectangle_filled/hollow, cylinder_filled/hollow, sphere_filled/hollow,
-          tetrahedron_filled/hollow  (regular tetrahedron, equilateral-triangle faces),
-          triangle_slab  (equilateral-triangle XY cross-section extruded in Z).
-Materials: iron, uranium, aluminium, steel, silicon, lead.
+    python create_other_geometries_not_words.py
+
+  Key knobs (edit at the top of the ORCHESTRATOR section):
+    environment    – "local" | "cluster"  (selects output paths in PATHS dict)
+    dimension      – "2D"   | "3D"        (output ground-truth format)
+    create         – True / False         (actually run creator subprocesses)
+    force_recreate – True / False         (overwrite existing files)
+    max_geometries – int | float("inf")   (cap for quick tests)
+
+  CREATOR (activated by passing --shape)
+  ─────────────────────────────────────────────
+  Creates a single geometry JSON (Geant4-compatible) plus a ground-truth
+  density .npy array.
+
+    python create_other_geometries_not_words.py \
+        --shape     cylinder_filled \
+        --size_x    30.0 \
+        --depth_z_cm 20.0 \
+        --material  lead \
+        --dimensions 2D \
+        --output_json        /path/to/output.json \
+        --output2D_density   /path/to/gt_2d.npy
+
+════════════════════════════════════════════════════════════════════════════════
+CREATOR ARGUMENTS
+════════════════════════════════════════════════════════════════════════════════
+
+  World / grid
+    --Lpx / --Lpy / --Lpz         World half-size in each axis (cm). Default 128.
+    --npx / --npy / --npz         Number of G4 voxels per axis. Default 128.
+    --ratio                       G4voxel / POCAvoxel integer ratio. Default 1.
+    --zPosDetector_top / _bot     Z position of top/bottom detectors (cm).
+                                  Defaults: +54 / -54.
+
+  Shape (required: --shape; optional geometry parameters)
+    --shape          One of the shapes listed below (required).
+    --size_x         Half-width (rect) or circumradius / radius (cyl / sphere /
+                     tri / tetra) in cm. Default 20.
+    --size_y         Half-height; meaningful only for rectangle_* shapes. Default 20.
+    --depth_z_cm     Z thickness for extruded shapes (rectangle, cylinder,
+                     triangle_slab). Ignored by sphere / tetrahedron. Default 10.
+    --center_x       X offset of shape centre (cm). Default 0.
+    --center_y       Y offset of shape centre (cm). Default 0.
+    --wall_thickness Wall thickness for hollow shapes (cm). Default 2.
+    --material       Material name (see list below). Default "lead".
+
+  Outputs
+    --dimensions        "2D" (central XY slice) or "3D" (full volume). Default "2D".
+    --output_json       Path for the Geant4 JSON file (required).
+    --output2D_density  Path for the 2-D ground-truth .npy (used when --dimensions 2D).
+    --output3D_density  Path for the 3-D ground-truth .npy (used when --dimensions 3D).
+
+════════════════════════════════════════════════════════════════════════════════
+AVAILABLE SHAPES
+════════════════════════════════════════════════════════════════════════════════
+
+  rectangle_filled / rectangle_hollow   – axis-aligned box extruded in Z
+  cylinder_filled  / cylinder_hollow    – circular cross-section extruded in Z
+  sphere_filled    / sphere_hollow      – 3-D sphere (ignores depth_z_cm)
+  triangle_slab                         – equilateral-triangle XY section extruded in Z
+  tetrahedron_filled / tetrahedron_hollow – regular tetrahedron (ignores depth_z_cm)
+
+════════════════════════════════════════════════════════════════════════════════
+AVAILABLE MATERIALS
+════════════════════════════════════════════════════════════════════════════════
+
+  lead, iron, uranium, aluminium, steel, silicon, argon, air
+
+════════════════════════════════════════════════════════════════════════════════
+EXAMPLES
+════════════════════════════════════════════════════════════════════════════════
+
+  # Orchestrator: generate all combinations locally in 2-D mode
+  python create_other_geometries_not_words.py
+
+  # Creator: solid lead sphere, radius 40 cm, 3-D ground truth
+  python create_other_geometries_not_words.py \
+      --shape sphere_filled --size_x 40 \
+      --material lead --dimensions 3D \
+      --output_json /tmp/sphere.json \
+      --output3D_density /tmp/sphere_gt.npy
+
+  # Creator: hollow iron cylinder, radius 30 cm, wall 3 cm, slab depth 20 cm
+  python create_other_geometries_not_words.py \
+      --shape cylinder_hollow --size_x 30 --wall_thickness 3 --depth_z_cm 20 \
+      --material iron --dimensions 2D \
+      --output_json /tmp/cyl_hollow.json \
+      --output2D_density /tmp/cyl_hollow_gt.npy
 """
 
 import sys, os
@@ -332,9 +417,11 @@ SCRIPT_DIR    = os.path.dirname(os.path.abspath(__file__))
 CREATE_SCRIPT = os.path.abspath(__file__)   # script calls itself in creator mode
 ERROR_LOG     = os.path.join(SCRIPT_DIR, ".shape_errors.json")
 
+
+#       "json":  "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_jsons_not_letters",
 PATHS = {
     "local": {
-        "json":  "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_jsons_not_letters",
+        "json":   "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_blocks",
         "den2D": "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions/UNET1",
         "den3D": "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/3Dimensions",
         "logs":  "/home/samuel/Work/Muography_Denoising/MuonGeneration/logs",
@@ -373,17 +460,12 @@ zTop, zBot    =  54, -54
 # wall_thicknesses: applies only to *_hollow variants (cm)
 
 shapes           = [
-    "rectangle_filled",   "rectangle_hollow",
-    "cylinder_filled",    "cylinder_hollow",
-    "sphere_filled",      "sphere_hollow",
-    "tetrahedron_filled", "tetrahedron_hollow",
-    "triangle_slab",
-]
-sizes_x          = [10, 20, 40]
-sizes_y          = [10, 20, 40]       # only meaningful for rectangle_*
-depth_z_list     = [5, 10, 20]        # extruded shapes only
-center_x_list    = [0, 5]
-center_y_list    = [0, 5]
+    "rectangle_filled",   "rectangle_hollow"]
+sizes_x          = [20, 40, 60, 80, 100]
+sizes_y          = [20, 40, 60, 80, 100]       # only meaningful for rectangle_*
+depth_z_list     = [5, 10, 20, 40, 60]        # extruded shapes only
+center_x_list    = [0, 5, 10]
+center_y_list    = [0, 5, 10]
 materials        = ["iron", "uranium", "aluminium", "steel", "silicon", "lead"]
 ratios           = [1]
 wall_thicknesses = [2, 4]             # hollow variants only

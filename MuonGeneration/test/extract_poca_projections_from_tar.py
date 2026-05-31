@@ -110,7 +110,7 @@ def load_poca_data(root_file):
     """
     try:
         df = ROOT.RDataFrame("events", str(root_file))
-        df = df.Filter("abs(theta) > 0.0001")
+        df = df.Filter("abs(theta) > 0.00001")
         res = df.AsNumpy(columns=["poca_x", "poca_y", "poca_z", "theta"])
         
         x = res["poca_x"]
@@ -153,17 +153,17 @@ def create_projection_tensor(x, y, z, world_size, bins=128):
     yz_hist, _, _ = np.histogram2d(y, z, bins=edges)
     yz_proj = yz_hist.T  # Shape (128, 128)
     
-    # Normalize to uint8 (0-255)
-    def normalize_projection(proj):
-        proj = proj.astype(np.float32)
-        max_val = np.max(proj)
-        if max_val > 0:
-            proj = (proj / max_val) * 255.0
-        return np.uint8(proj)
+    # Normalize to uint8 (0-255) ----> NO hacer, porque entonces perdemos la noción de flujo alto y bajo
+    #     # def normalize_projection(proj):
+    #     proj = proj.astype(np.float32)
+    #     max_val = np.max(proj)
+    #     if max_val > 0:
+    #         proj = (proj / max_val) * 255.0
+    #     return np.uint8(proj)
     
-    xy_proj = normalize_projection(xy_proj)
-    xz_proj = normalize_projection(xz_proj)
-    yz_proj = normalize_projection(yz_proj)
+    # xy_proj = normalize_projection(xy_proj)
+    # xz_proj = normalize_projection(xz_proj)
+    # yz_proj = normalize_projection(yz_proj)
     
     # Stack into 128×128×3 tensor
     tensor = np.stack([xy_proj, xz_proj, yz_proj], axis=2)
