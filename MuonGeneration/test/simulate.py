@@ -212,12 +212,17 @@ all_json_files = []
 for file in glob.glob(os.path.join(PATH_geometry_files, "*.json")):
     all_json_files.append(file)
 print(f"[INFO] ----- Total number of geometry json files available for simulation: {len(all_json_files)}")
-
+print(f"[INFO] ----- First 5 parsed files: {all_json_files[0:6]} ")
 
 
 
 
 # ===== MAIN LOOP: Process each geometry =====
+# Create a single top-level SeedSequence so each geometry gets independent seeds
+# regardless of how fast the loop runs (avoids time.time() collisions)
+_top_ss = SeedSequence(int(time.time()))
+_geo_seeds = _top_ss.spawn(len(all_json_files))
+
 i = 0
 for file in all_json_files:
     i += 1
@@ -298,11 +303,8 @@ for file in all_json_files:
 
     # Collect job IDs for this geometry to use in the merge dependency
     job_ids = []
-    base_seed = int(time.time())
-    ss = SeedSequence(base_seed)
-
-    # Generate all child seeds at once (more efficient than spawning in loop)
-    child_seeds = ss.spawn(n_jobs_per_geometry)
+    # Use per-geometry SeedSequence spawned before the loop (avoids time.time() duplicates)
+    child_seeds = _geo_seeds[i - 1].spawn(n_jobs_per_geometry)
 
     # === SUBMIT ALL JOBS FOR THIS GEOMETRY ===
     # Number of jobs depends on parameters: n_jobs_per_geometry = total_muons_per_geometry / n_muons_per_job
@@ -510,7 +512,7 @@ print(f"       max_geometries_simulated     = {max_geometries_simulated}")
 print(f"       MAX_JOBS_IN_QUEUE           = {MAX_JOBS_IN_QUEUE}")
 print(f"       Jobs per geometry           = {n_jobs_per_geometry} simulation + 1 merge")
 print(f"[INFO] Results:")
-print(f"       Geometries processed        = {i - 1}")
+print(f"       Geometries processed        = {i}")
 if simulate_just_one_geometry:
     print(f"       (Just one geometry simulated: {namefile_to_simulate})")
 if filter_by_depthZ:
