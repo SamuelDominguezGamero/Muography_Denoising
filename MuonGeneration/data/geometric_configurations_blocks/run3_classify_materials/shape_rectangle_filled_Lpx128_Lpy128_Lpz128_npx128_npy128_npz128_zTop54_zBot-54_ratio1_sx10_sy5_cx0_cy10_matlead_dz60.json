@@ -1,0 +1,1884 @@
+{
+    "theWorld": {
+        "xSizeWorld": 128.0,
+        "ySizeWorld": 128.0,
+        "zSizeWorld": 128.0,
+        "sizeBoxCRY": 128.0,
+        "zOffsetCRY": 64.0
+    },
+    "Detectors": [
+        {
+            "xPosDetector": 0,
+            "yPosDetector": 0,
+            "zPosDetector": 54.0,
+            "xDirDetector": 0,
+            "yDirDetector": 0,
+            "zDirDetector": 0,
+            "xSizeDetector": 128.0,
+            "ySizeDetector": 128.0,
+            "zSizeDetector": 20,
+            "Layers": [
+                {
+                    "xPosLayer": 0,
+                    "yPosLayer": 0,
+                    "zPosLayer": 0,
+                    "xDirLayer": 0,
+                    "yDirLayer": 0,
+                    "zDirLayer": 0,
+                    "xSizeLayer": 128.0,
+                    "ySizeLayer": 128.0,
+                    "zSizeLayer": 1
+                },
+                {
+                    "xPosLayer": 0,
+                    "yPosLayer": 0,
+                    "zPosLayer": -10,
+                    "xDirLayer": 0,
+                    "yDirLayer": 0,
+                    "zDirLayer": 0,
+                    "xSizeLayer": 128.0,
+                    "ySizeLayer": 128.0,
+                    "zSizeLayer": 1
+                }
+            ]
+        },
+        {
+            "xPosDetector": 0,
+            "yPosDetector": 0,
+            "zPosDetector": -54.0,
+            "xDirDetector": 0,
+            "yDirDetector": 0,
+            "zDirDetector": 0,
+            "xSizeDetector": 128.0,
+            "ySizeDetector": 128.0,
+            "zSizeDetector": 20,
+            "Layers": [
+                {
+                    "xPosLayer": 0,
+                    "yPosLayer": 0,
+                    "zPosLayer": 0,
+                    "xDirLayer": 0,
+                    "yDirLayer": 0,
+                    "zDirLayer": 0,
+                    "xSizeLayer": 128.0,
+                    "ySizeLayer": 128.0,
+                    "zSizeLayer": 1
+                },
+                {
+                    "xPosLayer": 0,
+                    "yPosLayer": 0,
+                    "zPosLayer": 10,
+                    "xDirLayer": 0,
+                    "yDirLayer": 0,
+                    "zDirLayer": 0,
+                    "xSizeLayer": 128.0,
+                    "ySizeLayer": 128.0,
+                    "zSizeLayer": 1
+                }
+            ]
+        }
+    ],
+    "VoxelConfig": {},
+    "TheVoxels": [
+        {
+            "xPosVoxel": -9.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -8.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -7.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -6.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -5.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -4.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -3.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -2.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -1.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -0.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 0.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 1.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 2.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 3.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 4.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 5.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 6.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 7.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 8.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 9.5,
+            "yPosVoxel": 5.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -9.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -8.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -7.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -6.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -5.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -4.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -3.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -2.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -1.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -0.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 0.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 1.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 2.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 3.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 4.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 5.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 6.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 7.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 8.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 9.5,
+            "yPosVoxel": 6.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -9.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -8.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -7.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -6.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -5.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -4.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -3.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -2.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -1.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -0.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 0.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 1.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 2.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 3.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 4.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 5.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 6.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 7.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 8.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 9.5,
+            "yPosVoxel": 7.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -9.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -8.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -7.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -6.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -5.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -4.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -3.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -2.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -1.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -0.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 0.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 1.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 2.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 3.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 4.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 5.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 6.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 7.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 8.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 9.5,
+            "yPosVoxel": 8.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -9.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -8.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -7.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -6.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -5.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -4.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -3.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -2.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -1.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -0.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 0.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 1.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 2.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 3.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 4.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 5.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 6.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 7.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 8.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 9.5,
+            "yPosVoxel": 9.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -9.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -8.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -7.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -6.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -5.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -4.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -3.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -2.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -1.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -0.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 0.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 1.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 2.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 3.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 4.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 5.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 6.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 7.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 8.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 9.5,
+            "yPosVoxel": 10.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -9.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -8.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -7.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -6.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -5.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -4.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -3.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -2.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -1.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -0.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 0.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 1.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 2.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 3.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 4.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 5.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 6.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 7.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 8.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 9.5,
+            "yPosVoxel": 11.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -9.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -8.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -7.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -6.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -5.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -4.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -3.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -2.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -1.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -0.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 0.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 1.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 2.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 3.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 4.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 5.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 6.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 7.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 8.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 9.5,
+            "yPosVoxel": 12.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -9.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -8.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -7.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -6.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -5.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -4.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -3.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -2.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -1.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -0.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 0.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 1.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 2.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 3.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 4.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 5.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 6.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 7.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 8.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 9.5,
+            "yPosVoxel": 13.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -9.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -8.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -7.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -6.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -5.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -4.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -3.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -2.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -1.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": -0.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 0.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 1.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 2.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 3.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 4.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 5.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 6.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 7.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 8.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        },
+        {
+            "xPosVoxel": 9.5,
+            "yPosVoxel": 14.5,
+            "zPosVoxel": 0.0,
+            "xSizeVoxel": 1.0,
+            "ySizeVoxel": 1.0,
+            "zSizeVoxel": 60.0,
+            "materialVoxel": "lead"
+        }
+    ]
+}

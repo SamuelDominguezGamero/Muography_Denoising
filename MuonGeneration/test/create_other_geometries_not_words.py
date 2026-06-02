@@ -146,7 +146,7 @@ if "--shape" in sys.argv:
     args = parser.parse_args()
 
     ALLOWED_MATERIALS = {
-        "lead", "iron", "uranium", "aluminium", "argon", "silicon", "steel", "air"
+        "lead", "iron", "uranium", "aluminium", "argon", "silicon", "steel", "air", "water"
     }
     if args.material not in ALLOWED_MATERIALS:
         sys.exit(f"[ERROR] Material '{args.material}' not in {ALLOWED_MATERIALS}")
@@ -421,7 +421,7 @@ ERROR_LOG     = os.path.join(SCRIPT_DIR, ".shape_errors.json")
 #       "json":  "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_jsons_not_letters",
 PATHS = {
     "local": {
-        "json":   "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_blocks",
+        "json":  "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_blocks/run_test_to_obtain_cut_on_angle_theta",
         "den2D": "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions/UNET1",
         "den3D": "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/3Dimensions",
         "logs":  "/home/samuel/Work/Muography_Denoising/MuonGeneration/logs",
@@ -459,16 +459,15 @@ zTop, zBot    =  54, -54
 # depth_z: slab Z thickness for extruded shapes (cm); sphere/tetra ignore this
 # wall_thicknesses: applies only to *_hollow variants (cm)
 
-shapes           = [
-    "rectangle_filled",   "rectangle_hollow"]
-sizes_x          = [20, 40, 60, 80, 100]
-sizes_y          = [20, 40, 60, 80, 100]       # only meaningful for rectangle_*
-depth_z_list     = [5, 10, 20, 40, 60]        # extruded shapes only
-center_x_list    = [0, 5, 10]
-center_y_list    = [0, 5, 10]
-materials        = ["iron", "uranium", "aluminium", "steel", "silicon", "lead"]
+shapes           = ["rectangle_filled"]
+sizes_x          = [64]
+sizes_y          = [64]      # only meaningful for rectangle_*
+depth_z_list     = [32]      # extruded shapes only
+center_x_list    = [0]
+center_y_list    = [0]
+materials        = ["water", "silicon", "iron", "lead", "uranium"]
 ratios           = [1]
-wall_thicknesses = [2, 4]             # hollow variants only
+wall_thicknesses = [2, 4]    # hollow variants only
 
 
 # ---------------------------------------------------------------------------

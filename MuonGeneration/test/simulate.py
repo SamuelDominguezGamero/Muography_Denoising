@@ -91,7 +91,7 @@ MERGE_POCA_SCRIPT      = os.path.join(SCRIPT_DIR, "merge_poca.py")
 if environment == "cluster":
     # PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
     # PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_jsons_not_letters"
-    PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_blocks"
+    PATH_geometry_files      = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_blocks/run_test_to_obtain_cut_on_angle_theta"
     PATH_output_raw          = "/gpfs/projects/cms/dominguezs/data/0_raw_geant4"
     PATH_preprocessed        = "/gpfs/projects/cms/dominguezs/data/1_post_makeHLT"
     PATH_merged_post_makeHLT = "/gpfs/projects/cms/dominguezs/data/2_merged_post_makeHLT"

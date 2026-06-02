@@ -1,0 +1,50 @@
+{
+  "shape_rectangle_filled_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_ratio1_sx5_sy5_cx0_cy0_matwater_dz1": {
+    "error": "[ERROR] Material 'water' not in {'air', 'iron', 'uranium', 'aluminium', 'argon', 'silicon', 'steel', 'lead'}",
+    "time": "2026-06-02 15:08:45"
+  },
+  "shape_rectangle_filled_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_ratio1_sx5_sy5_cx0_cy5_matwater_dz1": {
+    "error": "[ERROR] Material 'water' not in {'argon', 'steel', 'iron', 'air', 'uranium', 'lead', 'aluminium', 'silicon'}",
+    "time": "2026-06-02 15:08:46"
+  },
+  "shape_rectangle_filled_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_ratio1_sx5_sy5_cx0_cy10_matwater_dz1": {
+    "error": "[ERROR] Material 'water' not in {'argon', 'lead', 'steel', 'uranium', 'aluminium', 'air', 'silicon', 'iron'}",
+    "time": "2026-06-02 15:08:47"
+  },
+  "shape_rectangle_filled_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_ratio1_sx5_sy5_cx0_cy15_matwater_dz1": {
+    "error": "[ERROR] Material 'water' not in {'silicon', 'uranium', 'iron', 'steel', 'argon', 'air', 'aluminium', 'lead'}",
+    "time": "2026-06-02 15:08:47"
+  },
+  "shape_rectangle_filled_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_ratio1_sx5_sy5_cx0_cy-5_matwater_dz1": {
+    "error": "[ERROR] Material 'water' not in {'aluminium', 'iron', 'argon', 'silicon', 'uranium', 'steel', 'lead', 'air'}",
+    "time": "2026-06-02 15:08:48"
+  },
+  "shape_rectangle_filled_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_ratio1_sx5_sy5_cx0_cy-10_matwater_dz1": {
+    "error": "[ERROR] Material 'water' not in {'lead', 'air', 'aluminium', 'iron', 'silicon', 'argon', 'steel', 'uranium'}",
+    "time": "2026-06-02 15:08:49"
+  },
+  "shape_rectangle_filled_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_ratio1_sx5_sy5_cx0_cy-15_matwater_dz1": {
+    "error": "[ERROR] Material 'water' not in {'lead', 'air', 'iron', 'uranium', 'argon', 'aluminium', 'silicon', 'steel'}",
+    "time": "2026-06-02 15:08:49"
+  },
+  "shape_rectangle_filled_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_ratio1_sx5_sy5_cx5_cy0_matwater_dz1": {
+    "error": "[ERROR] Material 'water' not in {'uranium', 'aluminium', 'argon', 'silicon', 'steel', 'air', 'iron', 'lead'}",
+    "time": "2026-06-02 15:08:50"
+  },
+  "shape_rectangle_filled_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_ratio1_sx5_sy5_cx5_cy5_matwater_dz1": {
+    "error": "[ERROR] Material 'water' not in {'steel', 'lead', 'aluminium', 'argon', 'iron', 'silicon', 'air', 'uranium'}",
+    "time": "2026-06-02 15:08:51"
+  },
+  "shape_rectangle_filled_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_ratio1_sx5_sy5_cx5_cy10_matwater_dz1": {
+    "error": "[ERROR] Material 'water' not in {'silicon', 'uranium', 'iron', 'air', 'argon', 'lead', 'aluminium', 'steel'}",
+    "time": "2026-06-02 15:08:51"
+  },
+  "shape_rectangle_filled_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_ratio1_sx5_sy5_cx5_cy15_matwater_dz1": {
+    "error": "[ERROR] Material 'water' not in {'iron', 'silicon', 'uranium', 'steel', 'lead', 'argon', 'air', 'aluminium'}",
+    "time": "2026-06-02 15:08:52"
+  },
+  "shape_rectangle_filled_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_ratio1_sx5_sy5_cx5_cy-5_matwater_dz1": {
+    "error": "[ERROR] Material 'water' not in {'silicon', 'steel', 'iron', 'argon', 'aluminium', 'uranium', 'air', 'lead'}",
+    "time": "2026-06-02 15:08:53"
+  }
+}
