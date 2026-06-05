@@ -91,7 +91,7 @@ MERGE_POCA_SCRIPT      = os.path.join(SCRIPT_DIR, "merge_poca.py")
 if environment == "cluster":
     PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
     # PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_jsons_not_letters"
-    # PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_blocks/run_test_to_obtain_cut_on_angle_theta"
+    # PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_blocks"
     PATH_output_raw          = "/gpfs/projects/cms/dominguezs/data/0_raw_geant4"
     PATH_preprocessed        = "/gpfs/projects/cms/dominguezs/data/1_post_makeHLT"
     PATH_merged_post_makeHLT = "/gpfs/projects/cms/dominguezs/data/2_merged_post_makeHLT"
@@ -126,6 +126,18 @@ if simulate_just_one_geometry:
 if filter_by_depthZ:
     print(f"[INFO] Filtering by depthZ: {depthZ_list_to_simulate}")
 print(f"[INFO] Geometry files path: {PATH_geometry_files}")
+
+# Detect run type (run0, run1, run2) based on PATH_geometry_files
+if "geometric_configurations_json" in PATH_geometry_files and "not_letters" not in PATH_geometry_files:
+    run_type = "run0"
+elif "jsons_not_letters" in PATH_geometry_files:
+    run_type = "run1"
+elif "blocks" in PATH_geometry_files:
+    run_type = "run2"
+else:
+    run_type = "unknown"
+print(f"[INFO] Run type detected: {run_type}")
+
 print(f"[INFO] Output paths:")
 print(f"       Raw:                     {PATH_output_raw}")
 print(f"       Preprocessed (hits):     {PATH_preprocessed}")
@@ -191,6 +203,7 @@ os.makedirs(PATH_poca_output,           exist_ok=True)
 jobs_submitted = 0
 jobs_failed    = 0
 merges_submitted = 0
+all_merge_job_ids = []  # Collect all merge job IDs for final tar job
 geometries_skipped = 0
 geometries_skipped_by_depthZ = 0
 geometries_failed_during_creation = 0
@@ -489,9 +502,61 @@ echo "[CORRECT] Merge pipeline finished for: {namefile}"
         print(f"[ERROR] Merge job submission failed: {result.stderr.strip()}")
     else:
         merge_id = result.stdout.strip().split()[-1]
+        all_merge_job_ids.append(merge_id)  # Collect for tar job dependency
         print(f"[SUBMITTED] Merge job --> job_id={merge_id} (depends on {len(job_ids)} jobs)")
         merges_submitted += 1
 
+
+
+# ===========================================================================
+# SUBMIT TAR JOB (depends on all merge jobs)
+# ===========================================================================
+if all_merge_job_ids and environment == "cluster":
+    print(f"\n[INFO] Submitting tar job for {run_type}...")
+    tar_dependency = "afterok:" + ":".join(all_merge_job_ids)
+
+    tar_script_path = os.path.join(PATH_logs, f"job_tar_{run_type}.sh")
+    tar_log = os.path.join(PATH_logs, f"log_tar_{run_type}.out")
+    tar_err = os.path.join(PATH_logs, f"log_tar_{run_type}.err")
+
+    tar_script = f"""#!/bin/bash
+#SBATCH --job-name=tar_{run_type}
+#SBATCH --output={tar_log}
+#SBATCH --error={tar_err}
+#SBATCH --partition=wncompute_ifca
+#SBATCH --time=01:00:00
+#SBATCH --mem=8G
+#SBATCH --cpus-per-task=2
+
+echo "[INFO] Creating tar file for {run_type}..."
+cd {PATH_poca_output}
+tar -cf {run_type}.tar POCA_merged_*.root
+if [ $? -eq 0 ]; then
+    echo "[✓] Tar file created: {run_type}.tar"
+    ls -lh {run_type}.tar
+else
+    echo "[✗] Failed to create tar file"
+    exit 1
+fi
+echo "[CORRECT] Tar job finished for {run_type}"
+"""
+    with open(tar_script_path, "w") as f:
+        f.write(tar_script)
+
+    result = subprocess.run(
+        ["sbatch", "--begin=now", f"--dependency={tar_dependency}", tar_script_path],
+        capture_output=True, text=True
+    )
+
+    if result.returncode == 0:
+        tar_job_id = result.stdout.strip().split()[-1]
+        print(f"[SUBMITTED] Tar job --> job_id={tar_job_id} (depends on {len(all_merge_job_ids)} merge jobs)")
+    else:
+        print(f"[ERROR] Failed to submit tar job: {result.stderr.strip()}")
+elif environment != "cluster":
+    print(f"\n[INFO] Tar job not submitted (environment={environment}, cluster only)")
+else:
+    print(f"\n[INFO] No merge jobs to tar (all geometries were skipped or failed).")
 
 print("\n" + "="*70)
 print("[FINAL SUMMARY]")
@@ -510,6 +575,8 @@ print(f"       Geometries skipped (total)  = {geometries_skipped}")
 print(f"       Simulation jobs submitted   = {jobs_submitted}")
 print(f"       Simulation jobs failed      = {jobs_failed}")
 print(f"       Merge jobs submitted        = {merges_submitted}")
+if all_merge_job_ids:
+    print(f"       Tar job submitted           = 1 ({run_type}.tar)")
 print(f"[INFO] Next step:")
 print(f"       Monitor the queue with: squeue -u dominguezs")
 print(f"       Check job details with:  scontrol show job <job_id>")

@@ -87,9 +87,9 @@ zPosDetector_bot = -54
 #   - Sizes 8, 10, 12, 14, 16: Stroke 1, 2, 3 all available
 #   - Only letters available: M, U, O, N
 
-spacings       = [1] 
-ratios         = [1]
-fontsizes      = [10, 12, 14]
+spacings       = [1, 4, 6] 
+ratios         = [1, 2]
+fontsizes      = [8, 10, 12, 14, 16]
 strokes        = [3]
 depth_z_cm_list = [9.0, 20.0]
 
@@ -132,7 +132,7 @@ words_possible = [
     "NNMM", "NNMU", "NNMO", "NNMN", "NNUM", "NNUU", "NNUO", "NNUN", "NNOM", "NNOU", "NNOO", "NNON", "NNNM", "NNNU", "NNNO", "NNNN"
 ]
 
-words_geometry = ["N", "M", "U", "O"]
+words_geometry = ["N", "M", "U", "O", "MM", "UU", "OO", "NN"]
 
 
 # ===========================================================================
