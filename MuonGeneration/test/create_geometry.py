@@ -300,7 +300,7 @@ print("[CORRECT] ----- Word voxels created successfully with efficient method (v
 
 # Validate material (must match Geant4 DetectorConstruction.cc)
 # https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
-possible_materials = ["lead", "air", "iron", "uranium", "aluminium", "argon", "silicon", "steel"]
+possible_materials = ["lead", "air", "iron", "uranium", "aluminium", "argon", "silicon", "steel", "water"]
 if args.material not in possible_materials:
     sys.exit(f"[ERROR] Invalid material: '{args.material}'. Allowed: {possible_materials}")
 

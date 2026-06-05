@@ -89,9 +89,9 @@ MERGE_HITS_SCRIPT      = os.path.join(SCRIPT_DIR, "merge_hits.py")
 MERGE_POCA_SCRIPT      = os.path.join(SCRIPT_DIR, "merge_poca.py")
 
 if environment == "cluster":
-    # PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
+    PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_json"
     # PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_jsons_not_letters"
-    PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_blocks/run_test_to_obtain_cut_on_angle_theta"
+    # PATH_geometry_files      = "/gpfs/users/dominguezs/Muography_Denoising/MuonGeneration/data/geometric_configurations_blocks/run_test_to_obtain_cut_on_angle_theta"
     PATH_output_raw          = "/gpfs/projects/cms/dominguezs/data/0_raw_geant4"
     PATH_preprocessed        = "/gpfs/projects/cms/dominguezs/data/1_post_makeHLT"
     PATH_merged_post_makeHLT = "/gpfs/projects/cms/dominguezs/data/2_merged_post_makeHLT"
@@ -134,24 +134,16 @@ print(f"       POCA output:             {PATH_poca_output}")
 print(f"[INFO] Logs path: {PATH_logs}")
 print(f"[INFO] SLURM user: {SLURM_USER}")
 print(f"[INFO] SLURM throttling: max {MAX_JOBS_IN_QUEUE} jobs in queue, waiting {THROTTLE_SLEEP}s when full")
-print(60 * "=")
-time.sleep(1)
-print(60 * "=")
-time.sleep(1)
-print(60 * "=")
-print("\n")
-print("\n")
+print(60 * "="); time.sleep(1)
+print(60 * "="); time.sleep(1)
+print("\n"); print("\n")
 
 
 # ===========================================================================
 # GEOMETRY PARAMETERS (fixed)
 # ===========================================================================
-Lpx = 128
-Lpy = 128
-Lpz = 128
-npx = 128
-npy = 128
-npz = 128
+Lpx = Lpy = Lpz = 128
+npx = npy = npz = 128
 zPosDetector_top =  54
 zPosDetector_bot = -54
 
@@ -163,14 +155,11 @@ total_muons_per_geometry = 100_000
 n_muons_per_job          = 50_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
-time.sleep(1)
-print(60 * "-")
+time.sleep(1); print(60 * "-")
 print(f"[INFO] Muons per job:      {n_muons_per_job:,}")
-time.sleep(1)
-print(60 * "-")
+time.sleep(1); print(60 * "-")
 print(f"[INFO] Jobs per geometry:  {n_jobs_per_geometry}")
-time.sleep(1)
-print(60 * "-")
+time.sleep(1); print(60 * "-")
 
 # ===========================================================================
 # STEP 2: SIMULATION == SLURM JOB SUBMISSION + MERGE WITH DEPENDENCY

@@ -55,10 +55,6 @@ Output files
   logs/training_log.csv          ← one row per epoch, all metrics
   logs/tensorboard/              ← TensorBoard event files (optional)
 
-Requirements
-------------
-  tensorflow >= 2.10
-  numpy, pandas, scikit-learn
 """
 
 import csv
@@ -67,8 +63,7 @@ import re
 import sys
 import time
 
-# Suppress TensorFlow C++ info/warning/error messages — must be set before importing tf.
-# Level 3 is needed to silence CUDA plugin registration noise on some systems.
+# Suppress TensorFlow info/warning/error messages
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 import numpy as np
@@ -76,16 +71,12 @@ import pandas as pd
 import tensorflow as tf
 tf.get_logger().setLevel("ERROR")   # suppress Python-level TF warnings too
 
-# Disable XLA JIT via the Python API (env-var approach is ignored in TF 2.16+).
-# The RTX 5060 / Compute Capability 12.0 (Blackwell) causes
-# CUDNN_STATUS_EXECUTION_FAILED when XLA compiles cuDNN ops at runtime.
+# To avoid GPU compatibility issues
 tf.config.optimizer.set_jit(False)
 from sklearn.model_selection import StratifiedShuffleSplit
 
 # =============================================================================
 # 1. CONFIGURATION
-#    All paths and hyper-parameters live here.  Nothing else needs to change
-#    between runs — just edit this dict.
 # =============================================================================
 
 BASE_DATA = "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/simulation_data"
@@ -114,7 +105,6 @@ CONFIG = {
     #   uranium           : Z=92
     "material_labels": ["aluminium-silicon", "iron-steel", "lead", "uranium"],
 
-    # Maps each raw material name (from filename) to its 4-class group.
     "material_to_group": {
         "aluminium": "aluminium-silicon",
         "silicon":   "aluminium-silicon",
@@ -145,7 +135,7 @@ CONFIG = {
     "learning_rate": 1e-3,
 
     # Relative weight of each loss head in the combined loss.
-    # SCCE is O(0.1–2); MSE on z_norm is O(0.01–0.1) → 0.3 keeps them comparable.
+    # SCCE is O(0.1–2); MSE on z_norm is O(0.01–0.1) -> 0.3 keeps them comparable.
     "loss_weight_material": 1.0,
     "loss_weight_z":        0.3,
 
@@ -154,8 +144,8 @@ CONFIG = {
     "l2_lambda":    1e-4,   # L2 weight decay on Conv2D and Dense kernel weights
 
     # ── Callback settings ─────────────────────────────────────────────────────
-    "early_stopping_patience": 15,  # epochs without improvement before stopping
-    "reduce_lr_patience":       7,  # epochs without improvement before halving LR
+    "early_stopping_patience": 15,  
+    "reduce_lr_patience":       7,  
     "reduce_lr_factor":         0.5,
     "min_lr":                   1e-6,
 
