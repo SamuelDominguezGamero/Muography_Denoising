@@ -23,11 +23,11 @@ from numpy.random import Generator, PCG64, SeedSequence
 simulate          = True       # set to True to submit SLURM jobs (cluster only)
 environment       = "cluster"  # "local" or "cluster"
 dimension         = "2D"       # 2D or 3D, first we should stick to 2D for faster iterations
-force_resimulate  = True      # set to True to re-process geometries even if merged results exist
+force_resimulate  = False     # set to True to re-process geometries even if merged results exist
 max_geometries_simulated = 100_000 
 simulate_just_one_geometry = False
 namefile_to_simulate = None
-print_skips = False
+print_skips = True
 
 # ===== FILTER BY DEPTH_Z (NEW GEOMETRIES) =====
 filter_by_depthZ       = False  # Set to True to filter geometries by depthZ value
@@ -214,7 +214,9 @@ all_json_files = []
 for file in glob.glob(os.path.join(PATH_geometry_files, "*.json")):
     all_json_files.append(file)
 print(f"[INFO] ----- Total number of geometry json files available for simulation: {len(all_json_files)}")
-print(f"[INFO] ----- First 5 parsed files: {all_json_files[0:6]} ")
+print(f"[INFO] ----- First 5 parsed files:")
+for json_file in all_json_files[0:5]:
+    print(f"       {json_file}")
 
 
 
@@ -263,19 +265,15 @@ for file in all_json_files:
         else:
             print(f"[MATCH] depthZ filter matched: {namefile}")
 
-    # Check if merged result already exists WITH THE EXACT NUMBER OF MUONS
-    # Try both new format (_Muons_) and legacy format (for backwards compatibility)
-    if dimension == "2D":
-        merged_poca_output = os.path.join(PATH_poca_output, f"POCA_merged_{namefile}_Muons_{total_muons_per_geometry}_2D.root")
-    elif dimension == "3D":
-        merged_poca_output = os.path.join(PATH_poca_output, f"POCA_merged_{namefile}_Muons_{total_muons_per_geometry}_3D.root")
-
-    merged_exists = os.path.exists(merged_poca_output)
+    # Check if merged result already exists (handles both naming conventions:
+    # old: POCA_merged_{namefile}.root  and  new: POCA_merged_{namefile}_Muons_..._2D.root)
+    existing_poca_files = glob.glob(os.path.join(PATH_poca_output, f"POCA_merged_{namefile}*.root"))
+    merged_exists = len(existing_poca_files) > 0
 
 
     # Skip if already processed
     if merged_exists and not force_resimulate:
-        print(f"[SKIP] Already processed: {namefile} with {total_muons_per_geometry:,} muons")
+        print(f"[SKIP] Already processed: {namefile} ({len(existing_poca_files)} merged file(s) found)")
         geometries_skipped += 1
         continue
     elif merged_exists and force_resimulate:
@@ -284,13 +282,11 @@ for file in all_json_files:
         old_hits = glob.glob(os.path.join(PATH_merged_post_makeHLT, f"Pre_merged_{namefile}*.root"))
         for f in old_hits:
             os.remove(f)
-        old_poca = glob.glob(os.path.join(PATH_poca_output, f"POCA_merged_{namefile}*.root"))
-        for f in old_poca:
+        for f in existing_poca_files:
             os.remove(f)
-        os.remove(merged_poca_output)  # Remove old merged result
         print(f"[INFO] Cleaned old files for: {namefile}")
 
-    print(f"\n[INFO] [{i:4d}/{max_geometries_simulated}] Submitting {n_jobs_per_geometry} jobs for: {namefile}")
+    print(f"\n[INFO] ----- [{i:4d}/{len(all_json_files)}] Submitting {n_jobs_per_geometry} jobs for: {namefile}")
     
     # === THROTTLING CHECKPOINT ===
     # Wait for enough slots BEFORE submitting all jobs for this geometry.
@@ -431,14 +427,15 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
         print(f"[WARNING] Merge job will be submitted with dependency on available jobs.")
 
     print(f"[INFO] Submitting merge job for: {namefile} with dependency on {len(job_ids)} jobs.")
+    print(f"[INFO] Output will be saved as: POCA_merged_{namefile}_Muons_{total_muons_per_geometry}_{dimension}.root")
     dependency_str = "afterok:" + ":".join(job_ids)
 
     if dimension == "2D":
         out_merged_hits = os.path.join(PATH_merged_post_makeHLT, f"Pre_merged_{namefile}.root")
-        out_merged_poca = os.path.join(PATH_poca_output, f"POCA_merged_{namefile}.root")
+        out_merged_poca = os.path.join(PATH_poca_output, f"POCA_merged_{namefile}_Muons_{total_muons_per_geometry}_2D.root")
     elif dimension == "3D":
         out_merged_hits = os.path.join(PATH_merged_post_makeHLT, f"Pre_merged_{namefile}.root")
-        out_merged_poca = os.path.join(PATH_poca_output, f"POCA_merged_{namefile}.root")
+        out_merged_poca = os.path.join(PATH_poca_output, f"POCA_merged_{namefile}_Muons_{total_muons_per_geometry}_3D.root")
 
     merge_log  = os.path.join(PATH_logs, f"log_merge_{namefile}.out")
     merge_err  = os.path.join(PATH_logs, f"log_merge_{namefile}.err")
@@ -507,56 +504,6 @@ echo "[CORRECT] Merge pipeline finished for: {namefile}"
         merges_submitted += 1
 
 
-
-# ===========================================================================
-# SUBMIT TAR JOB (depends on all merge jobs)
-# ===========================================================================
-if all_merge_job_ids and environment == "cluster":
-    print(f"\n[INFO] Submitting tar job for {run_type}...")
-    tar_dependency = "afterok:" + ":".join(all_merge_job_ids)
-
-    tar_script_path = os.path.join(PATH_logs, f"job_tar_{run_type}.sh")
-    tar_log = os.path.join(PATH_logs, f"log_tar_{run_type}.out")
-    tar_err = os.path.join(PATH_logs, f"log_tar_{run_type}.err")
-
-    tar_script = f"""#!/bin/bash
-#SBATCH --job-name=tar_{run_type}
-#SBATCH --output={tar_log}
-#SBATCH --error={tar_err}
-#SBATCH --partition=wncompute_ifca
-#SBATCH --time=01:00:00
-#SBATCH --mem=8G
-#SBATCH --cpus-per-task=2
-
-echo "[INFO] Creating tar file for {run_type}..."
-cd {PATH_poca_output}
-tar -cf {run_type}.tar POCA_merged_*.root
-if [ $? -eq 0 ]; then
-    echo "[✓] Tar file created: {run_type}.tar"
-    ls -lh {run_type}.tar
-else
-    echo "[✗] Failed to create tar file"
-    exit 1
-fi
-echo "[CORRECT] Tar job finished for {run_type}"
-"""
-    with open(tar_script_path, "w") as f:
-        f.write(tar_script)
-
-    result = subprocess.run(
-        ["sbatch", "--begin=now", f"--dependency={tar_dependency}", tar_script_path],
-        capture_output=True, text=True
-    )
-
-    if result.returncode == 0:
-        tar_job_id = result.stdout.strip().split()[-1]
-        print(f"[SUBMITTED] Tar job --> job_id={tar_job_id} (depends on {len(all_merge_job_ids)} merge jobs)")
-    else:
-        print(f"[ERROR] Failed to submit tar job: {result.stderr.strip()}")
-elif environment != "cluster":
-    print(f"\n[INFO] Tar job not submitted (environment={environment}, cluster only)")
-else:
-    print(f"\n[INFO] No merge jobs to tar (all geometries were skipped or failed).")
 
 print("\n" + "="*70)
 print("[FINAL SUMMARY]")

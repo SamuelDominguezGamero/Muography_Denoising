@@ -5,6 +5,7 @@ Receives either a .root file or a .npy file
 import argparse
 import ROOT
 import numpy as np
+import scienceplots
 import matplotlib.pyplot as plt
 from pathlib import Path
 from skimage.measure import block_reduce
@@ -27,6 +28,24 @@ xSizeWorld = args.xSizeWorld
 ySizeWorld = args.ySizeWorld
 zSizeWorld = args.zSizeWorld
 
+# ==========================================
+# CONFIGURACIÓN DE ESTILO ACADÉMICO (LaTeX)
+# ==========================================
+plt.style.use('default')
+plt.style.use(['science'])
+plt.rcParams.update({
+    "font.family": "serif",
+    "text.usetex": True,      # Habilita renderizado real de LaTeX (requiere LaTeX instalado en el sistema)
+    "font.size": 11,
+    "axes.titlesize": 11,     # Mismo tamaño para homogeneidad o 12 si prefieres destacar ligeramente
+    "axes.labelsize": 11,
+    "xtick.labelsize": 9,
+    "ytick.labelsize": 9,
+    "figure.dpi": 300,        # Calidad de publicación médica/científica
+    "axes.grid": False        # <-- APAGA LA REJILLA PRINCIPAL
+    })
+
+
 
 ##################################################################
 # Version 1: la entrada es un .root (hace las proyecciones y todo)
@@ -44,33 +63,51 @@ if extension == ".root":
 
     print(f"[INFO] POCA points loaded: {len(x)}")
 
-    fig, axes = plt.subplots(1, 3, figsize=(20, 5))
-
-
+    fig, axes = plt.subplots(1, 3, figsize=(8.0, 2.5))
+    
     # 1. Proyección XY
-    axes[0].hist2d(x, y, bins=binning, cmap='viridis')
-    axes[0].set_title("Densidad XY")
-    axes[0].set_xlabel("poca_x"); axes[0].set_ylabel("poca_y"); 
+    # Desempaquetamos el cuarto argumento (el objeto QuadMesh) directamente como 'im0'
+    _, _, _, im0 = axes[0].hist2d(x, y, bins=binning, cmap='viridis', rasterized=True)
+    axes[0].set_title(r"Proyección $XY$")
+    axes[0].set_xlabel(r"$x$ (cm)")
+    axes[0].set_ylabel(r"$y$ (cm)")
     axes[0].set_xlim(left=-xSizeWorld/2, right=+xSizeWorld/2)
     axes[0].set_ylim(bottom=-ySizeWorld/2, top=+ySizeWorld/2)
-
+    
+    # Añadimos la barra de color y su respectiva etiqueta de conteo
+    cbar0 = fig.colorbar(im0, ax=axes[0], fraction=0.046, pad=0.04)
+    cbar0.ax.tick_params(labelsize=8)
+    
     # 2. Proyección XZ
-    axes[1].hist2d(x, z, bins=binning, cmap='viridis')
-    axes[1].set_title("Densidad XZ")
-    axes[1].set_xlabel("poca_x"); axes[1].set_ylabel("poca_z"); 
+    _, _, _, im1 = axes[1].hist2d(x, z, bins=binning, cmap='viridis', rasterized=True)
+    axes[1].set_title(r"Proyección $XZ$")
+    axes[1].set_xlabel(r"$x$ (cm)")
+    axes[1].set_ylabel(r"$z$ (cm)")
     axes[1].set_xlim(left=-xSizeWorld/2, right=+xSizeWorld/2)
     axes[1].set_ylim(bottom=-zSizeWorld/2, top=+zSizeWorld/2)
-
+    
+    cbar1 = fig.colorbar(im1, ax=axes[1], fraction=0.046, pad=0.04)
+    cbar1.ax.tick_params(labelsize=8)
+    
     # 3. Proyección YZ
-    axes[2].hist2d(y, z, bins=binning, cmap='viridis')
-    axes[2].set_title("Densidad YZ")
-    axes[2].set_xlabel("poca_y"); axes[2].set_ylabel("poca_z")
+    _, _, _, im2 = axes[2].hist2d(y, z, bins=binning, cmap='viridis', rasterized=True)
+    axes[2].set_title(r"Proyección $YZ$")
+    axes[2].set_xlabel(r"$y$ (cm)")
+    axes[2].set_ylabel(r"$z$ (cm)")
     axes[2].set_xlim(left=-ySizeWorld/2, right=+ySizeWorld/2)
     axes[2].set_ylim(bottom=-zSizeWorld/2, top=+zSizeWorld/2)
-
-
+    
+    cbar2 = fig.colorbar(im2, ax=axes[2], fraction=0.046, pad=0.04)
+    cbar2.ax.tick_params(labelsize=8)
+    
+    
+    # Ajuste de márgenes y guardado
     plt.tight_layout()
+    plt.savefig('figura_conteos_poca.pdf', dpi=300, bbox_inches='tight')
     plt.show()
+
+
+
 
 
 ###########################################################

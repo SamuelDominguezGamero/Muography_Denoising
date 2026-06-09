@@ -407,7 +407,7 @@ from itertools import product
 environment    = "local"       # "local" | "cluster"
 dimension      = "2D"          # "2D"   | "3D"
 create         = True
-force_recreate = False
+force_recreate = False         # CHANGED BACK: only create if not exists
 max_geometries = float("inf")  # set to e.g. 50 to limit for a quick test
 
 # ---------------------------------------------------------------------------
@@ -421,7 +421,7 @@ ERROR_LOG     = os.path.join(SCRIPT_DIR, ".shape_errors.json")
 #       "json":  "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_jsons_not_letters",
 PATHS = {
     "local": {
-        "json":  "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_blocks/run_test_to_obtain_cut_on_angle_theta",
+        "json":  "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/geometric_configurations_jsons_not_letters",
         "den2D": "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/2Dimensions/UNET1",
         "den3D": "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/ground_truth_data/3Dimensions",
         "logs":  "/home/samuel/Work/Muography_Denoising/MuonGeneration/logs",
@@ -459,15 +459,21 @@ zTop, zBot    =  54, -54
 # depth_z: slab Z thickness for extruded shapes (cm); sphere/tetra ignore this
 # wall_thicknesses: applies only to *_hollow variants (cm)
 
-shapes           = ["rectangle_filled"]
-sizes_x          = [64]
-sizes_y          = [64]      # only meaningful for rectangle_*
-depth_z_list     = [32]      # extruded shapes only
+# Generate WATER - THIRD ROUND with new unique parameters
+# Previous: 5,10,15,20,25,30,35,40 and 12,18,32,38 and 2,3,5,7,10,15,20,25,30 and 4,6,8,12,18,22,28
+# Now: 8,14,22,28,36 and 1,2,4,9,11,13,16,19,24,26,29 (completely new)
+shapes           = ["rectangle_filled", "rectangle_hollow",
+                    "sphere_filled", "sphere_hollow",
+                    "tetrahedron_filled", "tetrahedron_hollow",
+                    "triangle_slab"]
+sizes_x          = [8, 14, 22, 28, 36]   # NEW: 5 options
+sizes_y          = [8, 14, 22, 28, 36]   # NEW: 5 options
+depth_z_list     = [1, 2, 4, 9, 11, 13, 16, 19, 24, 26, 29]   # NEW: 11 options
 center_x_list    = [0]
 center_y_list    = [0]
-materials        = ["water", "silicon", "iron", "lead", "uranium"]
+materials        = ["water"]
 ratios           = [1]
-wall_thicknesses = [2, 4]    # hollow variants only
+wall_thicknesses = [2]
 
 
 # ---------------------------------------------------------------------------
