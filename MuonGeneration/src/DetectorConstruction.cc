@@ -102,7 +102,7 @@ void DetectorConstruction::ConstructMaterials() {
     materials.insert(std::pair<G4String, G4Material *>("aluminium", man->FindOrBuildMaterial("G4_Al")));
     materials.insert(std::pair<G4String, G4Material *>("argon", man->FindOrBuildMaterial("G4_Ar")));
     materials.insert(std::pair<G4String, G4Material *>("lead", man->FindOrBuildMaterial("G4_Pb")));
-    materials.insert(std::pair<G4String, G4Material *>("water", man->FindOrBuildMaterial("G4_WATER")))
+    materials.insert(std::pair<G4String, G4Material *>("water", man->FindOrBuildMaterial("G4_WATER")));
     materials.insert(std::pair<G4String, G4Material *>("silicon", man->FindOrBuildMaterial("G4_Si")));
     materials.insert(std::pair<G4String, G4Material *>("steel", man->FindOrBuildMaterial("G4_STAINLESS-STEEL")));
     G4double atomicNumber = 1.;
