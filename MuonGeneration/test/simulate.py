@@ -279,6 +279,7 @@ for file in all_json_files:
 
     # Collect job IDs for this geometry to use in the merge dependency
     job_ids = []
+    expected_pre_files = []  # track expected Pre_*.root files for polling
     # Use per-geometry SeedSequence spawned before the loop (avoids time.time() duplicates)
     child_seeds = _geo_seeds[i - 1].spawn(n_jobs_per_geometry)
 
@@ -292,6 +293,7 @@ for file in all_json_files:
         out_raw  = os.path.join(PATH_output_raw,   f"Out_{namefile}_seed{seed}.root")
         out_pre  = os.path.join(PATH_preprocessed, f"Pre_{namefile}_seed{seed}.root")
         out_poca = os.path.join(PATH_poca_output,  f"POCA_{namefile}_seed{seed}.root")
+        expected_pre_files.append(out_pre)
         out_log  = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.out")
         out_err  = os.path.join(PATH_logs, f"log_{namefile}_seed{seed}.err")
         out_sh   = os.path.join(PATH_logs, f"job_{namefile}_seed{seed}.sh")
@@ -419,6 +421,8 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
     merge_err  = os.path.join(PATH_logs, f"log_merge_{namefile}.err")
     merge_sh   = os.path.join(PATH_logs, f"job_merge_{namefile}.sh")
 
+    file_list_bash = "\n".join([f'  "{f}"' for f in expected_pre_files])
+
     merge_script = f"""#!/bin/bash
 #SBATCH --job-name=merge_{namefile}
 #SBATCH --output={merge_log}
@@ -429,6 +433,33 @@ echo "[CORRECT] Job finished: {namefile} | seed={seed}"
 #SBATCH --cpus-per-task=4
 
 source {PATH_setup}
+
+# === POLLING: Wait for all preprocessed files before starting merge ===
+expected_files=(
+{file_list_bash}
+)
+MAX_WAIT=7200
+POLL_INTERVAL=30
+ELAPSED=0
+n_expected=${{#expected_files[@]}}
+echo "[INFO] Waiting for ${{n_expected}} preprocessed files to be ready..."
+while true; do
+    missing=0
+    for f in "${{expected_files[@]}}"; do
+        [[ ! -f "$f" ]] && (( missing++ ))
+    done
+    if [[ $missing -eq 0 ]]; then
+        echo "[INFO] All ${{n_expected}} files ready. Starting merge."
+        break
+    fi
+    if [[ $ELAPSED -ge $MAX_WAIT ]]; then
+        echo "[WARNING] Timeout after ${{MAX_WAIT}}s. ${{missing}}/${{n_expected}} files missing. Proceeding with available files."
+        break
+    fi
+    echo "[INFO] ${{missing}}/${{n_expected}} files missing. Waiting ${{POLL_INTERVAL}}s... (${{ELAPSED}}/${{MAX_WAIT}}s elapsed)"
+    sleep $POLL_INTERVAL
+    ELAPSED=$(( ELAPSED + POLL_INTERVAL ))
+done
 
 echo "[INFO] Starting merge pipeline for: {namefile}"
 
