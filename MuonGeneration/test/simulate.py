@@ -29,15 +29,13 @@ simulate_just_one_geometry = False
 namefile_to_simulate = None
 print_skips = True
 
-# ===== FILTER BY DEPTH_Z (NEW GEOMETRIES) =====
-filter_by_depthZ       = False  # Set to True to filter geometries by depthZ value
-depthZ_list_to_simulate = [1, 2, 5, 10, 20]  # Only simulate geometries with these depthZ values (e.g., [2, 5, 10])
-
 # ===========================================================================
 # SLURM JOB THROTTLING
 # ===========================================================================
-MAX_JOBS_IN_QUEUE = 1200      # adjust to your cluster's limit
-THROTTLE_SLEEP    = 10        # seconds to wait when queue is full before retrying
+MAX_JOBS_IN_QUEUE = 2000      # adjust to your cluster's limit
+THROTTLE_SLEEP    = 5        # seconds to wait when queue is full before retrying
+
+
 
 def get_current_job_count(username="dominguezs"):
     """Returns the number of jobs currently in the SLURM queue for the user."""
@@ -123,8 +121,6 @@ print(f"[INFO] Environment: {environment}")
 print(f"[INFO] Script directory: {SCRIPT_DIR}")
 if simulate_just_one_geometry:
     print(f"[INFO] Looking for geometry containing: {namefile_to_simulate}")
-if filter_by_depthZ:
-    print(f"[INFO] Filtering by depthZ: {depthZ_list_to_simulate}")
 print(f"[INFO] Geometry files path: {PATH_geometry_files}")
 
 # Detect run type (run0, run1, run2) based on PATH_geometry_files
@@ -166,10 +162,11 @@ zPosDetector_bot = -54
 total_muons_per_geometry = 100_000
 n_muons_per_job          = 50_000
 n_jobs_per_geometry      = total_muons_per_geometry // n_muons_per_job
+print(60 * "-")
 print(f"[INFO] Muons per geometry: {total_muons_per_geometry:,}")
-time.sleep(1); print(60 * "-")
+time.sleep(1)
 print(f"[INFO] Muons per job:      {n_muons_per_job:,}")
-time.sleep(1); print(60 * "-")
+time.sleep(1)
 print(f"[INFO] Jobs per geometry:  {n_jobs_per_geometry}")
 time.sleep(1); print(60 * "-")
 
@@ -186,12 +183,10 @@ time.sleep(1); print(60 * "-")
 #   - We wait ONCE before submitting all 60 jobs for a geometry
 #   - SLURM handles job queueing automatically (no manual waits in loop)
 # ===========================================================================
-print("="*60)
-print("="*60)
+print("\n" + "="*60); print("="*60)
 print("STEP 2: SLURM JOB SUBMISSION")
-print("="*60)
-print("="*60)
-time.sleep(5)
+print("="*60); print("="*60)
+time.sleep(3)
 
 
 os.makedirs(PATH_logs,                  exist_ok=True)
@@ -203,7 +198,6 @@ os.makedirs(PATH_poca_output,           exist_ok=True)
 jobs_submitted = 0
 jobs_failed    = 0
 merges_submitted = 0
-all_merge_job_ids = []  # Collect all merge job IDs for final tar job
 geometries_skipped = 0
 geometries_skipped_by_depthZ = 0
 geometries_failed_during_creation = 0
@@ -231,7 +225,6 @@ i = 0
 for file in all_json_files:
     i += 1
     if not simulate_just_one_geometry:
-        print(f"[INFO] --- Several geometries are going to be simulated.")
         if i > max_geometries_simulated:
             print(f"[INFO] Reached max_geometries_simulated={max_geometries_simulated}. Stopping simulation.")
             break
@@ -250,22 +243,7 @@ for file in all_json_files:
     namefile = os.path.splitext(os.path.basename(file))[0]
     geometry_file = file # full path with extension
 
-    # === FILTER BY DEPTHZ (if enabled) ===
-    if filter_by_depthZ:
-        matches_depthZ = False
-        for depthZ in depthZ_list_to_simulate:
-            if f"_depthZ{depthZ}" in namefile:
-                matches_depthZ = True
-                break
-        if not matches_depthZ:
-            if print_skips:
-                print(f"[SKIP] depthZ filter: {namefile} not in {depthZ_list_to_simulate}")
-            geometries_skipped_by_depthZ += 1
-            continue
-        else:
-            print(f"[MATCH] depthZ filter matched: {namefile}")
-
-    # Check if merged result already exists (handles both naming conventions:
+    # Check if merged result already exists (handles both naming conventions):
     # old: POCA_merged_{namefile}.root  and  new: POCA_merged_{namefile}_Muons_..._2D.root)
     existing_poca_files = glob.glob(os.path.join(PATH_poca_output, f"POCA_merged_{namefile}*.root"))
     merged_exists = len(existing_poca_files) > 0
@@ -499,7 +477,6 @@ echo "[CORRECT] Merge pipeline finished for: {namefile}"
         print(f"[ERROR] Merge job submission failed: {result.stderr.strip()}")
     else:
         merge_id = result.stdout.strip().split()[-1]
-        all_merge_job_ids.append(merge_id)  # Collect for tar job dependency
         print(f"[SUBMITTED] Merge job --> job_id={merge_id} (depends on {len(job_ids)} jobs)")
         merges_submitted += 1
 
@@ -516,14 +493,10 @@ print(f"[INFO] Results:")
 print(f"       Geometries processed        = {i}")
 if simulate_just_one_geometry:
     print(f"       (Just one geometry simulated: {namefile_to_simulate})")
-if filter_by_depthZ:
-    print(f"       Geometries skipped (depthZ) = {geometries_skipped_by_depthZ}")
 print(f"       Geometries skipped (total)  = {geometries_skipped}")
 print(f"       Simulation jobs submitted   = {jobs_submitted}")
 print(f"       Simulation jobs failed      = {jobs_failed}")
 print(f"       Merge jobs submitted        = {merges_submitted}")
-if all_merge_job_ids:
-    print(f"       Tar job submitted           = 1 ({run_type}.tar)")
 print(f"[INFO] Next step:")
 print(f"       Monitor the queue with: squeue -u dominguezs")
 print(f"       Check job details with:  scontrol show job <job_id>")
