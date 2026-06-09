@@ -50,20 +50,26 @@ def main():
     print("="*70)
 
     # Step 1: Count available files
+    print("\n" + 60 * "-")
     count_npy_files()
     count_ground_truth_files()
     count_json_files()
+    print(60 * "-")
 
     # Step 2: Test metadata extraction
     test_metadata_extraction()
 
     # Step 3: Analyze material balance
+    print(60 * "-"); print("ANALYSIS OF .npy files")
     analyze_material_balance()
+    print(60 * "-")
+
 
     # Step 4: Analyze diversity per dataset
-    # analyze_run0_jsons(folder_0_json); print("-"*70, flush=True)
-    # analyze_run1_jsons(folder_1_json); print("-"*70, flush=True)
-    # analyze_run2_jsons(folder_2_json); print("-"*70, flush=True)
+    print(60 * "-"); print("ANALYSIS OF .json files")
+    analyze_run0_jsons(folder_0_json); print("-"*70, flush=True)
+    analyze_run1_jsons(folder_1_json); print("-"*70, flush=True)
+    analyze_run2_jsons(folder_2_json); print("-"*70, flush=True)
 
 
     # Para cuando creemos el dataset: una de las palabras que tiene que aparecer en el split de test es la palabra MUON. La palabra MUON no puede aparecer en ninguno de los otros dos splits. Es una forma visual de hacer tests, con una palabra reconocida para el lector
