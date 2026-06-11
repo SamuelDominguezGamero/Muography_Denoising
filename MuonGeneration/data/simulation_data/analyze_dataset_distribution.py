@@ -23,9 +23,9 @@ import numpy as np
 home_path = Path("/home/samuel/Work/Muography_Denoising/MuonGeneration")
 
 # POCA projections (simulation data)
-folder_0_G4 = home_path / "data" / "simulation_data" / "run0_POCA_projections_abs_downsampled"
-folder_1_G4 = home_path / "data" / "simulation_data" / "run1_POCA_projections_NotLetters"
-folder_2_G4 = home_path / "data" / "simulation_data" / "run2_POCA_projections_blocks"
+folder_0_G4 = home_path / "data" / "simulation_data" / "run0_definitive_letters"
+folder_1_G4 = home_path / "data" / "simulation_data" / "run1_definitive_forms"
+folder_2_G4 = home_path / "data" / "simulation_data" / "run2_definitive_blocks"
 
 # Ground truth maps
 folder_0_gt = home_path / "data" / "ground_truth_data" / "run0_letters"
@@ -67,9 +67,9 @@ def main():
 
     # Step 4: Analyze diversity per dataset
     print(60 * "-"); print("ANALYSIS OF .json files")
-    analyze_run0_jsons(folder_0_json); print("-"*70, flush=True)
+    # analyze_run0_jsons(folder_0_json); print("-"*70, flush=True)
     analyze_run1_jsons(folder_1_json); print("-"*70, flush=True)
-    analyze_run2_jsons(folder_2_json); print("-"*70, flush=True)
+    # analyze_run2_jsons(folder_2_json); print("-"*70, flush=True)
 
 
     # Para cuando creemos el dataset: una de las palabras que tiene que aparecer en el split de test es la palabra MUON. La palabra MUON no puede aparecer en ninguno de los otros dos splits. Es una forma visual de hacer tests, con una palabra reconocida para el lector

@@ -32,7 +32,7 @@ print_skips = True
 # ===========================================================================
 # SLURM JOB THROTTLING
 # ===========================================================================
-MAX_JOBS_IN_QUEUE = 2000      # adjust to your cluster's limit
+MAX_JOBS_IN_QUEUE = 2500      # adjust to your cluster's limit
 THROTTLE_SLEEP    = 5        # seconds to wait when queue is full before retrying
 
 
