@@ -454,24 +454,37 @@ zTop, zBot    =  54, -54
 # ---------------------------------------------------------------------------
 # VARIATIONS  <--- EDIT THIS SECTION
 # ---------------------------------------------------------------------------
-# size_x : half-width (rect) or radius/circumradius (cyl/sphere/tri/tetra) in cm
-# size_y : half-height for rectangle_* only (ignored by other shapes)
-# depth_z: slab Z thickness for extruded shapes (cm); sphere/tetra ignore this
-# wall_thicknesses: applies only to *_hollow variants (cm)
+# GOAL: Balanced dataset with:
+#   - All 7 materials represented equally
+#   - All 9 shapes represented equally
+#   - No material-shape bias (each material appears with each shape)
+#   - Multiple size and depth variations
+#   - Rough 50/50 hollow vs filled split
+#
+# Strategy: Generate 9 shapes × 7 materials × 5 sizes_x × 5 sizes_y × 4 depths_z
+#           = 6300 total combinations (~800 per material, ~700 per shape)
+#
+# Material groups (user wants these balanced):
+#   - iron + steel          (2 materiales, balanced together)
+#   - aluminium + silicon   (2 materiales, balanced together)
+#   - water                 (1 material)
+#   - lead                  (1 material)
+#   - uranium               (1 material)
 
-# Generate WATER - THIRD ROUND with new unique parameters
-# Previous: 5,10,15,20,25,30,35,40 and 12,18,32,38 and 2,3,5,7,10,15,20,25,30 and 4,6,8,12,18,22,28
-# Now: 8,14,22,28,36 and 1,2,4,9,11,13,16,19,24,26,29 (completely new)
 shapes           = ["rectangle_filled", "rectangle_hollow",
+                    "cylinder_filled", "cylinder_hollow",
                     "sphere_filled", "sphere_hollow",
-                    "tetrahedron_filled", "tetrahedron_hollow",
-                    "triangle_slab"]
-sizes_x          = [8, 14, 22, 28, 36]   # NEW: 5 options
-sizes_y          = [8, 14, 22, 28, 36]   # NEW: 5 options
-depth_z_list     = [1, 2, 4, 9, 11, 13, 16, 19, 24, 26, 29]   # NEW: 11 options
+                    "triangle_slab",
+                    "tetrahedron_filled", "tetrahedron_hollow"]
+
+materials        = ["iron", "steel", "aluminium", "silicon", "water", "lead", "uranium"]
+
+sizes_x          = [12, 18, 24, 30, 36]
+sizes_y          = [12, 18, 24, 30, 36]
+depth_z_list     = [6, 12, 18, 24]
+
 center_x_list    = [0]
 center_y_list    = [0]
-materials        = ["water"]
 ratios           = [1]
 wall_thicknesses = [2]
 

@@ -222,35 +222,43 @@ def analyze_material_balance():
 # HELPER FUNCTIONS
 # ===========================================================================
 
-def extract_shape_metadata(filename):
+def extract_shape_metadata_run1(filename):
     """
-    Extract shape, material, size_x, depth_z, and wall_thickness from a
-    run1/run2 JSON filename.
-
-    Format: shape_{shape}_..._sx{sx}_sy{sy}_cx{cx}_cy{cy}_mat{mat}_dz{dz}[_wt{t}].json
+    Extract shape, material, size_x, size_y, depth_z, wall_thickness from run1 JSON filename.
+    
+    Format: shape_{shape}_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_ratio1_sx{sx}_sy{sy}_cx{cx}_cy{cy}_mat{mat}_dz{dz}[_wt{t}].json
+    
+    Example: shape_cylinder_filled_Lpx128_Lpy128_Lpz128_npx128_npy128_npz128_zTop54_zBot-54_ratio1_sx10_sy10_cx0_cy0_mataluminium_dz10.json
     """
     try:
+        # shape: everything between "shape_" and the first "_Lpx"
         shape_match = re.search(r"shape_([a-z_]+)_Lpx", filename)
+        
+        # material: everything between "_mat" and "_dz" (e.g., mataluminium, matwater)
         mat_match   = re.search(r"_mat([a-z]+)_dz",   filename)
+        
+        # sizes and positions: numeric values (can be negative)
         sx_match    = re.search(r"_sx(-?\d+(?:\.\d+)?)", filename)
         sy_match    = re.search(r"_sy(-?\d+(?:\.\d+)?)", filename)
-        dz_match    = re.search(r"_dz(-?\d+(?:\.\d+)?)", filename)
-        wt_match    = re.search(r"_wt(\d+(?:\.\d+)?)",   filename)
         cx_match    = re.search(r"_cx(-?\d+(?:\.\d+)?)", filename)
         cy_match    = re.search(r"_cy(-?\d+(?:\.\d+)?)", filename)
+        dz_match    = re.search(r"_dz(-?\d+(?:\.\d+)?)", filename)
+        
+        # wall thickness (only for hollow shapes)
+        wt_match    = re.search(r"_wt(\d+(?:\.\d+)?)", filename)
 
         shape   = shape_match.group(1) if shape_match else None
         mat     = mat_match.group(1)   if mat_match   else None
         sx      = float(sx_match.group(1)) if sx_match else None
         sy      = float(sy_match.group(1)) if sy_match else None
-        dz      = float(dz_match.group(1)) if dz_match else None
-        wt      = float(wt_match.group(1)) if wt_match else None
         cx      = float(cx_match.group(1)) if cx_match else None
         cy      = float(cy_match.group(1)) if cy_match else None
+        dz      = float(dz_match.group(1)) if dz_match else None
+        wt      = float(wt_match.group(1)) if wt_match else None
         hollow  = (wt is not None)
 
-        return shape, mat, sx, sy, dz, wt, cx, cy, hollow
-    except Exception:
+        return shape, mat, sx, sy, cx, cy, dz, wt, hollow
+    except Exception as e:
         return None, None, None, None, None, None, None, None, None
 
 
@@ -342,9 +350,116 @@ def _analyze_shape_jsons(folder, run_label):
 
 
 def analyze_run1_jsons(folder):
-    """Analyze shape/material balance and overfitting risk in run1 (geometric shapes)."""
+    """Analyze shape/material balance and overfitting risk in run1 (geometric shapes with multiple materials)."""
     print("\n[STEP 5a] Run1 JSON analysis (geometric shapes)...\n")
-    _analyze_shape_jsons(folder, "run1")
+    
+    shapes    = []
+    materials = []
+    shape_mat_pairs = []
+    depth_zs  = []
+    sizes_x   = []
+    sizes_y   = []
+    hollow_count = 0
+    total = 0
+    failed = 0
+
+    for json_file in folder.glob("*.json"):
+        shape, mat, sx, sy, cx, cy, dz, wt, hollow = extract_shape_metadata_run1(json_file.name)
+        
+        if shape is None or mat is None:
+            failed += 1
+            continue
+            
+        total += 1
+        shapes.append(shape)
+        materials.append(mat)
+        shape_mat_pairs.append((shape, mat))
+        if dz is not None:
+            depth_zs.append(dz)
+        if sx is not None:
+            sizes_x.append(sx)
+        if sy is not None:
+            sizes_y.append(sy)
+        if hollow:
+            hollow_count += 1
+
+    if total == 0:
+        print(f"  ⚠️  WARNING: No valid JSON files found in {folder}")
+        print(f"     Failed to parse: {failed} files\n")
+        return
+
+    shape_counts   = Counter(shapes)
+    mat_counts     = Counter(materials)
+    pair_counts    = Counter(shape_mat_pairs)
+
+    print(f"  Total JSON files parsed : {total}")
+    if failed > 0:
+        print(f"  Files failed to parse   : {failed}")
+    print(f"  Unique shapes           : {len(shape_counts)}")
+    print(f"  Unique materials        : {len(mat_counts)}")
+    print(f"  Hollow variants         : {hollow_count}  ({100*hollow_count/total:.1f}%)")
+    print(f"  Filled variants         : {total-hollow_count}  ({100*(total-hollow_count)/total:.1f}%)\n")
+
+    # Shape distribution
+    print(f"  Shape distribution (should be ~balanced):")
+    for s, n in shape_counts.most_common():
+        pct = 100*n/total
+        print(f"    {s:35s}: {n:5d}  ({pct:5.1f}%)")
+
+    # Material distribution
+    print(f"\n  Material distribution (should be ~balanced):")
+    for m, n in mat_counts.most_common():
+        pct = 100*n/total
+        print(f"    {m:20s}: {n:5d}  ({pct:5.1f}%)")
+
+    # Shape+material pairs (check for overfitting risk / bias)
+    print(f"\n  Top 20 shape+material combinations (check for bias):")
+    for (s, m), n in pair_counts.most_common(20):
+        pct = 100*n/total
+        status = "🔴" if pct > 1.5 else "🟡" if pct > 1.0 else "🟢"
+        print(f"    {status} {s:35s} + {m:15s}: {n:5d}  ({pct:5.1f}%)")
+
+    # Size distribution
+    if sizes_x:
+        sx_counts = Counter(sizes_x)
+        print(f"\n  Size (sx) distribution (min={min(sizes_x):.1f}, max={max(sizes_x):.1f}):")
+        for sz, n in sorted(sx_counts.items()):
+            pct = 100*n/total
+            print(f"    sx={sz:6.1f} cm : {n:5d}  ({pct:5.1f}%)")
+
+    if sizes_y:
+        sy_counts = Counter(sizes_y)
+        print(f"\n  Size (sy) distribution (min={min(sizes_y):.1f}, max={max(sizes_y):.1f}):")
+        for sz, n in sorted(sy_counts.items()):
+            pct = 100*n/total
+            print(f"    sy={sz:6.1f} cm : {n:5d}  ({pct:5.1f}%)")
+
+    # Depth distribution
+    if depth_zs:
+        dz_counts = Counter(depth_zs)
+        print(f"\n  Depth (dz) distribution (min={min(depth_zs):.1f}, max={max(depth_zs):.1f}):")
+        for dz, n in sorted(dz_counts.items()):
+            pct = 100*n/total
+            print(f"    dz={dz:6.1f} cm : {n:5d}  ({pct:5.1f}%)")
+
+    # Imbalance metrics
+    if len(mat_counts) > 1:
+        max_m = max(mat_counts.values())
+        min_m = min(mat_counts.values())
+        ratio_m = max_m / min_m
+        print(f"\n  Material imbalance: max={max_m}, min={min_m}, ratio={ratio_m:.2f}x")
+        if ratio_m > 1.5:
+            print(f"  ⚠️  MATERIAL IMBALANCE detected (ratio > 1.5x)")
+
+    if len(shape_counts) > 1:
+        max_s = max(shape_counts.values())
+        min_s = min(shape_counts.values())
+        ratio_s = max_s / min_s
+        print(f"  Shape imbalance  : max={max_s}, min={min_s}, ratio={ratio_s:.2f}x")
+        if ratio_s > 1.5:
+            print(f"  ⚠️  SHAPE IMBALANCE detected (ratio > 1.5x)")
+
+    print()
 
 
 def analyze_run2_jsons(folder):
