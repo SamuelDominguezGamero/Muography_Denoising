@@ -1,7 +1,7 @@
 {
-  "last_epoch": 19,
-  "best_val_loss": 0.0011192846577614546,
-  "last_val_loss": 0.0011334092123433948,
-  "last_val_psnr": 55.790367126464844,
-  "last_val_ssim": 0.9995514750480652
+  "last_epoch": 24,
+  "best_val_loss": 0.0015985816717147827,
+  "last_val_loss": 0.0016268722247332335,
+  "last_val_psnr": 45.68077087402344,
+  "last_val_ssim": 0.9972191452980042
 }
