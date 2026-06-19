@@ -1,0 +1,25 @@
+{
+  "run_id": "run0_run1__loss_charb__flux100__bs32__f64__l4__seed42",
+  "timestamp_start": "2026-06-16T13:45:15",
+  "run_selection": [
+    "run0",
+    "run1"
+  ],
+  "flux_fraction": 0.0,
+  "subsample_fraction": 0.4,
+  "batch_size": 32,
+  "learning_rate": 0.001,
+  "epochs": 100,
+  "loss_fn": "charbonnier",
+  "n_filters": 64,
+  "n_levels": 4,
+  "filter_size": 3,
+  "use_augmentation": true,
+  "val_fraction": 0.15,
+  "test_fraction": 0.15,
+  "random_seed": 42,
+  "n_train": 16117,
+  "n_val": 3453,
+  "n_test": 3453,
+  "output_dir": "/home/samuel/Work/Muography_Denoising/MuonGeneration/data/models_XY/run0_run1__loss_charb__flux100__bs32__f64__l4__seed42"
+}

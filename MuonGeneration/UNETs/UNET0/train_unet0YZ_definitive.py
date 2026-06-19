@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-UNET2D training for POCA denoising (XY channel).
+UNET2D training for POCA denoising (YZ channel).
 
 ── Usage ───────────────────────────────────────────────────────────────────────
   Edit the CONFIG section, then:
-      python3 train_unet0XY_definitive.py
+      python3 train_unet0YZ_definitive.py
 
 ── Key CONFIG variables ────────────────────────────────────────────────────────
   RUN_SELECTION   "run0", "run1", "run2", ["run0","run2"], or "all"
@@ -16,20 +16,20 @@ UNET2D training for POCA denoising (XY channel).
                   "my_exp" = use this name for the output folder
 
 ── Output folder (one per experiment, auto-named) ──────────────────────────────
-  data/models_XY/<run_id>/
+  data/models_YZ/<run_id>/
   ├── run_config.json          ← all hyperparameters, saved at start
-  ├── training_log_0_XY.csv   ← loss / PSNR / SSIM per epoch
-  ├── model_summary_0_XY.txt  ← architecture
+  ├── training_log_2_YZ.csv   ← loss / PSNR / SSIM per epoch
+  ├── model_summary_2_YZ.txt  ← architecture
   ├── data_indices/
   │   └── train.csv  val.csv  test.csv  ← reproducible split (x_path, y_path)
   └── checkpoints/
-      ├── best_model_0_XY.keras
-      ├── last_checkpoint_0_XY.keras
+      ├── best_model_2_YZ.keras
+      ├── last_checkpoint_2_YZ.keras
       └── epoch_monitoring/
-          └── UNET0XY_epochNNN_monitoring.png
+          └── UNET2YZ_epochNNN_monitoring.png
 
-  Auto-name format:  <runs>__flux<pct>__bs<batch>__f<filters>__l<levels>__seed<seed>
-  Example:           run0__flux100__bs32__f64__l4__seed42
+  Auto-name format:  <runs>__loss_<tag>__flux<pct>__bs<batch>__f<filters>__l<levels>__seed<seed>
+  Example:           run0__loss_charb__flux100__bs32__f64__l4__seed42
 
   Same CONFIG → same folder (safe to resume).
   Change any hyperparameter → new folder → experiments never overwrite each other.
@@ -79,11 +79,16 @@ except ImportError:
 BASE     = Path("/home/samuel/Work/Muography_Denoising/MuonGeneration")
 DATA     = BASE / "data"
 SIM_DATA = DATA / "simulation_data"
-MODELS   = DATA / "models_XY"
+MODELS   = DATA / "models_YZ"
+
+# ── Projection (fixed for this script — do not change) ──────────────────────
+_PROJECTION  = "YZ"   # projection name, used in labels and run_config.json
+_CH_IDX      = 2      # channel index in the (128, 128, 3) NPY arrays
+_MODEL_LABEL = "2_YZ" # suffix used in checkpoint file names
 
 # ── Data folder registry ────────────────────────────────────────────────────
 # Select which runs to use: "run0", "run1", "run2", a list like ["run0", "run2"], or "all"
-RUN_SELECTION = ["run0"]
+RUN_SELECTION = "run0"
 
 RUN_FOLDERS = {
     "run0": SIM_DATA / "run0_definitive_words",
@@ -120,7 +125,7 @@ FILTER_SIZE   = 3
 N_LEVELS      = 4
 
 USE_GPU            = True
-FORCE_RESTART      = False    # If True, ignore previous checkpoints and train from scratch
+FORCE_RESTART      = True    # If True, ignore previous checkpoints and train from scratch
 USE_AUGMENTATION   = True   # On-the-fly rotations ×4 (train split only)
 EVAL_ONLY          = False  # If True, skip training and load best model → evaluate + visualize only
 VISUALIZE_RESULTS  = True   # If True, save input/pred/GT comparison PNGs after training
@@ -143,7 +148,7 @@ SUBSAMPLE_FRACTION = 0.4
 # Pixels with few counts become empty; spatial distribution is statistically preserved.
 # Set to 0.0 to disable (full flux, no downsampling).
 # Examples: 0.1 = 10% flux, 0.3 = 30% flux, 1.0 = full flux (same as 0.0).
-FLUX_FRACTION = 0.40
+FLUX_FRACTION = 0.0
 
 
 # ===========================================================================
@@ -338,7 +343,7 @@ def _train_val_test_split(pairs, val_frac=VAL_FRACTION, test_frac=TEST_FRACTION,
 
 
 class NPYDataGenerator:
-    """Streams XY channel from NPY files with optional per-epoch subsampling."""
+    """Streams YZ channel from NPY files with optional per-epoch subsampling."""
 
     def __init__(self, file_list, split_name, augment=False, subsample_frac=0.0, flux_fraction=0.0):
         self.file_list      = list(file_list)
@@ -351,33 +356,33 @@ class NPYDataGenerator:
     def __call__(self):
         """Generator: yields (x, y) tuples. Each epoch may use different subsample."""
         indices = np.arange(self.n_files)
-        
+
         # Per-epoch random subsampling (train only)
         if self.split_name == 'train' and self.subsample_frac > 0:
             n_subsample = max(1, int(self.n_files * self.subsample_frac))
             indices = np.random.choice(indices, size=n_subsample, replace=False)
-        
+
         if self.split_name == 'train':
             np.random.shuffle(indices)
-        
+
         for idx in indices:
             try:
                 x_path, y_path = self.file_list[idx]
                 x_data = np.load(x_path, allow_pickle=False).astype(np.float32)
                 y_data = np.load(y_path, allow_pickle=False).astype(np.float32)
                 if self.flux_fraction > 0:
-                    x = _apply_low_flux(x_data[:, :, 0], self.flux_fraction)[..., np.newaxis]
+                    x = _apply_low_flux(x_data[:, :, _CH_IDX], self.flux_fraction)[..., np.newaxis]
                 else:
-                    x_max = float(x_data[:, :, 0].max())
-                    x = x_data[:, :, 0:1] / max(x_max, 1.0)  # per-image normalization → [0, 1]
-                y = y_data[:, :, 0:1]           # GT binary mask, already in [0, 1]
-                
+                    x_max = float(x_data[:, :, _CH_IDX].max())
+                    x = x_data[:, :, _CH_IDX:_CH_IDX+1] / max(x_max, 1.0)  # per-image normalization → [0, 1]
+                y = y_data[:, :, _CH_IDX:_CH_IDX+1]    # GT binary mask, already in [0, 1]
+
                 if self.augment:
                     k = np.random.randint(0, 4)  # Random 90° rotation
                     if k > 0:
                         x = np.rot90(x, k, axes=(0, 1))
                         y = np.rot90(y, k, axes=(0, 1))
-                
+
                 yield x, y
             except Exception as e:
                 print(f"[WARN]  Failed to load pair: {e}")
@@ -428,9 +433,6 @@ def _check_config_match(output_dir: Path) -> bool:
     Called before resuming an existing experiment to catch accidental
     hyperparameter mismatches early — before overwriting a good checkpoint.
 
-    Prints a warning for each mismatch.  Flags (FORCE_RESTART, EVAL_ONLY,
-    VISUALIZE_RESULTS) are intentionally ignored since they don't affect the model.
-
     Returns True if everything matches (safe to resume), False otherwise.
     """
     cfg_path = output_dir / "run_config.json"
@@ -442,6 +444,8 @@ def _check_config_match(output_dir: Path) -> bool:
 
     current_run = RUN_SELECTION if isinstance(RUN_SELECTION, str) else list(RUN_SELECTION)
     checks = {
+        "projection":         _PROJECTION,
+        "channel_index":      _CH_IDX,
         "run_selection":      current_run,
         "flux_fraction":      FLUX_FRACTION,
         "subsample_fraction": SUBSAMPLE_FRACTION,
@@ -458,6 +462,8 @@ def _check_config_match(output_dir: Path) -> bool:
     mismatches = []
     for key, current_val in checks.items():
         saved_val = saved.get(key)
+        if saved_val is None:
+            continue  # key not present in older config — skip (backwards compat)
         if saved_val != current_val:
             mismatches.append((key, saved_val, current_val))
 
@@ -477,7 +483,7 @@ def _build_output_dir() -> Path:
 
     Uses RUN_NAME if set; otherwise auto-generates a name that encodes the key
     hyperparameters so each distinct configuration gets its own folder.
-    Example: run0__flux100__bs32__f64__l4__seed42
+    Example: run0__loss_charb__flux100__bs32__f64__l4__seed42
     """
     if RUN_NAME:
         return MODELS / RUN_NAME
@@ -490,15 +496,13 @@ def _build_output_dir() -> Path:
 
 
 def _save_run_config(output_dir: Path, splits: dict) -> None:
-    """Dump all hyperparameters + dataset sizes to run_config.json.
-
-    Call once at the start of training so every experiment folder is fully
-    self-documenting (no need to grep the script to know how a model was trained).
-    """
+    """Dump all hyperparameters + dataset sizes to run_config.json."""
     import datetime
     config = {
         "run_id":             output_dir.name,
         "timestamp_start":    datetime.datetime.now().isoformat(timespec='seconds'),
+        "projection":         _PROJECTION,
+        "channel_index":      _CH_IDX,
         "run_selection":      RUN_SELECTION if isinstance(RUN_SELECTION, str) else list(RUN_SELECTION),
         "flux_fraction":      FLUX_FRACTION,
         "subsample_fraction": SUBSAMPLE_FRACTION,
@@ -539,23 +543,23 @@ def _visualize_split(model, pairs, split, n_samples, output_dir):
     n = min(n_samples, len(pairs))
     pocas = []
     gts   = []
-    
+
     for x_path, y_path in pairs[:n]:
         try:
             x_data = np.load(x_path, allow_pickle=False).astype(np.float32)
             y_data = np.load(y_path, allow_pickle=False).astype(np.float32)
             if FLUX_FRACTION > 0:
-                pocas.append(_apply_low_flux(x_data[:, :, 0], FLUX_FRACTION))
+                pocas.append(_apply_low_flux(x_data[:, :, _CH_IDX], FLUX_FRACTION))
             else:
-                x_max = float(x_data[:, :, 0].max())
-                pocas.append(x_data[:, :, 0] / max(x_max, 1.0))
-            gts.append(y_data[:, :, 0])
+                x_max = float(x_data[:, :, _CH_IDX].max())
+                pocas.append(x_data[:, :, _CH_IDX] / max(x_max, 1.0))
+            gts.append(y_data[:, :, _CH_IDX])
         except Exception as e:
             print(f"[WARN]  Failed to load {x_path.name}: {e}")
-    
+
     pocas = np.array(pocas, dtype=np.float32)
     gts   = np.array(gts,   dtype=np.float32)
-    
+
     if len(pocas) == 0:
         print(f"[WARN]  No samples could be loaded for {split}")
         return
@@ -575,7 +579,7 @@ def _visualize_split(model, pairs, split, n_samples, output_dir):
             if row == 0:
                 ax.set_title(title, fontsize=10)
 
-    plt.suptitle(f"UNET0XY — {split} samples", fontsize=12, y=1.01)
+    plt.suptitle(f"UNET2YZ — {split} samples", fontsize=12, y=1.01)
     plt.tight_layout()
     out_path = output_dir / f"viz_{split}.png"
     plt.savefig(out_path, dpi=120, bbox_inches='tight')
@@ -592,7 +596,7 @@ def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     print("=" * 80)
-    print(f" UNET2D-XY TRAINING — POCA Denoising, XY channel ({LOSS_FN} loss)")
+    print(f" UNET2D-YZ TRAINING — POCA Denoising, YZ channel ({LOSS_FN} loss)")
     print(f" Output : {OUTPUT_DIR}")
     print("=" * 80)
 
@@ -608,7 +612,6 @@ def main():
                 except RuntimeError as e:
                     print(f"[WARN]  set_memory_growth failed: {e}")
             gpu_name = gpus[0].name.split('/')[-1]
-            # Report actual free VRAM (nvidia-smi query), not TF's conservative estimate
             try:
                 import subprocess
                 result = subprocess.run(
@@ -640,10 +643,10 @@ def main():
     print(f"[DATA]  RUN_SELECTION  : {RUN_SELECTION}")
     run_names = _resolve_runs(RUN_SELECTION)
     print(f"[DATA]  Resolved runs  : {run_names}")
-    
+
     all_pairs = _scan_npy_pairs(run_names)
     print(f"[DATA]  Total pairs    : {len(all_pairs)}")
-    
+
     splits = _train_val_test_split(all_pairs, val_frac=VAL_FRACTION, test_frac=TEST_FRACTION, seed=RANDOM_SEED)
     sizes  = _count_files(splits)
     _save_split_csvs(splits, OUTPUT_DIR)
@@ -652,7 +655,7 @@ def main():
     steps_train = sizes['train'] // BATCH_SIZE
     steps_val   = sizes['val']   // BATCH_SIZE
     steps_test  = sizes['test']  // BATCH_SIZE
-    
+
     print(f"[DATA]  Source           : NPY files from {', '.join(run_names)}")
     print(f"[DATA]  Splits           : train={sizes['train']}  val={sizes['val']}  test={sizes['test']}")
     print(f"[DATA]  Batch size       : {BATCH_SIZE}  ({steps_train} steps/epoch)")
@@ -673,7 +676,7 @@ def main():
         print("#" * 80)
 
         CHECKPOINT_DIR = OUTPUT_DIR / "checkpoints"
-        best_model_path = CHECKPOINT_DIR / "best_model_0_XY.keras"
+        best_model_path = CHECKPOINT_DIR / f"best_model_{_MODEL_LABEL}.keras"
 
         if not best_model_path.exists():
             sys.exit(f"[ERROR] Best model not found: {best_model_path}")
@@ -690,7 +693,6 @@ def main():
         )
         print(f"[EVAL]  Best model loaded : {best_model_path.name}")
 
-        # Evaluate on test
         print("\n" + "=" * 80)
         print(" EVALUATION ON TEST SET")
         print("=" * 80)
@@ -699,9 +701,8 @@ def main():
         print(f"[EVAL]  Test PSNR        : {results['psnr_metric']:.3f} dB")
         print(f"[EVAL]  Test SSIM        : {results['ssim_metric']:.4f}")
 
-        # Optional visualization
         if VISUALIZE_RESULTS:
-            viz_dir = OUTPUT_DIR / "visualizations_XY"
+            viz_dir = OUTPUT_DIR / "visualizations_YZ"
             print(f"\n[VIZ]   Saving visualizations → {viz_dir}/")
             for split_name, file_list in splits.items():
                 _visualize_split(best_model, file_list, split_name, N_VIZ, viz_dir)
@@ -720,14 +721,14 @@ def main():
     )
 
     n_params = model.count_params()
-    print(f"[MODEL] Architecture     : UNET2D standard (single-channel XY)")
+    print(f"[MODEL] Architecture     : UNET2D standard (single-channel YZ)")
     print(f"[MODEL] Levels / filters : {N_LEVELS} levels, base={N_FILTERS}, kernel={FILTER_SIZE}×{FILTER_SIZE}")
     print(f"[MODEL] Parameters       : {n_params:,}")
     print(f"[MODEL] Loss / metrics   : {LOSS_FN} / PSNR, SSIM(5×5)")
     print(f"[MODEL] Optimizer        : Adam(lr={LEARNING_RATE})")
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    summary_file = OUTPUT_DIR / "model_summary_0_XY.txt"
+    summary_file = OUTPUT_DIR / f"model_summary_{_MODEL_LABEL}.txt"
     with open(summary_file, "w") as f:
         model.summary(line_length=110, print_fn=lambda s: f.write(s + "\n"))
     print(f"[MODEL] Full summary     : {summary_file}")
@@ -735,7 +736,7 @@ def main():
     # ── Checkpoint / resume ─────────────────────────────────────────────────
     CHECKPOINT_DIR = OUTPUT_DIR / "checkpoints"
     CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
-    meta_path     = CHECKPOINT_DIR / "training_meta_0_XY.json"
+    meta_path     = CHECKPOINT_DIR / f"training_meta_{_MODEL_LABEL}.json"
     initial_epoch = 0
 
     print("\n" + "#" * 80)
@@ -745,13 +746,12 @@ def main():
         if meta_path.exists():
             meta_path.unlink()
     elif meta_path.exists():
-        # Validate config against the saved run_config.json before loading weights
         config_ok = _check_config_match(OUTPUT_DIR)
 
         with open(meta_path) as f:
             meta = json.load(f)
         initial_epoch = meta.get('last_epoch', 0)
-        last_ckpt = CHECKPOINT_DIR / "last_checkpoint_0_XY.keras"
+        last_ckpt = CHECKPOINT_DIR / f"last_checkpoint_{_MODEL_LABEL}.keras"
         if last_ckpt.exists() and config_ok:
             model = keras.models.load_model(
                 str(last_ckpt),
@@ -781,7 +781,7 @@ def main():
     callbacks = [
         FullTrainingCheckpoint(CHECKPOINT_DIR, monitor='val_loss'),
         keras.callbacks.EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=False, verbose=1),
-        keras.callbacks.CSVLogger(OUTPUT_DIR / "training_log_0_XY.csv", append=True),
+        keras.callbacks.CSVLogger(OUTPUT_DIR / f"training_log_{_MODEL_LABEL}.csv", append=True),
         EpochProgressCallback(steps_per_epoch=steps_train, log_every=20),
         EpochMonitoringCallback(splits, CHECKPOINT_DIR / "epoch_monitoring"),
     ]
@@ -808,7 +808,7 @@ def main():
     print(f"[TIME]  Training finished : {elapsed:.1f}s  ({elapsed/60:.1f} min)")
 
     # ── Final test evaluation with best weights ─────────────────────────────
-    best_model_path = CHECKPOINT_DIR / "best_model_0_XY.keras"
+    best_model_path = CHECKPOINT_DIR / f"best_model_{_MODEL_LABEL}.keras"
     print("\n" + "=" * 80)
     print(" FINAL EVALUATION ON TEST SET (best val_loss checkpoint)")
     print("=" * 80)
@@ -832,14 +832,14 @@ def main():
     except Exception as e:
         print(f"[ERROR] Could not evaluate best model on test: {e}")
 
-    final_model_path = OUTPUT_DIR / "model_epoch_final_0_XY.keras"
+    final_model_path = OUTPUT_DIR / f"model_epoch_final_{_MODEL_LABEL}.keras"
     model.save(final_model_path)
     print(f"[SAVE]  Final-epoch model : {final_model_path.name}")
 
     # ── Optional visualization ───────────────────────────────────────────────
     if VISUALIZE_RESULTS:
         eval_model = best_model if best_model is not None else model
-        viz_dir = OUTPUT_DIR / "visualizations_XY"
+        viz_dir = OUTPUT_DIR / "visualizations_YZ"
         print(f"\n[VIZ]   Saving visualizations → {viz_dir}/")
         for split_name, file_list in splits.items():
             _visualize_split(eval_model, file_list, split_name, N_VIZ, viz_dir)
@@ -886,26 +886,26 @@ class EpochMonitoringCallback(keras.callbacks.Callback):
 
     def __init__(self, file_splits, monitoring_dir):
         super().__init__()
-        self.file_splits = file_splits  # Dict: {'train': [...], 'val': [...], 'test': [...]}
+        self.file_splits = file_splits
         self.monitoring_dir = Path(monitoring_dir)
         self.monitoring_dir.mkdir(parents=True, exist_ok=True)
         self.n_train = len(file_splits['train'])
-        
+
         # Pre-cache val/test fixed samples (index 0)
         self._val_x, self._val_y = self._load_sample(file_splits['val'][0])
         self._test_x, self._test_y = self._load_sample(file_splits['test'][0])
 
     def _load_sample(self, pair):
-        """Load a (x_path, y_path) pair, extract XY channel, return (x, y)."""
+        """Load a (x_path, y_path) pair, extract YZ channel, return (x, y)."""
         x_path, y_path = pair
         x_data = np.load(x_path, allow_pickle=False).astype(np.float32)
         y_data = np.load(y_path, allow_pickle=False).astype(np.float32)
         if FLUX_FRACTION > 0:
-            x = _apply_low_flux(x_data[:, :, 0], FLUX_FRACTION)[..., np.newaxis]
+            x = _apply_low_flux(x_data[:, :, _CH_IDX], FLUX_FRACTION)[..., np.newaxis]
         else:
-            x_max = float(x_data[:, :, 0].max())
-            x = x_data[:, :, 0:1] / max(x_max, 1.0)
-        y = y_data[:, :, 0:1]           # GT binary mask [0, 1]
+            x_max = float(x_data[:, :, _CH_IDX].max())
+            x = x_data[:, :, _CH_IDX:_CH_IDX+1] / max(x_max, 1.0)
+        y = y_data[:, :, _CH_IDX:_CH_IDX+1]    # GT binary mask [0, 1]
         return x, y
 
     def on_epoch_end(self, epoch, logs=None):
@@ -919,33 +919,33 @@ class EpochMonitoringCallback(keras.callbacks.Callback):
 
         epoch_num = epoch + 1
         logs = logs or {}
-        
+
         # Random train sample
         idx_train = np.random.randint(0, self.n_train)
         train_x, train_y = self._load_sample(self.file_splits['train'][idx_train])
-        
+
         # Single forward pass for all 3 samples
         batch = np.stack([train_x, self._val_x, self._test_x], axis=0)
         preds = self.model.predict(batch, verbose=0)
-        
+
         rows = [
             ('Train  (random)',   train_x[..., 0], preds[0, ..., 0], train_y[..., 0]),
             ('Val    (fixed #0)', self._val_x[..., 0], preds[1, ..., 0], self._val_y[..., 0]),
             ('Test   (fixed #0)', self._test_x[..., 0], preds[2, ..., 0], self._test_y[..., 0]),
         ]
-        
+
         val_loss = logs.get('val_loss', float('nan'))
         val_psnr = logs.get('val_psnr_metric', float('nan'))
         val_ssim = logs.get('val_ssim_metric', float('nan'))
-        
+
         fig, axes = plt.subplots(3, 3, figsize=(13, 11))
         fig.patch.set_facecolor('white')
         fig.suptitle(
-            f"UNET0XY  ·  Epoch {epoch_num:03d} / {self.params['epochs']}"
+            f"UNET2YZ  ·  Epoch {epoch_num:03d} / {self.params['epochs']}"
             f"    |    val_loss = {val_loss:.5f}    PSNR = {val_psnr:.2f} dB    SSIM = {val_ssim:.4f}",
             fontsize=12, fontweight='bold', y=0.995,
         )
-        
+
         col_titles = ['Input  (POCA)', 'UNET Output  (denoised)', 'Ground Truth']
         for row_idx, (row_label, src, pred, gt) in enumerate(rows):
             vmax_row = max(float(src.max()), float(pred.max()), float(gt.max()), 1e-6)
@@ -962,9 +962,9 @@ class EpochMonitoringCallback(keras.callbacks.Callback):
                 cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
                 cbar.ax.tick_params(labelsize=7)
                 cbar.set_label('Normalised density', fontsize=7, labelpad=4)
-        
+
         plt.tight_layout(rect=[0, 0, 1, 0.965])
-        out_path = self.monitoring_dir / f"UNET0XY_epoch{epoch_num:03d}_monitoring.png"
+        out_path = self.monitoring_dir / f"UNET2YZ_epoch{epoch_num:03d}_monitoring.png"
         plt.savefig(out_path, dpi=180, bbox_inches='tight', facecolor='white')
         plt.close(fig)
         print(f"[MON]   Epoch {epoch_num:03d} → {out_path.name}")
@@ -979,8 +979,8 @@ class FullTrainingCheckpoint(keras.callbacks.Callback):
         self.ckpt_dir.mkdir(parents=True, exist_ok=True)
         self.monitor = monitor
         self.best = np.inf
-        self.meta_path = self.ckpt_dir / "training_meta_0_XY.json"
-        
+        self.meta_path = self.ckpt_dir / f"training_meta_{_MODEL_LABEL}.json"
+
         if self.meta_path.exists():
             with open(self.meta_path) as f:
                 self.best = json.load(f).get('best_val_loss', np.inf)
@@ -990,11 +990,9 @@ class FullTrainingCheckpoint(keras.callbacks.Callback):
         current = logs.get(self.monitor)
         if current is None:
             return
-        
-        # Save last checkpoint
-        (self.ckpt_dir / "last_checkpoint_0_XY.keras").parent.mkdir(parents=True, exist_ok=True)
-        self.model.save(str(self.ckpt_dir / "last_checkpoint_0_XY.keras"))
-        
+
+        self.model.save(str(self.ckpt_dir / f"last_checkpoint_{_MODEL_LABEL}.keras"))
+
         meta = {
             'last_epoch': epoch + 1,
             'best_val_loss': float(self.best),
@@ -1002,14 +1000,13 @@ class FullTrainingCheckpoint(keras.callbacks.Callback):
             'last_val_psnr': float(logs.get('val_psnr_metric', 0.0)),
             'last_val_ssim': float(logs.get('val_ssim_metric', 0.0)),
         }
-        
-        # Save best checkpoint
+
         if current < self.best:
             self.best = current
-            self.model.save(str(self.ckpt_dir / "best_model_0_XY.keras"))
+            self.model.save(str(self.ckpt_dir / f"best_model_{_MODEL_LABEL}.keras"))
             meta['best_val_loss'] = float(self.best)
             print(f"[CKPT]  New best: val_loss={current:.6f}")
-        
+
         with open(self.meta_path, 'w') as f:
             json.dump(meta, f, indent=2)
 
