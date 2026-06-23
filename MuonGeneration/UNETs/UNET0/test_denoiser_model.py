@@ -9,8 +9,8 @@ Test a trained UNET denoiser — single file or full test split.
 
 ── Full-test mode ────────────────────────────────────────────────────────────────────
   Reads run_config.json (flux, channel, loss) and data_indices/test.csv
-  automatically from the experiment folder, then saves an N×3 PDF grid
-  (Input | Prediction | Ground Truth) with per-row PSNR/SSIM.
+  automatically from the experiment folder, then saves individual PNG images
+  (Input | Prediction | Ground Truth) with per-sample PSNR/SSIM.
 
   python test_denoiser_model.py \\
       --model_folder /path/to/models_XY/run0__loss_charb__flux100__bs32__f64__l4__seed42 \\
@@ -19,7 +19,7 @@ Test a trained UNET denoiser — single file or full test split.
   # Override flux (test a full-flux model on low-flux inputs):
   python test_denoiser_model.py --model_folder /path/... --full_test 15 --downsample 0.1
 
-  Saves to: /home/samuel/Work/Muography_Denoising/full_test_<run_id>_Nsamples.pdf
+  Saves to: <model_folder>/imágenes test/<YYYY-MM-DD_HH-MM-SS>/NNN_sample_*.png
 """
 
 import argparse
@@ -27,6 +27,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from datetime import datetime
 
 import numpy as np
 
@@ -91,7 +92,7 @@ def _apply_downsample(poca_raw: np.ndarray, fraction: float) -> np.ndarray:
 # Full-test mode
 # ---------------------------------------------------------------------------
 
-def _run_full_test(model_folder: Path, n_samples: int, downsample_override):
+def _run_full_test(model_folder: Path, n_samples: int, downsample_override, use_rotation: bool = False):
     """Evaluate the best model from an experiment folder on N random test samples.
 
     Reads run_config.json for flux_fraction and channel index, loads the best
@@ -149,9 +150,14 @@ def _run_full_test(model_folder: Path, n_samples: int, downsample_override):
         sys.exit("[ERROR] No valid pairs found in test.csv (files may have moved).")
 
     n = min(n_samples, len(all_pairs))
-    print(f"[DATA]  Test split : {len(all_pairs)} pairs  →  sampling {n}")
+    rot_ks  = [0, 1, 2, 3] if use_rotation else [0]
+    n_total = n * len(rot_ks)
+    if use_rotation:
+        print(f"[DATA]  Test split : {len(all_pairs)} pairs  →  sampling {n}  ×  4 rotations = {n_total} total")
+    else:
+        print(f"[DATA]  Test split : {len(all_pairs)} pairs  →  sampling {n}")
 
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(42)
     selected = [all_pairs[i] for i in sorted(rng.choice(len(all_pairs), size=n, replace=False))]
 
     # ── Load model ────────────────────────────────────────────────────────────
@@ -186,35 +192,42 @@ def _run_full_test(model_folder: Path, n_samples: int, downsample_override):
     print(f"  Parameters : {model.count_params():,}\n")
 
     # ── Inference ─────────────────────────────────────────────────────────────
-    inputs_list, preds_list, gts_list, metrics_rows = [], [], [], []
-    print(f"Running inference on {n} test samples ...")
+    inputs_list, preds_list, gts_list, metrics_rows, sample_labels = [], [], [], [], []
+    rot_label_str = f"4 rotations × {n} pairs = {n_total}" if use_rotation else str(n)
+    print(f"Running inference on {rot_label_str} test samples ...")
+    global_idx = 0
     for i, (x_path, y_path) in enumerate(selected):
         x_data = np.load(x_path, allow_pickle=False).astype(np.float32)
         y_data = np.load(y_path, allow_pickle=False).astype(np.float32)
 
-        if flux_fraction > 0:
-            x_norm = _apply_downsample(x_data[:, :, channel_idx], flux_fraction)
-        else:
-            x_ch   = x_data[:, :, channel_idx]
-            x_norm = x_ch / max(float(x_ch.max()), 1.0)
-        y_ch = y_data[:, :, channel_idx]
+        for k in rot_ks:
+            x_ch = np.rot90(x_data[:, :, channel_idx], k=k)
+            y_ch = np.rot90(y_data[:, :, channel_idx], k=k)
 
-        pred = model.predict(x_norm[np.newaxis, :, :, np.newaxis], verbose=0)[0, :, :, 0]
+            if flux_fraction > 0:
+                x_norm = _apply_downsample(x_ch, flux_fraction)
+            else:
+                x_norm = x_ch / max(float(x_ch.max()), 1.0)
 
-        gt_t = tf.constant(y_ch  [np.newaxis, :, :, np.newaxis], dtype=tf.float32)
-        x_t  = tf.constant(x_norm[np.newaxis, :, :, np.newaxis], dtype=tf.float32)
-        p_t  = tf.constant(pred  [np.newaxis, :, :, np.newaxis], dtype=tf.float32)
-        psnr_in  = float(tf.image.psnr(gt_t, x_t, max_val=1.0).numpy()[0])
-        psnr_out = float(tf.image.psnr(gt_t, p_t, max_val=1.0).numpy()[0])
-        ssim_in  = float(tf.image.ssim(gt_t, x_t, max_val=1.0, filter_size=5, filter_sigma=1.0).numpy()[0])
-        ssim_out = float(tf.image.ssim(gt_t, p_t, max_val=1.0, filter_size=5, filter_sigma=1.0).numpy()[0])
+            pred = model.predict(x_norm[np.newaxis, :, :, np.newaxis], verbose=0)[0, :, :, 0]
 
-        inputs_list.append(x_norm)
-        preds_list.append(pred)
-        gts_list.append(y_ch)
-        metrics_rows.append((psnr_in, psnr_out, ssim_in, ssim_out))
-        print(f"  [{i+1:3d}/{n}]  PSNR {psnr_in:6.2f}→{psnr_out:6.2f} dB  |  "
-              f"SSIM {ssim_in:.4f}→{ssim_out:.4f}  |  {x_path.stem[:55]}")
+            gt_t = tf.constant(y_ch  [np.newaxis, :, :, np.newaxis], dtype=tf.float32)
+            x_t  = tf.constant(x_norm[np.newaxis, :, :, np.newaxis], dtype=tf.float32)
+            p_t  = tf.constant(pred  [np.newaxis, :, :, np.newaxis], dtype=tf.float32)
+            psnr_in  = float(tf.image.psnr(gt_t, x_t, max_val=1.0).numpy()[0])
+            psnr_out = float(tf.image.psnr(gt_t, p_t, max_val=1.0).numpy()[0])
+            ssim_in  = float(tf.image.ssim(gt_t, x_t, max_val=1.0, filter_size=5, filter_sigma=1.0).numpy()[0])
+            ssim_out = float(tf.image.ssim(gt_t, p_t, max_val=1.0, filter_size=5, filter_sigma=1.0).numpy()[0])
+
+            inputs_list.append(x_norm)
+            preds_list.append(pred)
+            gts_list.append(y_ch)
+            metrics_rows.append((psnr_in, psnr_out, ssim_in, ssim_out))
+            sample_labels.append((x_path, k * 90))
+            global_idx += 1
+            rot_str = f"  rot{k*90:3d}°" if use_rotation else ""
+            print(f"  [{global_idx:3d}/{n_total}]{rot_str}  PSNR {psnr_in:6.2f}→{psnr_out:6.2f} dB  |  "
+                  f"SSIM {ssim_in:.4f}→{ssim_out:.4f}  |  {x_path.stem[:50]}")
 
     # ── Summary ───────────────────────────────────────────────────────────────
     avg_psnr_in  = float(np.mean([m[0] for m in metrics_rows]))
@@ -230,52 +243,62 @@ def _run_full_test(model_folder: Path, n_samples: int, downsample_override):
     import matplotlib.pyplot as plt
 
     col_titles = [f"Input  (POCA · {projection})", "UNET Output  (denoised)", "Ground Truth"]
-    fig, axes = plt.subplots(n, 3, figsize=(13, 4.2 * n))
-    if n == 1:
-        axes = axes[np.newaxis, :]
-    fig.patch.set_facecolor('white')
-    flux_str = f"  ·  flux {flux_fraction*100:.0f}%" if flux_fraction > 0 else "  ·  full flux"
-    fig.suptitle(
-        f"Full test  ·  {run_id}{flux_str}\n"
-        f"Avg PSNR: {avg_psnr_in:.2f} → {avg_psnr_out:.2f} dB   |   "
-        f"Avg SSIM: {avg_ssim_in:.4f} → {avg_ssim_out:.4f}   ({n} samples)",
-        fontsize=11, fontweight='bold', y=1.002,
-    )
-
-    for row_idx, (src, pred, gt, (pi, po, si, so)) in enumerate(
-        zip(inputs_list, preds_list, gts_list, metrics_rows)
+    
+    # Create output directory structure
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    img_dir = model_folder / "imágenes test" / timestamp
+    img_dir.mkdir(parents=True, exist_ok=True)
+    print(f"[DIR]   Saving images to: {img_dir}")
+    
+    # Save individual PNGs for each test sample
+    print(f"\nSaving {n_total} PNG images...")
+    for i, ((x_path, angle_deg), src, pred, gt, (pi, po, si, so)) in enumerate(
+        zip(sample_labels, inputs_list, preds_list, gts_list, metrics_rows)
     ):
-        vmax = max(float(src.max()), float(pred.max()), float(gt.max()), 1e-6)
-        row_label = f"PSNR {pi:.1f}→{po:.1f}  SSIM {si:.3f}→{so:.3f}"
+        # Create 1×3 figure for this sample
+        fig, axes = plt.subplots(1, 3, figsize=(13, 4.2))
+        fig.patch.set_facecolor('white')
+
+        rot_tag  = f"  ·  rot {angle_deg}°" if use_rotation else ""
+        flux_tag = f"  ·  flux {flux_fraction*100:.0f}%" if flux_fraction > 0 else ""
+
+        # Each image normalized to its own maximum
+        _major_ticks = list(np.arange(-64, 65, 16))
+        _minor_ticks = list(np.arange(-64, 65, 4))
         for col_idx, (img, col_title) in enumerate(zip([src, pred, gt], col_titles)):
-            ax = axes[row_idx, col_idx]
-            im = ax.imshow(img, cmap='viridis', vmin=0, vmax=vmax,
-                           aspect='equal', interpolation='nearest')
-            ax.set_xticks([])
-            ax.set_yticks([])
-            if row_idx == 0:
-                ax.set_title(col_title, fontsize=11, fontweight='bold', pad=6)
+            vmax_img = max(float(img.max()), 1e-6)
+            ax = axes[col_idx]
+            im = ax.imshow(img, cmap='viridis', vmin=0, vmax=vmax_img,
+                           aspect='equal', interpolation='nearest', origin='lower',
+                           extent=[-64, 64, -64, 64])
+            ax.set_title(col_title, fontsize=11, fontweight='bold', pad=6)
+            ax.set_xticks(_major_ticks)
+            ax.set_yticks(_major_ticks if col_idx == 0 else [])
+            ax.set_xticks(_minor_ticks, minor=True)
+            ax.set_yticks(_minor_ticks if col_idx == 0 else [], minor=True)
+            ax.tick_params(axis='both', which='major', direction='in',
+                           length=4, width=0.8, labelsize=7, top=True, right=True)
+            ax.tick_params(axis='both', which='minor', direction='in',
+                           length=2, width=0.5, top=True, right=True)
+            for spine in ax.spines.values():
+                spine.set_linewidth(0.8)
+            ax.set_xlabel('x (cm)', fontsize=8, labelpad=3)
             if col_idx == 0:
-                ax.set_ylabel(row_label, fontsize=8, labelpad=6)
+                ax.set_ylabel('y (cm)', fontsize=8, labelpad=3)
             cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
             cbar.ax.tick_params(labelsize=6)
 
-    plt.tight_layout(rect=[0, 0, 1, 0.985])
+        plt.tight_layout(rect=[0, 0, 1, 0.93])
 
-    pdf_dir  = Path("/home/samuel/Work/Muography_Denoising")
-    pdf_dir.mkdir(parents=True, exist_ok=True)
-    flux_tag = f"_flux{int(flux_fraction*100)}" if flux_fraction > 0 else ""
-    pdf_name = f"full_test_{run_id[:60]}{flux_tag}_{n}samples.pdf"
-    pdf_path = pdf_dir / pdf_name
-    plt.savefig(pdf_path, dpi=150, bbox_inches='tight', facecolor='white', format='pdf')
-    print(f"\n[SAVED]  {pdf_path}")
+        # Save as PNG
+        rot_suffix = f"_rot{angle_deg:03d}" if use_rotation else ""
+        png_name = f"{i+1:03d}__{x_path.stem}{rot_suffix}.png"
+        png_path = img_dir / png_name
+        plt.savefig(png_path, dpi=150, bbox_inches='tight', facecolor='white', format='png')
+        print(f"  [{i+1:3d}/{n_total}]  {png_path.name}")
+        plt.close(fig)
 
-    try:
-        matplotlib.use('TkAgg')
-        plt.show()
-    except Exception:
-        pass
-    plt.close(fig)
+    print(f"\n[SAVED]  All images saved to: {img_dir}")
 
 
 # ---------------------------------------------------------------------------
@@ -296,7 +319,10 @@ def main():
                         help="(full-test) Experiment folder with run_config.json + checkpoints/")
     parser.add_argument("--full_test", type=int, default=None, metavar="N",
                         help="(full-test) Evaluate N random test samples from data_indices/test.csv "
-                             "and save an N×3 PDF grid (Input | Prediction | Ground Truth)")
+                             "and save individual PNG grids (Input | Prediction | Ground Truth)")
+    parser.add_argument("--rotation", action="store_true",
+                        help="(full-test) Test each sample at all 4 rotations (0°, 90°, 180°, 270°). "
+                             "--full_test N --rotation → 4N total images.")
     # ── Shared ───────────────────────────────────────────────────────────────
     parser.add_argument(
         "--downsample", type=float, default=None, metavar="FRAC",
@@ -305,13 +331,16 @@ def main():
     )
     parser.add_argument("--save_pdf", action="store_true",
                         help="(single-file) Save the output figure as PDF.")
+    parser.add_argument("--output", type=str, default=None, metavar="PATH",
+                        help="(single-file) Save the output figure as PNG to this exact path "
+                             "(uses Agg backend; overrides --save_pdf).")
     args = parser.parse_args()
 
     # ── Dispatch: full-test mode ──────────────────────────────────────────────
     if args.model_folder is not None:
         if args.full_test is None:
             sys.exit("[ERROR] --model_folder requires --full_test N")
-        _run_full_test(Path(args.model_folder), args.full_test, args.downsample)
+        _run_full_test(Path(args.model_folder), args.full_test, args.downsample, args.rotation)
         return
 
     # ── Single-file mode: validate ────────────────────────────────────────────
@@ -415,7 +444,7 @@ def main():
 
     # ── Plot ─────────────────────────────────────────────────────────────────
     import matplotlib
-    matplotlib.use('Agg' if args.save_pdf else 'TkAgg')
+    matplotlib.use('Agg' if (args.save_pdf or args.output) else 'TkAgg')
     try:
         import matplotlib.pyplot as plt
     except ImportError:
@@ -429,15 +458,28 @@ def main():
     if gt is not None:
         panels.append((gt, "Ground Truth"))
 
-    # Common vmax across all panels for honest comparison
-    vmax = max(float(x_norm.max()), float(pred.max()), float(gt.max()) if gt is not None else 0, 1e-6)
-
-    for ax, (img, title) in zip(axes, panels):
-        im = ax.imshow(img, cmap='viridis', vmin=0, vmax=vmax,
-                       aspect='equal', interpolation='nearest')
+    # Each image normalized to its own maximum
+    _major_ticks = list(np.arange(-64, 65, 16))
+    _minor_ticks = list(np.arange(-64, 65, 4))
+    for panel_idx, (ax, (img, title)) in enumerate(zip(axes, panels)):
+        vmax_img = max(float(img.max()), 1e-6)
+        im = ax.imshow(img, cmap='viridis', vmin=0, vmax=vmax_img,
+                       aspect='equal', interpolation='nearest', origin='lower',
+                       extent=[-64, 64, -64, 64])
         ax.set_title(title, fontsize=12, fontweight='bold', pad=8)
-        ax.set_xticks([])
-        ax.set_yticks([])
+        ax.set_xticks(_major_ticks)
+        ax.set_yticks(_major_ticks if panel_idx == 0 else [])
+        ax.set_xticks(_minor_ticks, minor=True)
+        ax.set_yticks(_minor_ticks if panel_idx == 0 else [], minor=True)
+        ax.tick_params(axis='both', which='major', direction='in',
+                       length=5, width=0.8, labelsize=9, top=True, right=True)
+        ax.tick_params(axis='both', which='minor', direction='in',
+                       length=2.5, width=0.5, top=True, right=True)
+        for spine in ax.spines.values():
+            spine.set_linewidth(0.8)
+        ax.set_xlabel('x (cm)', fontsize=10, labelpad=4)
+        if panel_idx == 0:
+            ax.set_ylabel('y (cm)', fontsize=10, labelpad=4)
         cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
         cbar.ax.tick_params(labelsize=8)
         cbar.set_label('Normalised density', fontsize=8)
@@ -455,7 +497,12 @@ def main():
     plt.tight_layout()
 
     # ── Save / show ──────────────────────────────────────────────────────────
-    if args.save_pdf:
+    if args.output:
+        out_path = Path(args.output)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(out_path, dpi=150, bbox_inches='tight', facecolor='white', format='png')
+        print(f"\n[SAVED]  {out_path}")
+    elif args.save_pdf:
         pdf_dir = Path("/home/samuel/Work/Muography_Denoising")
         pdf_dir.mkdir(parents=True, exist_ok=True)
         suffix = f"_ds{args.downsample}" if args.downsample is not None else ""
@@ -464,12 +511,11 @@ def main():
         plt.savefig(pdf_path, dpi=180, bbox_inches='tight', facecolor='white', format='pdf')
         print(f"\n[SAVED]  {pdf_path}")
 
-    # Always try to show interactively too (will silently skip if no display)
-    try:
-        matplotlib.use('TkAgg')
-        plt.show()
-    except Exception:
-        if not args.save_pdf:
+    # Show interactively if TkAgg backend was selected
+    if not args.save_pdf and not args.output:
+        try:
+            plt.show()
+        except Exception:
             # Fallback: save PNG next to the simulation file
             fallback = sim_path.parent / f"denoiser_test_{sim_path.stem}.png"
             plt.savefig(fallback, dpi=150, bbox_inches='tight')

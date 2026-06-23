@@ -88,7 +88,7 @@ _MODEL_LABEL = "2_YZ" # suffix used in checkpoint file names
 
 # ── Data folder registry ────────────────────────────────────────────────────
 # Select which runs to use: "run0", "run1", "run2", a list like ["run0", "run2"], or "all"
-RUN_SELECTION = "run0"
+RUN_SELECTION = ["run0", "run1"]
 
 RUN_FOLDERS = {
     "run0": SIM_DATA / "run0_definitive_words",
@@ -125,7 +125,7 @@ FILTER_SIZE   = 3
 N_LEVELS      = 4
 
 USE_GPU            = True
-FORCE_RESTART      = True    # If True, ignore previous checkpoints and train from scratch
+FORCE_RESTART      = False   # If True, ignore previous checkpoints and train from scratch
 USE_AUGMENTATION   = True   # On-the-fly rotations ×4 (train split only)
 EVAL_ONLY          = False  # If True, skip training and load best model → evaluate + visualize only
 VISUALIZE_RESULTS  = True   # If True, save input/pred/GT comparison PNGs after training
@@ -148,7 +148,7 @@ SUBSAMPLE_FRACTION = 0.4
 # Pixels with few counts become empty; spatial distribution is statistically preserved.
 # Set to 0.0 to disable (full flux, no downsampling).
 # Examples: 0.1 = 10% flux, 0.3 = 30% flux, 1.0 = full flux (same as 0.0).
-FLUX_FRACTION = 0.0
+FLUX_FRACTION = 0.4
 
 
 # ===========================================================================

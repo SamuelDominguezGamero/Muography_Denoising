@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 UNET2D training for POCA denoising (XZ channel).
@@ -88,7 +89,7 @@ _MODEL_LABEL = "1_XZ" # suffix used in checkpoint file names
 
 # ── Data folder registry ────────────────────────────────────────────────────
 # Select which runs to use: "run0", "run1", "run2", a list like ["run0", "run2"], or "all"
-RUN_SELECTION = "run0"
+RUN_SELECTION = ["run0", "run1", "run2"]
 
 RUN_FOLDERS = {
     "run0": SIM_DATA / "run0_definitive_words",
@@ -113,23 +114,23 @@ LOSS_FN = "charbonnier"
 # ── Experiment naming ──────────────────────────────────────────────────────
 # Leave empty to auto-generate: run0__loss_charb__flux100__bs32__f64__l4__seed42
 # Set a string to use a fixed folder name: "my_experiment_v2"
-RUN_NAME = ""
+RUN_NAME = "few_parameters_low_flux"
 
 # Hyperparameters
 BATCH_SIZE    = 32
-LEARNING_RATE = 1e-3
+LEARNING_RATE = 5e-3
 EPOCHS        = 100
 SIZE_IMAGES   = 128
-N_FILTERS     = 64       # pure power of 2 — optimal for Tensor Cores
+N_FILTERS     = 16       # pure power of 2 — optimal for Tensor Cores
 FILTER_SIZE   = 3
-N_LEVELS      = 4
+N_LEVELS      = 2
 
 USE_GPU            = True
-FORCE_RESTART      = True    # If True, ignore previous checkpoints and train from scratch
-USE_AUGMENTATION   = True   # On-the-fly rotations ×4 (train split only)
+FORCE_RESTART      = False   # If True, ignore previous checkpoints and train from scratch
+USE_AUGMENTATION   = False   # On-the-fly rotations ×4 (train split only)
 EVAL_ONLY          = False  # If True, skip training and load best model → evaluate + visualize only
+N_VIZ              = 8      # Samples per split to visualize (if eval_only)
 VISUALIZE_RESULTS  = True   # If True, save input/pred/GT comparison PNGs after training
-N_VIZ              = 8      # Samples per split to visualize
 
 # ── Train/val/test split fractions ─────────────────────────────────────────
 VAL_FRACTION      = 0.15
@@ -140,15 +141,15 @@ RANDOM_SEED       = 42
 # If > 0, use only this fraction of training data per epoch (different random
 # fraction each epoch). Useful to combat overfitting and reduce epoch duration.
 # Set to 0.0 to disable. Examples: 0.5 = 50%, 0.3 = 30%, 0.0 = full dataset.
-SUBSAMPLE_FRACTION = 0.4
+SUBSAMPLE_FRACTION = 0.45
 
 # ── Low-flux simulation (Binomial downsampling of POCA counts) ──────────────────
 # If > 0, apply Binomial(counts, FLUX_FRACTION) to X before feeding the network.
 # Physically: simulates acquiring data with a reduced muon flux (shorter exposure).
 # Pixels with few counts become empty; spatial distribution is statistically preserved.
 # Set to 0.0 to disable (full flux, no downsampling).
-# Examples: 0.1 = 10% flux, 0.3 = 30% flux, 1.0 = full flux (same as 0.0).
-FLUX_FRACTION = 0.0
+# Examples: 0.1 = 10% flux, 0.4 = 40% flux, 1.0 = full flux (same as 0.0).
+FLUX_FRACTION = 0.1
 
 
 # ===========================================================================

@@ -83,7 +83,7 @@ MODELS   = DATA / "models_XY"
 
 # ── Data folder registry ────────────────────────────────────────────────────
 # Select which runs to use: "run0", "run1", "run2", a list like ["run0", "run2"], or "all"
-RUN_SELECTION = ["run0"]
+RUN_SELECTION = ["run0", "run1", "run2"]
 
 RUN_FOLDERS = {
     "run0": SIM_DATA / "run0_definitive_words",
@@ -143,7 +143,7 @@ SUBSAMPLE_FRACTION = 0.4
 # Pixels with few counts become empty; spatial distribution is statistically preserved.
 # Set to 0.0 to disable (full flux, no downsampling).
 # Examples: 0.1 = 10% flux, 0.3 = 30% flux, 1.0 = full flux (same as 0.0).
-FLUX_FRACTION = 0.40
+FLUX_FRACTION = 0.4
 
 
 # ===========================================================================
